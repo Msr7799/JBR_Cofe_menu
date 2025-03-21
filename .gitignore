@@ -59,3 +59,26 @@ coverage/
 
 # Local environment files
 .env*
+
+# IDea 
+.idea/
+*.iml
+*.ipr
+*.iws
+*.jar
+*.war
+*.ear
+*.class
+*.js
+*.css
+*.war
+*.cxx
+
+# for vscode
+.vscode/
+*.code-workspace
+*.log
+
+# gradle
+.gradle/
+build/
