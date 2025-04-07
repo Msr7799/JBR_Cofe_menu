@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:shimmer/shimmer.dart';
-import 'package:gpr_coffee_shop/constants/colors.dart';
+import 'package:gpr_coffee_shop/constants/theme.dart';
 
 /// أداة تأثير التحميل بنمط الوميض (Shimmer)
 /// تستخدم لإظهار مؤشر تحميل بدلاً من البيانات أثناء تحميلها
@@ -12,7 +12,7 @@ class ShimmerLoading extends StatelessWidget {
   /// [child] العنصر الذي سيتم عرضه بعد انتهاء التحميل
   /// [isLoading] حالة التحميل، إذا كانت true سيظهر تأثير الشيمر
   const ShimmerLoading({Key? key, required this.child, this.isLoading = true})
-    : super(key: key);
+      : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -21,8 +21,8 @@ class ShimmerLoading extends StatelessWidget {
     }
 
     return Shimmer.fromColors(
-      baseColor: Colors.grey[300]!,
-      highlightColor: Colors.grey[100]!,
+      baseColor: const Color.fromARGB(255, 255, 255, 255), 
+      highlightColor: AppTheme.background,
       child: child,
     );
   }
@@ -109,7 +109,7 @@ class ShimmerWidgets {
     return GridView.count(
       crossAxisCount: crossAxisCount,
       shrinkWrap: true,
-      physics: NeverScrollableScrollPhysics(),
+      physics: const NeverScrollableScrollPhysics(),
       mainAxisSpacing: spacing,
       crossAxisSpacing: spacing,
       childAspectRatio: aspectRatio,

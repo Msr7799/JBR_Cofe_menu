@@ -1,7 +1,10 @@
+import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:gpr_coffee_shop/models/category.dart';
 import 'package:gpr_coffee_shop/services/local_storage_service.dart';
 import 'package:uuid/uuid.dart';
+import 'package:gpr_coffee_shop/utils/logger_util.dart';
+
 
 class CategoryController extends GetxController {
   final LocalStorageService _storage;
@@ -28,7 +31,7 @@ class CategoryController extends GetxController {
         await _addSampleCategories();
       }
     } catch (e) {
-      print('Error loading categories: $e');
+      LoggerUtil.logger.e('Error loading categories: $e');
       // أضف بيانات تجريبية في حالة الخطأ
       await _addSampleCategories();
     } finally {
@@ -43,7 +46,7 @@ class CategoryController extends GetxController {
         name: 'قهوة ساخنة',
         description: 'مجموعة متنوعة من القهوة الساخنة',
         iconPath:
-            'assets/images/placeholder.png', // استخدم iconPath بدلاً من image
+            'assets/images/JBRH2.png', // استخدم iconPath بدلاً من image
       ),
       Category(
         id: '2',
@@ -66,23 +69,32 @@ class CategoryController extends GetxController {
     categories.assignAll(sampleCategories);
   }
 
-  Future<void> addCategory(Category category) async {
+  Future<bool> addCategory(Category category) async {
     try {
       isLoading.value = true;
       await _storage.saveCategory(category);
       categories.add(category);
+      categories.refresh(); // Use refresh instead of update
       Get.snackbar(
         'نجاح',
         'تم إضافة الفئة بنجاح',
         snackPosition: SnackPosition.BOTTOM,
+        duration: const Duration(seconds: 2),
+        backgroundColor: Colors.green,
+        colorText: Colors.white,
       );
+      return true;
     } catch (e) {
-      print('Error adding category: $e');
+      LoggerUtil.logger.e('Error adding category: $e');
       Get.snackbar(
         'خطأ',
         'حدث خطأ أثناء إضافة الفئة',
         snackPosition: SnackPosition.BOTTOM,
+        backgroundColor: Colors.red,
+        colorText: Colors.white,
+        duration: const Duration(seconds: 2),
       );
+      return false;
     } finally {
       isLoading.value = false;
     }
@@ -94,19 +106,26 @@ class CategoryController extends GetxController {
       await _storage.saveCategory(category);
       final index = categories.indexWhere((c) => c.id == category.id);
       if (index != -1) {
-        categories[index] = category;
+        categories[index] = category; // ✅ Update specific category
+        update();
       }
       Get.snackbar(
         'نجاح',
         'تم تحديث الفئة بنجاح',
         snackPosition: SnackPosition.BOTTOM,
+        backgroundColor: Colors.green,
+        colorText: Colors.white,
+        duration: const Duration(seconds: 2),
       );
     } catch (e) {
-      print('Error updating category: $e');
+      LoggerUtil.logger.e('Error updating category: $e');
       Get.snackbar(
         'خطأ',
         'حدث خطأ أثناء تحديث الفئة',
         snackPosition: SnackPosition.BOTTOM,
+        backgroundColor: Colors.red,
+        colorText: Colors.white,
+        duration: const Duration(seconds: 2),
       );
     } finally {
       isLoading.value = false;
@@ -117,18 +136,26 @@ class CategoryController extends GetxController {
     try {
       isLoading.value = true;
       await _storage.deleteCategory(id);
-      categories.removeWhere((category) => category.id == id);
+      categories.removeWhere(
+          (category) => category.id == id); // ✅ Update list immediately
+      update();
       Get.snackbar(
         'نجاح',
         'تم حذف الفئة بنجاح',
         snackPosition: SnackPosition.BOTTOM,
+        backgroundColor: Colors.green,
+        colorText: Colors.white,
+        duration: const Duration(seconds: 2),
       );
     } catch (e) {
-      print('Error deleting category: $e');
+      LoggerUtil.logger.e('Error deleting category: $e');
       Get.snackbar(
         'خطأ',
         'حدث خطأ أثناء حذف الفئة',
         snackPosition: SnackPosition.BOTTOM,
+        backgroundColor: Colors.red,
+        colorText: Colors.white,
+        duration: const Duration(seconds: 2),
       );
     } finally {
       isLoading.value = false;
@@ -161,7 +188,7 @@ class CategoryController extends GetxController {
 
   String createNewCategory(String name, {String description = ''}) {
     final category = Category(
-      id: Uuid().v4(),
+      id: const Uuid().v4(),
       name: name,
       description: description,
       order: categories.length,

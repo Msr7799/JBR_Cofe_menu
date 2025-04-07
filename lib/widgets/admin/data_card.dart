@@ -8,7 +8,7 @@ class DataCard extends StatelessWidget {
   final String value;
   final String? subtitle;
   final IconData icon;
-  final Color color;
+  final Color? customColor;
   final Color? backgroundColor;
   final VoidCallback? onTap;
   final bool showArrow;
@@ -20,7 +20,7 @@ class DataCard extends StatelessWidget {
   /// [value] القيمة الرئيسية للبطاقة
   /// [subtitle] نص ثانوي (اختياري)
   /// [icon] أيقونة البطاقة
-  /// [color] لون أيقونة البطاقة
+  /// [customColor] لون مخصص للبطاقة (اختياري)
   /// [backgroundColor] لون خلفية الأيقونة (اختياري)
   /// [onTap] وظيفة يتم تنفيذها عند النقر على البطاقة
   /// [showArrow] إظهار سهم للإشارة بإمكانية النقر
@@ -32,7 +32,7 @@ class DataCard extends StatelessWidget {
     required this.value,
     this.subtitle,
     required this.icon,
-    this.color = AppColors.primary,
+    this.customColor,
     this.backgroundColor,
     this.onTap,
     this.showArrow = true,
@@ -52,7 +52,7 @@ class DataCard extends StatelessWidget {
         ),
         child: Container(
           height: height,
-          padding: EdgeInsets.all(16),
+          padding: const EdgeInsets.all(16),
           child: isLoading ? _buildLoadingState() : _buildContent(),
         ),
       ),
@@ -72,7 +72,7 @@ class DataCard extends StatelessWidget {
             borderRadius: BorderRadius.circular(4),
           ),
         ),
-        SizedBox(height: 12),
+        const SizedBox(height: 12),
         Container(
           height: 24,
           width: 80,
@@ -81,7 +81,7 @@ class DataCard extends StatelessWidget {
             borderRadius: BorderRadius.circular(4),
           ),
         ),
-        if (subtitle != null) SizedBox(height: 8),
+        if (subtitle != null) const SizedBox(height: 8),
         if (subtitle != null)
           Container(
             height: 12,
@@ -100,14 +100,14 @@ class DataCard extends StatelessWidget {
       children: [
         // أيقونة البطاقة
         Container(
-          padding: EdgeInsets.all(12),
+          padding: const EdgeInsets.all(12),
           decoration: BoxDecoration(
-            color: backgroundColor ?? color.withOpacity(0.1),
+            color: backgroundColor ?? (customColor ?? AppColors.accent).withOpacity(0.1),
             borderRadius: BorderRadius.circular(12),
           ),
-          child: Icon(icon, color: color, size: 24),
+          child: Icon(icon, color: customColor ?? AppColors.accent, size: 24),
         ),
-        SizedBox(width: 16),
+        const SizedBox(width: 16),
 
         // محتوى البطاقة
         Expanded(
@@ -123,7 +123,7 @@ class DataCard extends StatelessWidget {
                   color: Colors.grey[600],
                 ),
               ),
-              SizedBox(height: 4),
+              const SizedBox(height: 4),
               Text(
                 value,
                 style: TextStyle(
@@ -133,7 +133,7 @@ class DataCard extends StatelessWidget {
                 ),
               ),
               if (subtitle != null) ...[
-                SizedBox(height: 2),
+                const SizedBox(height: 2),
                 Text(
                   subtitle!,
                   style: TextStyle(fontSize: 12, color: Colors.grey[600]),
@@ -158,7 +158,7 @@ class PercentageDataCard extends StatelessWidget {
   final double total;
   final String? subtitle;
   final IconData icon;
-  final Color color;
+  final Color? customColor;
   final VoidCallback? onTap;
   final bool isPositiveTrend;
   final String? trendPercentage;
@@ -170,7 +170,7 @@ class PercentageDataCard extends StatelessWidget {
   /// [total] القيمة الإجمالية
   /// [subtitle] نص ثانوي (اختياري)
   /// [icon] أيقونة البطاقة
-  /// [color] لون أيقونة البطاقة
+  /// [customColor] لون مخصص للبطاقة (اختياري)
   /// [onTap] وظيفة يتم تنفيذها عند النقر على البطاقة
   /// [isPositiveTrend] هل الاتجاه إيجابي أم سلبي
   /// [trendPercentage] نسبة التغير
@@ -182,7 +182,7 @@ class PercentageDataCard extends StatelessWidget {
     required this.total,
     this.subtitle,
     required this.icon,
-    this.color = AppColors.primary,
+    this.customColor,
     this.onTap,
     this.isPositiveTrend = true,
     this.trendPercentage,
@@ -202,7 +202,7 @@ class PercentageDataCard extends StatelessWidget {
           boxShape: NeumorphicBoxShape.roundRect(BorderRadius.circular(16)),
         ),
         child: Container(
-          padding: EdgeInsets.all(16),
+          padding: const EdgeInsets.all(16),
           child: isLoading
               ? _buildLoadingState()
               : Column(
@@ -212,14 +212,14 @@ class PercentageDataCard extends StatelessWidget {
                       children: [
                         // أيقونة البطاقة
                         Container(
-                          padding: EdgeInsets.all(8),
+                          padding: const EdgeInsets.all(8),
                           decoration: BoxDecoration(
-                            color: color.withOpacity(0.1),
+                            color: (customColor ?? AppColors.accent).withOpacity(0.1),
                             borderRadius: BorderRadius.circular(8),
                           ),
-                          child: Icon(icon, color: color, size: 20),
+                          child: Icon(icon, color: customColor ?? AppColors.accent, size: 20),
                         ),
-                        SizedBox(width: 12),
+                        const SizedBox(width: 12),
 
                         // عنوان البطاقة
                         Expanded(
@@ -238,7 +238,7 @@ class PercentageDataCard extends StatelessWidget {
                         // نسبة التغير (اختياري)
                         if (trendPercentage != null)
                           Container(
-                            padding: EdgeInsets.symmetric(
+                            padding: const EdgeInsets.symmetric(
                               horizontal: 6,
                               vertical: 2,
                             ),
@@ -260,7 +260,7 @@ class PercentageDataCard extends StatelessWidget {
                                       : Colors.red,
                                   size: 12,
                                 ),
-                                SizedBox(width: 2),
+                                const SizedBox(width: 2),
                                 Text(
                                   trendPercentage!,
                                   style: TextStyle(
@@ -276,12 +276,12 @@ class PercentageDataCard extends StatelessWidget {
                           ),
                       ],
                     ),
-                    SizedBox(height: 16),
+                    const SizedBox(height: 16),
 
                     // شريط التقدم
                     _buildProgressBar(percentage),
 
-                    SizedBox(height: 8),
+                    const SizedBox(height: 8),
 
                     // القيم
                     Row(
@@ -307,7 +307,7 @@ class PercentageDataCard extends StatelessWidget {
 
                     // وصف إضافي (اختياري)
                     if (subtitle != null) ...[
-                      SizedBox(height: 4),
+                      const SizedBox(height: 4),
                       Text(
                         subtitle!,
                         style: TextStyle(
@@ -339,7 +339,7 @@ class PercentageDataCard extends StatelessWidget {
                 borderRadius: BorderRadius.circular(8),
               ),
             ),
-            SizedBox(width: 12),
+            const SizedBox(width: 12),
             Container(
               height: 14,
               width: 120,
@@ -350,7 +350,7 @@ class PercentageDataCard extends StatelessWidget {
             ),
           ],
         ),
-        SizedBox(height: 16),
+        const SizedBox(height: 16),
         Container(
           height: 8,
           decoration: BoxDecoration(
@@ -358,7 +358,7 @@ class PercentageDataCard extends StatelessWidget {
             borderRadius: BorderRadius.circular(4),
           ),
         ),
-        SizedBox(height: 8),
+        const SizedBox(height: 8),
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
@@ -397,8 +397,8 @@ class PercentageDataCard extends StatelessWidget {
             width: (percentage / 100) *
                 (300 - 32), // تقدير لعرض البطاقة بدون الهوامش
             decoration: BoxDecoration(
-              gradient: LinearGradient(
-                colors: [color, color.withOpacity(0.7)],
+                gradient: LinearGradient(
+                colors: [customColor ?? AppColors.accent, (customColor ?? AppColors.accent).withOpacity(0.7)],
                 begin: Alignment.centerRight,
                 end: Alignment.centerLeft,
               ),

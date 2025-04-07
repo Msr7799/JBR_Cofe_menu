@@ -1,6 +1,8 @@
 import 'package:get/get.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:gpr_coffee_shop/models/user_credentials.dart';
+import 'package:flutter/material.dart';
+import 'package:gpr_coffee_shop/utils/logger_util.dart';
 
 class AuthResult {
   final bool success;
@@ -16,8 +18,8 @@ class AuthController extends GetxController {
 
   // المستخدمون المسموح لهم بتسجيل الدخول كمسؤولين
   final Map<String, String> _allowedAdmins = {
-    'admin@gpr.com': 'admin123',
-    'manager@gpr.com': 'manager123',
+    'jbr': 'jbr',
+    'admin': 'admin',
   };
 
   @override
@@ -82,7 +84,7 @@ class AuthController extends GetxController {
       isLoggedIn.value = false;
       isAdmin.value = false;
     } catch (e) {
-      print('خطأ أثناء تسجيل الخروج: $e');
+      LoggerUtil.logger.e('خطأ أثناء تسجيل الخروج: $e');
     } finally {
       isLoading.value = false;
     }
@@ -113,5 +115,29 @@ class AuthController extends GetxController {
   Future<void> clearSavedCredentials() async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.remove('admin_password');
+  }
+
+  /// تسجيل خروج المستخدم
+  Future<void> logout() async {
+    // تغيير نوع الإرجاع إلى Future<void>
+    // إعادة تعيين حالة تسجيل الدخول
+    isLoggedIn.value = false;
+    isAdmin.value = false;
+
+    // مسح البيانات من التخزين المحلي - استخدام getInstance بدلاً من Get.find
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.remove('isLoggedIn');
+    await prefs.remove('isAdmin');
+    await prefs.remove('userId');
+    await prefs.remove('admin_email');
+
+    // رسالة توضيحية
+    Get.snackbar(
+      'تم تسجيل الخروج',
+      'تم تسجيل خروجك بنجاح',
+      snackPosition: SnackPosition.BOTTOM,
+      backgroundColor: Colors.green.withOpacity(0.7),
+      colorText: Colors.white,
+    );
   }
 }

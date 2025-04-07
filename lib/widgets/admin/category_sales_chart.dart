@@ -25,6 +25,13 @@ class _CategorySalesChartState extends State<CategorySalesChart> {
   final orderController = Get.find<OrderController>();
 
   @override
+  void initState() {
+    super.initState();
+    // إضافة مراقب لتحديث الرسم البياني عند تغير الطلبات
+    ever(orderController.orders, (_) => setState(() {}));
+  }
+
+  @override
   Widget build(BuildContext context) {
     return Card(
       child: Padding(
@@ -45,7 +52,7 @@ class _CategorySalesChartState extends State<CategorySalesChart> {
                   titlesData: titlesData,
                   borderData: borderData,
                   barGroups: _createBarGroups(),
-                  gridData: FlGridData(show: false),
+                  gridData: const FlGridData(show: false),
                   alignment: BarChartAlignment.spaceAround,
                 ),
               ),
@@ -101,13 +108,13 @@ class _CategorySalesChartState extends State<CategorySalesChart> {
             getTitlesWidget: getTitles,
           ),
         ),
-        leftTitles:  AxisTitles(
+        leftTitles: const AxisTitles(
           sideTitles: SideTitles(showTitles: false),
         ),
-        topTitles:  AxisTitles(
+        topTitles: const AxisTitles(
           sideTitles: SideTitles(showTitles: false),
         ),
-        rightTitles: AxisTitles(
+        rightTitles: const AxisTitles(
           sideTitles: SideTitles(showTitles: false),
         ),
       );
@@ -141,7 +148,8 @@ class _CategorySalesChartState extends State<CategorySalesChart> {
 
   List<BarChartGroupData> _createBarGroups() {
     final categories = categoryController.categories;
-    final orders = orderController.getOrdersByDateRange(widget.startDate, widget.endDate);
+    final orders =
+        orderController.getOrdersByDateRange(widget.startDate, widget.endDate);
 
     return categories.asMap().entries.map((entry) {
       final categoryId = entry.value.id;

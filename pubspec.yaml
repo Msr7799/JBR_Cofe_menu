@@ -9,21 +9,28 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
-  cupertino_icons: ^1.0.2
+  cupertino_icons: ^1.0.6
   get: ^4.6.5
   hive: ^2.2.3
   hive_flutter: ^1.1.0
-  json_annotation: ^4.8.1
   uuid: ^3.0.7
   fl_chart: ^0.65.0
   image_picker: ^1.0.0
-  shared_preferences: ^2.1.2
   google_fonts: ^4.0.4
   shimmer: ^3.0.0
   flutter_neumorphic_plus: ^3.3.0
   url_launcher: ^6.1.10
   carousel_slider: ^4.2.1
   path_provider: ^2.0.15
+  flutter_staggered_animations: ^1.1.1
+  flutter_staggered_grid_view: ^0.7.0
+  path: ^1.8.3
+  qr_flutter: ^4.1.0
+  json_annotation: ^4.9.0
+  photo_view: ^0.14.0
+  shared_preferences: ^2.2.0
+  share_plus: ^7.2.1
+  logger: ^2.0.2
 
 dev_dependencies:
   flutter_test:
@@ -37,11 +44,21 @@ flutter:
   uses-material-design: true
 
   assets:
-    - assets/images/
+    - assets/images/placeholder.png
+    - assets/images/logo.png
+    - assets/images/placeholder.svg
     - assets/icons/
+    - assets/images/JBRbg1.png
+    - assets/images/JBRbg2.png
+    - assets/images/JBR2.png
+    - assets/images/JBR3.png
+    - assets/images/JBRD1.png
+    - assets/images/JBRD2.png
+    - assets/images/JBRH1.png
+    - assets/images/JBRH2.png
+    - assets/images/JBRH3.png
 
   fonts:
     - family: Cairo
       fonts:
         - asset: assets/fonts/Cairo-Regular.ttf
-    

@@ -23,9 +23,9 @@ class ProductAdapter extends TypeAdapter<Product> {
       price: fields[3] as double,
       cost: fields[4] as double,
       categoryId: fields[5] as String,
-      imageUrl: fields[6] as String?,
       isAvailable: fields[7] as bool,
       options: (fields[8] as List).cast<ProductOption>(),
+      imageUrl: fields[6] as String?,
       order: fields[9] as int,
     );
   }
@@ -163,16 +163,15 @@ class ProductOptionItemAdapter extends TypeAdapter<ProductOptionItem> {
 Product _$ProductFromJson(Map<String, dynamic> json) => Product(
       id: json['id'] as String,
       name: json['name'] as String,
-      description: json['description'] as String? ?? '',
+      description: json['description'] as String,
       price: (json['price'] as num).toDouble(),
       cost: (json['cost'] as num).toDouble(),
       categoryId: json['categoryId'] as String,
+      isAvailable: json['isAvailable'] as bool,
+      options: (json['options'] as List<dynamic>)
+          .map((e) => ProductOption.fromJson(e as Map<String, dynamic>))
+          .toList(),
       imageUrl: json['imageUrl'] as String?,
-      isAvailable: json['isAvailable'] as bool? ?? true,
-      options: (json['options'] as List<dynamic>?)
-              ?.map((e) => ProductOption.fromJson(e as Map<String, dynamic>))
-              .toList() ??
-          const [],
       order: (json['order'] as num?)?.toInt() ?? 0,
     );
 

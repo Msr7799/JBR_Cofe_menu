@@ -6,11 +6,13 @@ import 'package:gpr_coffee_shop/models/order.dart';
 import 'package:gpr_coffee_shop/widgets/admin/admin_drawer.dart';
 
 class OrderHistoryScreen extends StatefulWidget {
+  const OrderHistoryScreen({super.key});
+
   @override
-  _OrderHistoryScreenState createState() => _OrderHistoryScreenState();
+  OrderHistoryScreenState createState() => OrderHistoryScreenState();
 }
 
-class _OrderHistoryScreenState extends State<OrderHistoryScreen> {
+class OrderHistoryScreenState extends State<OrderHistoryScreen> {
   final orderController = Get.find<OrderController>();
   OrderStatus? selectedStatus;
   String searchQuery = '';
@@ -19,9 +21,13 @@ class _OrderHistoryScreenState extends State<OrderHistoryScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('سجل الطلبات'),
+        title: const Text('سجل الطلبات'),
         centerTitle: true,
         backgroundColor: AppTheme.primaryColor,
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back),
+          onPressed: () => Get.back(),
+        ),
         foregroundColor: Colors.white,
       ),
       drawer: AdminDrawer(),
@@ -31,7 +37,7 @@ class _OrderHistoryScreenState extends State<OrderHistoryScreen> {
           Expanded(
             child: Obx(
               () => orderController.isLoading.value
-                  ? Center(child: CircularProgressIndicator())
+                  ? const Center(child: CircularProgressIndicator())
                   : _buildOrdersList(),
             ),
           ),
@@ -42,11 +48,11 @@ class _OrderHistoryScreenState extends State<OrderHistoryScreen> {
 
   Widget _buildFilters() {
     return Container(
-      padding: EdgeInsets.all(16),
+      padding: const EdgeInsets.all(16),
       child: Column(
         children: [
           TextField(
-            decoration: InputDecoration(
+            decoration: const InputDecoration(
               labelText: 'بحث',
               prefixIcon: Icon(Icons.search),
               border: OutlineInputBorder(),
@@ -57,7 +63,7 @@ class _OrderHistoryScreenState extends State<OrderHistoryScreen> {
               });
             },
           ),
-          SizedBox(height: 8),
+          const SizedBox(height: 8),
           SingleChildScrollView(
             scrollDirection: Axis.horizontal,
             child: Row(
@@ -78,7 +84,7 @@ class _OrderHistoryScreenState extends State<OrderHistoryScreen> {
   Widget _buildStatusFilter(String label, OrderStatus? status) {
     final isSelected = selectedStatus == status;
     return Padding(
-      padding: EdgeInsets.symmetric(horizontal: 4),
+      padding: const EdgeInsets.symmetric(horizontal: 4),
       child: FilterChip(
         label: Text(label),
         selected: isSelected,
@@ -112,7 +118,7 @@ class _OrderHistoryScreenState extends State<OrderHistoryScreen> {
       onRefresh: () => orderController.loadOrders(),
       child: ListView.separated(
         itemCount: filteredOrders.length,
-        separatorBuilder: (context, index) => Divider(),
+        separatorBuilder: (context, index) => const Divider(),
         itemBuilder: (context, index) {
           final order = filteredOrders[index];
           return ListTile(
@@ -130,7 +136,7 @@ class _OrderHistoryScreenState extends State<OrderHistoryScreen> {
                   Text('العميل: ${order.customerName}'),
                 Text('التاريخ: ${_formatDate(order.createdAt)}'),
                 Text('الإجمالي: ${order.total.toStringAsFixed(3)} د.ب'),
-                SizedBox(height: 8),
+                const SizedBox(height: 8),
                 _buildItemsList(order.items),
               ],
             ),
@@ -143,7 +149,7 @@ class _OrderHistoryScreenState extends State<OrderHistoryScreen> {
 
   Widget _buildItemsList(List<OrderItem> items) {
     return Container(
-      padding: EdgeInsets.all(8),
+      padding: const EdgeInsets.all(8),
       decoration: BoxDecoration(
         color: Colors.grey[100],
         borderRadius: BorderRadius.circular(8),
@@ -178,20 +184,21 @@ class _OrderHistoryScreenState extends State<OrderHistoryScreen> {
               Text('طريقة الدفع: ${_getPaymentTypeText(order.paymentType)}'),
               if (order.notes != null && order.notes!.isNotEmpty)
                 Text('ملاحظات: ${order.notes}'),
-              SizedBox(height: 16),
-              Text('المنتجات:', style: TextStyle(fontWeight: FontWeight.bold)),
+              const SizedBox(height: 16),
+              const Text('المنتجات:',
+                  style: TextStyle(fontWeight: FontWeight.bold)),
               _buildItemsList(order.items),
-              Divider(),
+              const Divider(),
               Text(
                 'الإجمالي: ${order.total.toStringAsFixed(3)} د.ب',
-                style: TextStyle(fontWeight: FontWeight.bold),
+                style: const TextStyle(fontWeight: FontWeight.bold),
               ),
             ],
           ),
         ),
         actions: [
           TextButton(
-            child: Text('إغلاق'),
+            child: const Text('إغلاق'),
             onPressed: () => Navigator.of(context).pop(),
           ),
         ],
@@ -225,7 +232,7 @@ class _OrderHistoryScreenState extends State<OrderHistoryScreen> {
     return Chip(
       label: Text(
         label,
-        style: TextStyle(color: Colors.white),
+        style: const TextStyle(color: Colors.white),
       ),
       backgroundColor: color,
     );

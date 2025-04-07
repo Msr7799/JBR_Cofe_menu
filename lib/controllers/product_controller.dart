@@ -1,6 +1,12 @@
+import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:gpr_coffee_shop/models/product.dart';
+// import 'package:gpr_coffee_shop/models/category.dart'; // Add this import for Category class
 import 'package:gpr_coffee_shop/services/local_storage_service.dart';
+import 'package:gpr_coffee_shop/services/product_service.dart'; // Add this import for ProductService
+// import 'package:uuid/uuid.dart';
+import 'package:gpr_coffee_shop/utils/logger_util.dart';
+
 
 class ProductController extends GetxController {
   final LocalStorageService _storage;
@@ -19,36 +25,117 @@ class ProductController extends GetxController {
     fetchAllProducts();
   }
 
-  Future<void> fetchAllProducts() async {
-    await loadProducts();
-  }
-
-  Future<void> loadProducts() async {
-    isLoading.value = true;
+  Future<bool> fetchAllProducts() async {
     try {
-      final loadedProducts = await _storage.getProducts();
-      products.assignAll(loadedProducts);
+      isLoading.value = true;
+      final success = await loadProducts();
+      if (success) {
+        // Sort both lists after loading
+        final sortedProducts = List<Product>.from(products)
+          ..sort((a, b) {
+            int categoryComparison = a.categoryId.compareTo(b.categoryId);
+            if (categoryComparison != 0) return categoryComparison;
+            return a.name.compareTo(b.name);
+          });
 
-      if (products.isEmpty) {
-        await _addSampleProducts();
+        products.assignAll(sortedProducts);
+        allProducts.assignAll(sortedProducts);
+        products.refresh();
+        allProducts.refresh();
       }
+      return success;
     } catch (e) {
-      print('Error loading products: $e');
-      await _addSampleProducts();
+      LoggerUtil.logger.e('Error fetching products: $e');
+      Get.snackbar(
+        'خطأ',
+        'حدث خطأ أثناء تحميل المنتجات',
+        snackPosition: SnackPosition.BOTTOM,
+        backgroundColor: Colors.red,
+        colorText: Colors.white,
+        duration: const Duration(seconds: 2),
+      );
+      return false;
     } finally {
       isLoading.value = false;
     }
   }
 
-  Future<void> addProduct(Product product) async {
-    await saveProduct(product);
+  Future<bool> loadProducts() async {
+    isLoading.value = true;
+    try {
+      final loadedProducts = await _storage.getProducts();
+      products.assignAll(loadedProducts);
+      allProducts.assignAll(loadedProducts);
+
+      if (products.isEmpty) {
+        await _addSampleProducts();
+      }
+
+      // Sort products by category and name
+      products.sort((a, b) {
+        int categoryComparison = a.categoryId.compareTo(b.categoryId);
+        if (categoryComparison != 0) return categoryComparison;
+        return a.name.compareTo(b.name);
+      });
+
+      products.refresh();
+      allProducts.refresh();
+      return true;
+    } catch (e) {
+      LoggerUtil.logger.e('Error loading products: $e');
+      Get.snackbar(
+        'خطأ',
+        'حدث خطأ أثناء تحميل المنتجات',
+        snackPosition: SnackPosition.BOTTOM,
+        backgroundColor: Colors.red,
+        colorText: Colors.white,
+        duration: const Duration(seconds: 2),
+      );
+      await _addSampleProducts();
+      return false;
+    } finally {
+      isLoading.value = false;
+    }
   }
 
-  Future<void> updateProduct(Product product) async {
-    await saveProduct(product);
+  Future<bool> addProduct(Product product) async {
+    try {
+      isLoading.value = true;
+      await _storage.saveProduct(product);
+      products.add(product);
+      allProducts.add(product);
+      products.refresh();
+      allProducts.refresh();
+      Get.snackbar(
+        'نجاح',
+        'تم إضافة المنتج بنجاح',
+        snackPosition: SnackPosition.BOTTOM,
+        backgroundColor: Colors.green,
+        colorText: Colors.white,
+        duration: const Duration(seconds: 2),
+      );
+      return true;
+    } catch (e) {
+      LoggerUtil.logger.e('Error saving product: $e');
+      Get.snackbar(
+        'خطأ',
+        'حدث خطأ أثناء حفظ المنتج',
+        snackPosition: SnackPosition.BOTTOM,
+        backgroundColor: Colors.red,
+        colorText: Colors.white,
+        duration: const Duration(seconds: 2),
+      );
+      return false;
+    } finally {
+      isLoading.value = false;
+    }
   }
 
-  Future<void> saveProduct(Product product) async {
+  Future<bool> updateProduct(Product product) async {
+    return await saveProduct(product);
+  }
+
+  Future<bool> saveProduct(Product product) async {
     try {
       isLoading.value = true;
       await _storage.saveProduct(product);
@@ -60,41 +147,61 @@ class ProductController extends GetxController {
         products[index] = product;
         allProducts[index] = product;
       }
+      products.refresh();
+      allProducts.refresh();
       Get.snackbar(
         'نجاح',
-        'تم حفظ المنتج بنجاح',
+        'تم تحديث المنتج بنجاح',
         snackPosition: SnackPosition.BOTTOM,
+        backgroundColor: Colors.green,
+        colorText: Colors.white,
+        duration: const Duration(seconds: 2),
       );
+      return true;
     } catch (e) {
-      print('Error saving product: $e');
+      LoggerUtil.logger.e('Error saving product: $e');
       Get.snackbar(
         'خطأ',
         'حدث خطأ أثناء حفظ المنتج',
         snackPosition: SnackPosition.BOTTOM,
+        backgroundColor: Colors.red,
+        colorText: Colors.white,
+        duration: const Duration(seconds: 2),
       );
+      return false;
     } finally {
       isLoading.value = false;
     }
   }
 
-  Future<void> deleteProduct(String id) async {
+  Future<bool> deleteProduct(String id) async {
     try {
       isLoading.value = true;
       await _storage.deleteProduct(id);
       products.removeWhere((product) => product.id == id);
       allProducts.removeWhere((product) => product.id == id);
+      products.refresh();
+      allProducts.refresh();
       Get.snackbar(
         'نجاح',
         'تم حذف المنتج بنجاح',
         snackPosition: SnackPosition.BOTTOM,
+        backgroundColor: Colors.green,
+        colorText: Colors.white,
+        duration: const Duration(seconds: 2),
       );
+      return true;
     } catch (e) {
-      print('Error deleting product: $e');
+      LoggerUtil.logger.e('Error deleting product: $e');
       Get.snackbar(
         'خطأ',
         'حدث خطأ أثناء حذف المنتج',
         snackPosition: SnackPosition.BOTTOM,
+        backgroundColor: Colors.red,
+        colorText: Colors.white,
+        duration: const Duration(seconds: 2),
       );
+      return false;
     } finally {
       isLoading.value = false;
     }
@@ -107,7 +214,6 @@ class ProductController extends GetxController {
   }
 
   List<ProductSalesData> getTopProducts({int limit = 5}) {
-    // TODO: Implement actual sales data tracking
     // For now, return mock data for demonstration
     return allProducts.take(limit).map((product) {
       return ProductSalesData(
@@ -169,7 +275,7 @@ class ProductController extends GetxController {
         name: 'قهوة أمريكية',
         description: 'قهوة أمريكية منعشة',
         price: 10,
-        imageUrl: 'assets/images/placeholder.png',
+        imageUrl: 'assets/images/JBRH3.png',
         categoryId: '1',
         isAvailable: true,
         cost: 8,
@@ -177,32 +283,21 @@ class ProductController extends GetxController {
       ),
       Product(
         id: '2',
-        name: 'كابتشينو',
-        description: 'كابتشينو كريمي مع رغوة الحليب',
+        name: "موهيتو بلو",
+        description: 'موهيتو منعش أزرق',
         price: 12,
-        imageUrl: 'assets/images/placeholder.png',
+        imageUrl: 'assets/images/JBRD2.png',
         categoryId: '1',
         isAvailable: true,
         cost: 9,
         options: [],
       ),
       Product(
-        id: '3',
-        name: 'آيس لاتيه',
-        description: 'لاتيه بارد منعش',
-        price: 15,
-        imageUrl: 'assets/images/placeholder.png',
-        categoryId: '2',
-        isAvailable: true,
-        cost: 11,
-        options: [],
-      ),
-      Product(
         id: '4',
-        name: 'كيك الشوكولاتة',
-        description: 'كيك الشوكولاتة الطرية',
+        name: 'كيك الفراولة',
+        description: 'كيك الفراوله الطرية',
         price: 18,
-        imageUrl: 'assets/images/placeholder.png',
+        imageUrl: 'assets/images/JBRC1.png',
         categoryId: '3',
         isAvailable: true,
         cost: 12,
@@ -216,6 +311,41 @@ class ProductController extends GetxController {
 
     products.assignAll(sampleProducts);
     allProducts.assignAll(sampleProducts);
+  }
+
+  /// Updates products by removing items without images and adding new predefined products
+  Future<void> updateProductsWithNewData() async {
+    try {
+      isLoading.value = true;
+
+      // Create a ProductService instance to handle the update
+      final productService = ProductService(_storage);
+
+      // Call the service method to update products
+      await productService.updateProductsWithNewData();
+
+      // Reload products after update
+      await fetchAllProducts();
+
+      Get.snackbar(
+        'تم التحديث',
+        'تم تحديث المنتجات بنجاح',
+        snackPosition: SnackPosition.BOTTOM,
+        backgroundColor: Colors.green,
+        colorText: Colors.white,
+      );
+    } catch (e) {
+      LoggerUtil.logger.e('خطأ أثناء تحديث المنتجات: $e');
+      Get.snackbar(
+        'خطأ',
+        'حدث خطأ أثناء تحديث المنتجات',
+        snackPosition: SnackPosition.BOTTOM,
+        backgroundColor: Colors.red,
+        colorText: Colors.white,
+      );
+    } finally {
+      isLoading.value = false;
+    }
   }
 }
 

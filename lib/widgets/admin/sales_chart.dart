@@ -1,14 +1,34 @@
 import 'package:flutter/material.dart';
 import 'package:fl_chart/fl_chart.dart';
+import 'package:get/get.dart';
 import 'package:gpr_coffee_shop/constants/theme.dart';
+import 'package:gpr_coffee_shop/controllers/order_controller.dart';
 
-class SalesChart extends StatelessWidget {
+class SalesChart extends StatefulWidget {
   final List<SaleData> data;
 
   const SalesChart({
     Key? key,
     required this.data,
   }) : super(key: key);
+
+  @override
+  State<SalesChart> createState() => _SalesChartState();
+}
+
+class _SalesChartState extends State<SalesChart> {
+  late final OrderController orderController;
+
+  @override
+  void initState() {
+    super.initState();
+    orderController = Get.find<OrderController>();
+
+    // مراقبة التغييرات في الطلبات وتحديث المخطط
+    ever(orderController.orders, (_) {
+      if (mounted) setState(() {});
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -19,7 +39,7 @@ class SalesChart extends StatelessWidget {
           barTouchData: barTouchData,
           titlesData: titlesData,
           borderData: borderData,
-          barGroups: data
+          barGroups: widget.data
               .asMap()
               .entries
               .map((entry) => BarChartGroupData(
@@ -34,9 +54,14 @@ class SalesChart extends StatelessWidget {
                     showingTooltipIndicators: [0],
                   ))
               .toList(),
-          gridData: FlGridData(show: false),
+          gridData: const FlGridData(show: false),
           alignment: BarChartAlignment.spaceAround,
-          maxY: data.isEmpty ? 100 : data.map((e) => e.value).reduce((a, b) => a > b ? a : b) * 1.2,
+          maxY: widget.data.isEmpty
+              ? 100
+              : widget.data
+                      .map((e) => e.value)
+                      .reduce((a, b) => a > b ? a : b) *
+                  1.2,
         ),
       ),
     );
@@ -46,7 +71,7 @@ class SalesChart extends StatelessWidget {
         enabled: true,
         touchTooltipData: BarTouchTooltipData(
           tooltipBgColor: Colors.white,
-          tooltipPadding: EdgeInsets.all(8),
+          tooltipPadding: const EdgeInsets.all(8),
           tooltipMargin: 8,
           getTooltipItem: (
             BarChartGroupData group,
@@ -55,15 +80,15 @@ class SalesChart extends StatelessWidget {
             int rodIndex,
           ) {
             return BarTooltipItem(
-              '${data[group.x].name}\n',
-              TextStyle(
+              '${widget.data[group.x].name}\n',
+              const TextStyle(
                 color: Colors.black,
                 fontWeight: FontWeight.bold,
               ),
               children: <TextSpan>[
                 TextSpan(
                   text: '${rod.toY.toStringAsFixed(2)} د.ب',
-                  style: TextStyle(
+                  style: const TextStyle(
                     color: AppTheme.primaryColor,
                     fontWeight: FontWeight.w500,
                   ),
@@ -76,20 +101,20 @@ class SalesChart extends StatelessWidget {
 
   Widget getTitles(double value, TitleMeta meta) {
     final index = value.toInt();
-    if (index >= 0 && index < data.length) {
+    if (index >= 0 && index < widget.data.length) {
       return SideTitleWidget(
         axisSide: meta.axisSide,
         space: 4,
         child: Text(
-          data[index].name,
-          style: TextStyle(
+          widget.data[index].name,
+          style: const TextStyle(
             color: Colors.black,
             fontSize: 10,
           ),
         ),
       );
     }
-    return SizedBox();
+    return const SizedBox();
   }
 
   FlTitlesData get titlesData => FlTitlesData(
@@ -101,13 +126,13 @@ class SalesChart extends StatelessWidget {
             getTitlesWidget: getTitles,
           ),
         ),
-        leftTitles: AxisTitles(
+        leftTitles: const AxisTitles(
           sideTitles: SideTitles(showTitles: false),
         ),
-        topTitles: AxisTitles(
+        topTitles: const AxisTitles(
           sideTitles: SideTitles(showTitles: false),
         ),
-        rightTitles: AxisTitles(
+        rightTitles: const AxisTitles(
           sideTitles: SideTitles(showTitles: false),
         ),
       );

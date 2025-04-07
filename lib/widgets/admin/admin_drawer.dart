@@ -83,7 +83,7 @@ class AdminDrawer extends StatelessWidget {
             leading: const Icon(Icons.inventory),
             title: const Text('إدارة المنتجات'),
             onTap: () {
-              Get.to(() => ProductManagement());
+              Get.to(() => const ProductManagement());
             },
           ),
           ListTile(
@@ -94,12 +94,68 @@ class AdminDrawer extends StatelessWidget {
               Get.to(() => OrderHistoryScreen());
             },
           ),
-          const Divider(),
           ListTile(
-            leading: const Icon(Icons.logout),
-            title: const Text('تسجيل الخروج'),
+            leading: const Icon(Icons.menu_book, color: Colors.white),
+            title: const Text(
+              'القائمة',
+              style:
+                  TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+            ),
             onTap: () {
-              authController.signOut();
+              // الإجراء الحالي
+            },
+          ),
+          const Divider(),
+          // إضافة زر العودة للصفحة الرئيسية
+          ListTile(
+            leading: const Icon(Icons.home, color: AppTheme.primaryColor),
+            title: const Text('الصفحة الرئيسية'),
+            onTap: () {
+              // إغلاق القائمة الجانبية
+              Navigator.pop(context);
+
+              // العودة إلى الصفحة الرئيسية
+              Get.offAllNamed('/');
+            },
+          ),
+          const Divider(), // فاصل قبل زر تسجيل الخروج
+          // إصلاح زر تسجيل الخروج
+          ListTile(
+            leading: const Icon(Icons.logout, color: Colors.red),
+            title:
+                const Text('تسجيل الخروج', style: TextStyle(color: Colors.red)),
+            onTap: () {
+              // إغلاق القائمة الجانبية
+              Navigator.pop(context);
+
+              // عرض مربع حوار للتأكيد
+              Get.dialog(
+                AlertDialog(
+                  title: const Text('تسجيل الخروج'),
+                  content: const Text('هل أنت متأكد من أنك تريد تسجيل الخروج؟'),
+                  actions: [
+                    TextButton(
+                      child: const Text('إلغاء'),
+                      onPressed: () => Get.back(),
+                    ),
+                    TextButton(
+                      child: const Text('تسجيل الخروج'),
+                      onPressed: () async {
+                        final authController = Get.find<AuthController>();
+
+                        // نظرًا لأن الدالة الآن تعيد Future<void>، نحتاج إلى إضافة await
+                        await authController.logout();
+
+                        // إغلاق مربع الحوار
+                        Get.back();
+
+                        // العودة إلى شاشة تسجيل الدخول
+                        Get.offAllNamed('/login');
+                      },
+                    ),
+                  ],
+                ),
+              );
             },
           ),
         ],

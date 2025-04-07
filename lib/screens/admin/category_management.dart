@@ -6,49 +6,52 @@ import 'package:gpr_coffee_shop/controllers/category_controller.dart';
 import 'package:gpr_coffee_shop/models/category.dart';
 
 class CategoryManagement extends StatelessWidget {
-  final CategoryController categoryController = Get.find<CategoryController>();
+  final CategoryController categoryController;
+
+  CategoryManagement({super.key})
+      : categoryController = Get.find<CategoryController>();
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('إدارة الفئات'),
+        title: const Text('إدارة الفئات'),
         backgroundColor: AppTheme.primaryColor,
         actions: [
           IconButton(
-            icon: Icon(Icons.add),
+            icon: const Icon(Icons.add),
             onPressed: () => _showAddEditCategoryDialog(context),
           ),
         ],
       ),
       body: Obx(
         () => categoryController.isLoading.value
-            ? Center(child: CircularProgressIndicator())
+            ? const Center(child: CircularProgressIndicator())
             : categoryController.categories.isEmpty
                 ? Center(
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        Icon(
+                        const Icon(
                           Icons.category_outlined,
                           size: 80,
                           color: Colors.grey,
                         ),
-                        SizedBox(height: 16),
-                        Text(
+                        const SizedBox(height: 16),
+                        const Text(
                           'لا توجد فئات حاليًا',
                           style: TextStyle(fontSize: 18),
                         ),
-                        SizedBox(height: 16),
+                        const SizedBox(height: 16),
                         ElevatedButton(
                           onPressed: () => _showAddEditCategoryDialog(context),
-                          child: Text('إضافة فئة جديدة'),
+                          child: const Text('إضافة فئة جديدة'),
                         ),
                       ],
                     ),
                   )
                 : ListView.builder(
-                    padding: EdgeInsets.all(16),
+                    padding: const EdgeInsets.all(16),
                     itemCount: categoryController.categories.length,
                     itemBuilder: (context, index) {
                       final category = categoryController.categories[index];
@@ -58,7 +61,7 @@ class CategoryManagement extends StatelessWidget {
       ),
       floatingActionButton: FloatingActionButton(
         backgroundColor: AppTheme.primaryColor,
-        child: Icon(Icons.add),
+        child: const Icon(Icons.add),
         onPressed: () => _showAddEditCategoryDialog(context),
       ),
     );
@@ -66,14 +69,14 @@ class CategoryManagement extends StatelessWidget {
 
   Widget _buildCategoryCard(BuildContext context, Category category) {
     return Neumorphic(
-      margin: EdgeInsets.only(bottom: 16),
+      margin: const EdgeInsets.only(bottom: 16),
       style: NeumorphicStyle(
         depth: 3,
         intensity: 0.7,
         boxShape: NeumorphicBoxShape.roundRect(BorderRadius.circular(12)),
       ),
       child: Padding(
-        padding: EdgeInsets.all(16),
+        padding: const EdgeInsets.all(16),
         child: Row(
           children: [
             Container(
@@ -88,16 +91,16 @@ class CategoryManagement extends StatelessWidget {
                       category.iconPath!,
                       fit: BoxFit.cover,
                     )
-                  : Icon(Icons.image_not_supported),
+                  : const Icon(Icons.image_not_supported),
             ),
-            SizedBox(width: 16),
+            const SizedBox(width: 16),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
                     category.name,
-                    style: TextStyle(
+                    style: const TextStyle(
                       fontSize: 18,
                       fontWeight: FontWeight.bold,
                     ),
@@ -115,12 +118,12 @@ class CategoryManagement extends StatelessWidget {
             Row(
               children: [
                 IconButton(
-                  icon: Icon(Icons.edit),
+                  icon: const Icon(Icons.edit),
                   onPressed: () =>
                       _showAddEditCategoryDialog(context, category),
                 ),
                 IconButton(
-                  icon: Icon(Icons.delete, color: Colors.red),
+                  icon: const Icon(Icons.delete, color: Colors.red),
                   onPressed: () => _showDeleteConfirmationDialog(category),
                 ),
               ],
@@ -145,7 +148,7 @@ class CategoryManagement extends StatelessWidget {
           borderRadius: BorderRadius.circular(16),
         ),
         child: Padding(
-          padding: EdgeInsets.all(16),
+          padding: const EdgeInsets.all(16),
           child: Form(
             key: formKey,
             child: Column(
@@ -153,22 +156,22 @@ class CategoryManagement extends StatelessWidget {
               children: [
                 Text(
                   isEditing ? 'تعديل فئة' : 'إضافة فئة جديدة',
-                  style: TextStyle(
+                  style: const TextStyle(
                     fontSize: 18,
                     fontWeight: FontWeight.bold,
                   ),
                 ),
-                SizedBox(height: 16),
+                const SizedBox(height: 16),
                 Neumorphic(
-                  style: NeumorphicStyle(
+                  style: const NeumorphicStyle(
                     depth: -3,
                     intensity: 0.7,
                   ),
                   child: Padding(
-                    padding: EdgeInsets.symmetric(horizontal: 16),
+                    padding: const EdgeInsets.symmetric(horizontal: 16),
                     child: TextFormField(
                       controller: nameController,
-                      decoration: InputDecoration(
+                      decoration: const InputDecoration(
                         labelText: 'اسم الفئة',
                         border: InputBorder.none,
                       ),
@@ -181,17 +184,17 @@ class CategoryManagement extends StatelessWidget {
                     ),
                   ),
                 ),
-                SizedBox(height: 16),
+                const SizedBox(height: 16),
                 Neumorphic(
-                  style: NeumorphicStyle(
+                  style: const NeumorphicStyle(
                     depth: -3,
                     intensity: 0.7,
                   ),
                   child: Padding(
-                    padding: EdgeInsets.symmetric(horizontal: 16),
+                    padding: const EdgeInsets.symmetric(horizontal: 16),
                     child: TextFormField(
                       controller: descriptionController,
-                      decoration: InputDecoration(
+                      decoration: const InputDecoration(
                         labelText: 'وصف الفئة',
                         border: InputBorder.none,
                       ),
@@ -199,47 +202,51 @@ class CategoryManagement extends StatelessWidget {
                     ),
                   ),
                 ),
-                SizedBox(height: 24),
+                const SizedBox(height: 24),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.end,
                   children: [
                     TextButton(
                       onPressed: () => Get.back(),
-                      child: Text('إلغاء'),
+                      child: const Text('إلغاء'),
                     ),
-                    SizedBox(width: 16),
+                    const SizedBox(width: 16),
                     NeumorphicButton(
-                      style: NeumorphicStyle(
+                      style: const NeumorphicStyle(
                         color: AppTheme.primaryColor,
                       ),
                       onPressed: () {
                         if (formKey.currentState!.validate()) {
                           if (isEditing) {
-                            // إنشاء نسخة معدلة من الفئة الحالية مع القيم الجديدة
-                            final updatedCategory = category.copyWith(
+                            final updatedCategory = Category(
+                              id: category.id,
                               name: nameController.text,
                               description: descriptionController.text,
+                              iconPath: category.iconPath ?? 'assets/images/placeholder.png',
+                              order: category.order,
                             );
                             categoryController.updateCategory(updatedCategory);
                           } else {
-                            // إنشاء كائن فئة جديد
                             final newCategory = Category(
-                              id: DateTime.now()
-                                  .millisecondsSinceEpoch
-                                  .toString(),
+                              id: DateTime.now().millisecondsSinceEpoch.toString(),
                               name: nameController.text,
                               description: descriptionController.text,
-                              iconPath:
-                                  'assets/images/categories/default.png', // مسار افتراضي للأيقونة
+                              iconPath: 'assets/images/placeholder.png',
+                              order: categoryController.categories.length,
                             );
                             categoryController.addCategory(newCategory);
                           }
                           Get.back();
+                          Get.snackbar(
+                            'تم بنجاح',
+                            isEditing ? 'تم تحديث الفئة' : 'تم إضافة الفئة',
+                            snackPosition: SnackPosition.BOTTOM,
+                          );
                         }
                       },
                       child: Text(
                         isEditing ? 'حفظ التعديلات' : 'إضافة',
-                        style: TextStyle(color: Colors.white),
+                        style: const TextStyle(color: Colors.white),
                       ),
                     ),
                   ],
@@ -255,19 +262,19 @@ class CategoryManagement extends StatelessWidget {
   void _showDeleteConfirmationDialog(Category category) {
     Get.dialog(
       AlertDialog(
-        title: Text('حذف الفئة'),
+        title: const Text('حذف الفئة'),
         content: Text('هل أنت متأكد من حذف "${category.name}"؟'),
         actions: [
           TextButton(
             onPressed: () => Get.back(),
-            child: Text('إلغاء'),
+            child: const Text('إلغاء'),
           ),
           TextButton(
             onPressed: () {
               categoryController.deleteCategory(category.id);
               Get.back();
             },
-            child: Text(
+            child: const Text(
               'حذف',
               style: TextStyle(color: Colors.red),
             ),

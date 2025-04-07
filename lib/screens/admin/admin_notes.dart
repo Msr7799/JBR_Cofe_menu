@@ -4,6 +4,8 @@ import 'package:get/get.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class AdminNotes extends StatefulWidget {
+  const AdminNotes({super.key});
+
   @override
   _AdminNotesState createState() => _AdminNotesState();
 }
@@ -62,15 +64,15 @@ class _AdminNotesState extends State<AdminNotes> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('الملاحظات'),
+        title: const Text('الملاحظات'),
         centerTitle: true,
       ),
       body: Padding(
-        padding: EdgeInsets.all(16),
+        padding: const EdgeInsets.all(16),
         child: Column(
           children: [
             _buildAddNoteForm(),
-            SizedBox(height: 24),
+            const SizedBox(height: 24),
             Expanded(
               child: _buildNotesList(),
             ),
@@ -88,7 +90,7 @@ class _AdminNotesState extends State<AdminNotes> {
         boxShape: NeumorphicBoxShape.roundRect(BorderRadius.circular(12)),
       ),
       child: Padding(
-        padding: EdgeInsets.all(16),
+        padding: const EdgeInsets.all(16),
         child: Form(
           key: _formKey,
           child: Column(
@@ -96,7 +98,7 @@ class _AdminNotesState extends State<AdminNotes> {
               TextFormField(
                 controller: _textController,
                 maxLines: 3,
-                decoration: InputDecoration(
+                decoration: const InputDecoration(
                   hintText: 'أضف ملاحظة جديدة...',
                   border: OutlineInputBorder(),
                 ),
@@ -107,14 +109,14 @@ class _AdminNotesState extends State<AdminNotes> {
                   return null;
                 },
               ),
-              SizedBox(height: 16),
+              const SizedBox(height: 16),
               NeumorphicButton(
                 onPressed: _addNote,
-                style: NeumorphicStyle(
+                style: const NeumorphicStyle(
                   depth: 4,
                   intensity: 0.8,
                 ),
-                child: Text(
+                child: const Text(
                   'إضافة',
                   style: TextStyle(
                     fontSize: 16,
@@ -142,14 +144,14 @@ class _AdminNotesState extends State<AdminNotes> {
 
   Widget _buildNoteCard(Note note) {
     return Neumorphic(
-      margin: EdgeInsets.only(bottom: 16),
+      margin: const EdgeInsets.only(bottom: 16),
       style: NeumorphicStyle(
         depth: 4,
         intensity: 0.8,
         boxShape: NeumorphicBoxShape.roundRect(BorderRadius.circular(12)),
       ),
       child: Padding(
-        padding: EdgeInsets.all(16),
+        padding: const EdgeInsets.all(16),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -164,16 +166,16 @@ class _AdminNotesState extends State<AdminNotes> {
                   ),
                 ),
                 IconButton(
-                  icon: Icon(Icons.delete_outline),
+                  icon: const Icon(Icons.delete_outline),
                   onPressed: () => _deleteNote(note.id),
                   color: Colors.red,
                 ),
               ],
             ),
-            SizedBox(height: 8),
+            const SizedBox(height: 8),
             Text(
               note.text,
-              style: TextStyle(
+              style: const TextStyle(
                 fontSize: 16,
                 fontFamily: 'Cairo',
               ),

@@ -8,7 +8,7 @@ part of 'app_settings.dart';
 
 class AppSettingsAdapter extends TypeAdapter<AppSettings> {
   @override
-  final int typeId = 4;
+  final int typeId = 10;
 
   @override
   AppSettings read(BinaryReader reader) {
@@ -17,14 +17,14 @@ class AppSettingsAdapter extends TypeAdapter<AppSettings> {
       for (int i = 0; i < numOfFields; i++) reader.readByte(): reader.read(),
     };
     return AppSettings(
-      language: fields[0] as String,
-      fontSize: fields[1] as double,
-      theme: fields[2] as String,
-      socialAccounts: (fields[3] as Map?)?.cast<String, SocialMediaAccount>(),
-      benefitEmail: fields[4] as String?,
-      storedQrCode: fields[5] as String?,
-      appVersion: fields[6] as String,
-      licenseNumber: fields[7] as String,
+      themeMode: fields[0] as String,
+      language: fields[1] as String,
+      fontSize: fields[2] as double,
+      socialAccounts: (fields[3] as List).cast<SocialMediaAccount>(),
+      appName: fields[4] as String,
+      isFirstRun: fields[5] as bool,
+      benefitPayQrCodeUrl: fields[6] as String?,
+      backgroundSettings: fields[7] as BackgroundSettings?,
     );
   }
 
@@ -33,21 +33,21 @@ class AppSettingsAdapter extends TypeAdapter<AppSettings> {
     writer
       ..writeByte(8)
       ..writeByte(0)
-      ..write(obj.language)
+      ..write(obj.themeMode)
       ..writeByte(1)
-      ..write(obj.fontSize)
+      ..write(obj.language)
       ..writeByte(2)
-      ..write(obj.theme)
+      ..write(obj.fontSize)
       ..writeByte(3)
       ..write(obj.socialAccounts)
       ..writeByte(4)
-      ..write(obj.benefitEmail)
+      ..write(obj.appName)
       ..writeByte(5)
-      ..write(obj.storedQrCode)
+      ..write(obj.isFirstRun)
       ..writeByte(6)
-      ..write(obj.appVersion)
+      ..write(obj.benefitPayQrCodeUrl)
       ..writeByte(7)
-      ..write(obj.licenseNumber);
+      ..write(obj.backgroundSettings);
   }
 
   @override
@@ -63,7 +63,7 @@ class AppSettingsAdapter extends TypeAdapter<AppSettings> {
 
 class SocialMediaAccountAdapter extends TypeAdapter<SocialMediaAccount> {
   @override
-  final int typeId = 5;
+  final int typeId = 11;
 
   @override
   SocialMediaAccount read(BinaryReader reader) {
@@ -72,22 +72,25 @@ class SocialMediaAccountAdapter extends TypeAdapter<SocialMediaAccount> {
       for (int i = 0; i < numOfFields; i++) reader.readByte(): reader.read(),
     };
     return SocialMediaAccount(
-      isActive: fields[0] as bool,
-      url: fields[1] as String,
-      platform: fields[2] as String,
+      id: fields[0] as String,
+      name: fields[1] as String,
+      url: fields[2] as String,
+      icon: fields[3] as String,
     );
   }
 
   @override
   void write(BinaryWriter writer, SocialMediaAccount obj) {
     writer
-      ..writeByte(3)
+      ..writeByte(4)
       ..writeByte(0)
-      ..write(obj.isActive)
+      ..write(obj.id)
       ..writeByte(1)
-      ..write(obj.url)
+      ..write(obj.name)
       ..writeByte(2)
-      ..write(obj.platform);
+      ..write(obj.url)
+      ..writeByte(3)
+      ..write(obj.icon);
   }
 
   @override
@@ -101,46 +104,92 @@ class SocialMediaAccountAdapter extends TypeAdapter<SocialMediaAccount> {
           typeId == other.typeId;
 }
 
-// **************************************************************************
-// JsonSerializableGenerator
-// **************************************************************************
+class BackgroundSettingsAdapter extends TypeAdapter<BackgroundSettings> {
+  @override
+  final int typeId = 12;
 
-AppSettings _$AppSettingsFromJson(Map<String, dynamic> json) => AppSettings(
-      language: json['language'] as String? ?? 'ar',
-      fontSize: (json['fontSize'] as num?)?.toDouble() ?? 1.0,
-      theme: json['theme'] as String? ?? 'brown',
-      socialAccounts: (json['socialAccounts'] as Map<String, dynamic>?)?.map(
-        (k, e) =>
-            MapEntry(k, SocialMediaAccount.fromJson(e as Map<String, dynamic>)),
-      ),
-      benefitEmail: json['benefitEmail'] as String?,
-      storedQrCode: json['storedQrCode'] as String?,
-      appVersion: json['appVersion'] as String? ?? '1.0.0',
-      licenseNumber: json['licenseNumber'] as String? ?? '',
-    );
-
-Map<String, dynamic> _$AppSettingsToJson(AppSettings instance) =>
-    <String, dynamic>{
-      'language': instance.language,
-      'fontSize': instance.fontSize,
-      'theme': instance.theme,
-      'socialAccounts': instance.socialAccounts,
-      'benefitEmail': instance.benefitEmail,
-      'storedQrCode': instance.storedQrCode,
-      'appVersion': instance.appVersion,
-      'licenseNumber': instance.licenseNumber,
+  @override
+  BackgroundSettings read(BinaryReader reader) {
+    final numOfFields = reader.readByte();
+    final fields = <int, dynamic>{
+      for (int i = 0; i < numOfFields; i++) reader.readByte(): reader.read(),
     };
-
-SocialMediaAccount _$SocialMediaAccountFromJson(Map<String, dynamic> json) =>
-    SocialMediaAccount(
-      isActive: json['isActive'] as bool? ?? false,
-      url: json['url'] as String? ?? '',
-      platform: json['platform'] as String,
+    return BackgroundSettings(
+      type: fields[0] as BackgroundType,
+      imagePath: fields[1] as String?,
+      colorValue: fields[2] as int,
+      textColorValue: fields[3] == null ? 4278190080 : fields[3] as int?,
+      autoTextColor: fields[4] == null ? true : fields[4] as bool?,
     );
+  }
 
-Map<String, dynamic> _$SocialMediaAccountToJson(SocialMediaAccount instance) =>
-    <String, dynamic>{
-      'isActive': instance.isActive,
-      'url': instance.url,
-      'platform': instance.platform,
-    };
+  @override
+  void write(BinaryWriter writer, BackgroundSettings obj) {
+    writer
+      ..writeByte(5)
+      ..writeByte(0)
+      ..write(obj.type)
+      ..writeByte(1)
+      ..write(obj.imagePath)
+      ..writeByte(2)
+      ..write(obj.colorValue)
+      ..writeByte(3)
+      ..write(obj.textColorValue)
+      ..writeByte(4)
+      ..write(obj.autoTextColor);
+  }
+
+  @override
+  int get hashCode => typeId.hashCode;
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is BackgroundSettingsAdapter &&
+          runtimeType == other.runtimeType &&
+          typeId == other.typeId;
+}
+
+class BackgroundTypeAdapter extends TypeAdapter<BackgroundType> {
+  @override
+  final int typeId = 13;
+
+  @override
+  BackgroundType read(BinaryReader reader) {
+    switch (reader.readByte()) {
+      case 0:
+        return BackgroundType.default_bg;
+      case 1:
+        return BackgroundType.color;
+      case 2:
+        return BackgroundType.image;
+      default:
+        return BackgroundType.default_bg;
+    }
+  }
+
+  @override
+  void write(BinaryWriter writer, BackgroundType obj) {
+    switch (obj) {
+      case BackgroundType.default_bg:
+        writer.writeByte(0);
+        break;
+      case BackgroundType.color:
+        writer.writeByte(1);
+        break;
+      case BackgroundType.image:
+        writer.writeByte(2);
+        break;
+    }
+  }
+
+  @override
+  int get hashCode => typeId.hashCode;
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is BackgroundTypeAdapter &&
+          runtimeType == other.runtimeType &&
+          typeId == other.typeId;
+}

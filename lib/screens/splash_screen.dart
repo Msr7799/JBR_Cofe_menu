@@ -1,12 +1,13 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_neumorphic_plus/flutter_neumorphic.dart';
 import 'package:get/get.dart';
-import 'package:gpr_coffee_shop/constants/text_direction.dart';
-import 'package:gpr_coffee_shop/screens/home_screen.dart';
+import 'dart:async';
+import 'package:gpr_coffee_shop/constants/theme.dart';
 
 class SplashScreen extends StatefulWidget {
+  const SplashScreen({Key? key}) : super(key: key); // ✅ إضافة key
+
   @override
-  _SplashScreenState createState() => _SplashScreenState();
+  State<SplashScreen> createState() => _SplashScreenState();
 }
 
 class _SplashScreenState extends State<SplashScreen>
@@ -19,36 +20,22 @@ class _SplashScreenState extends State<SplashScreen>
   void initState() {
     super.initState();
     _controller = AnimationController(
-      duration: Duration(seconds: 2),
+      duration: const Duration(seconds: 2),
       vsync: this,
     );
 
-    _scaleAnimation = Tween<double>(
-      begin: 0.5,
-      end: 1.0,
-    ).animate(
-      CurvedAnimation(
-        parent: _controller,
-        curve: Curves.easeOutBack,
-      ),
+    _scaleAnimation = Tween<double>(begin: 0.8, end: 1.0).animate(
+      CurvedAnimation(parent: _controller, curve: Curves.easeInOut),
     );
 
-    _opacityAnimation = Tween<double>(
-      begin: 0.0,
-      end: 1.0,
-    ).animate(
-      CurvedAnimation(
-        parent: _controller,
-        curve: Interval(0.5, 1.0, curve: Curves.easeIn),
-      ),
+    _opacityAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
+      CurvedAnimation(parent: _controller, curve: Curves.easeInOut),
     );
 
-    _controller.forward().then((_) => _navigateToMenu());
-  }
+    _controller.forward();
 
-  void _navigateToMenu() {
-    Future.delayed(Duration(milliseconds: 500), () {
-      Get.off(() => HomeScreen());
+    Timer(const Duration(seconds: 3), () {
+      Get.offAllNamed('/'); // Navigate to home screen instead of menu
     });
   }
 
@@ -60,13 +47,17 @@ class _SplashScreenState extends State<SplashScreen>
 
   @override
   Widget build(BuildContext context) {
-    return wrapWithTextDirection(
-      Scaffold(
-        backgroundColor: Theme.of(context).colorScheme.background,
-        body: Center(
+    return Scaffold(
+      backgroundColor: AppTheme.primaryColor,
+      body: SingleChildScrollView(
+        // Added to fix overflow
+        child: Center(
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
+              SizedBox(
+                  height: MediaQuery.of(context).size.height *
+                      0.2), // Adjusted spacing
               AnimatedBuilder(
                 animation: _controller,
                 builder: (context, child) {
@@ -74,20 +65,21 @@ class _SplashScreenState extends State<SplashScreen>
                     scale: _scaleAnimation.value,
                     child: Opacity(
                       opacity: _opacityAnimation.value,
-                      child: Neumorphic(
-                        style: NeumorphicStyle(
-                          depth: 10,
-                          intensity: 0.8,
-                          shape: NeumorphicShape.concave,
-                          boxShape: NeumorphicBoxShape.circle(),
+                      child: Container(
+                        width: 150,
+                        height: 150,
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(20),
                         ),
-                        child: Container(
-                          width: 150,
-                          height: 150,
-                          padding: EdgeInsets.all(20),
-                          child: Image.asset(
-                            'assets/images/logo.png',
-                            fit: BoxFit.contain,
+                        child: const Center(
+                          child: Text(
+                            "JBR",
+                            style: TextStyle(
+                              color: AppTheme.primaryColor,
+                              fontSize: 36,
+                              fontWeight: FontWeight.bold,
+                            ),
                           ),
                         ),
                       ),
@@ -95,30 +87,26 @@ class _SplashScreenState extends State<SplashScreen>
                   );
                 },
               ),
-              SizedBox(height: 40),
+              const SizedBox(height: 30), // Already has const
               AnimatedBuilder(
                 animation: _opacityAnimation,
                 builder: (context, child) {
                   return Opacity(
                     opacity: _opacityAnimation.value,
-                    child: Column(
+                    child: const Column(
                       children: [
                         Text(
-                          'GPR Coffee Shop',
+                          "JBR Coffee Shop",
                           style: TextStyle(
-                            fontSize: 32,
+                            color: Colors.white,
+                            fontSize: 24,
                             fontWeight: FontWeight.bold,
-                            fontFamily: 'Cairo',
                           ),
                         ),
-                        SizedBox(height: 8),
-                        Text(
-                          'قهوة بنكهة الإبداع',
-                          style: TextStyle(
-                            fontSize: 18,
-                            color: Colors.grey[600],
-                            fontFamily: 'Cairo',
-                          ),
+                        SizedBox(height: 20), // Already has const
+                        CircularProgressIndicator(
+                          valueColor:
+                              AlwaysStoppedAnimation<Color>(Colors.white),
                         ),
                       ],
                     ),

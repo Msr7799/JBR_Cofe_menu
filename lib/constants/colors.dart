@@ -1,46 +1,35 @@
 import 'package:flutter/material.dart';
 
-/// ثوابت الألوان المستخدمة في التطبيق
 class AppColors {
-  // منع إنشاء نسخة من الكلاس
-  AppColors._();
+  // Primary Colors
+  static const primary = Color(0xFF6366F1);
+  static const secondary = Color(0xFF22D3EE);
+  static const accent = Color(0xFFF43F5E);
 
-  // الألوان الأساسية
-  static const Color primary = Color(0xFF8B5A2B); // بني داكن
-  static const Color secondary = Color(0xFFD2B48C); // بني فاتح (بيج)
-  static const Color accent = Color(0xFF5D4037); // بني محمر
+  // Background Colors
+  static const background = Color(0xFFF9FAFB);
+  static const surface = Color(0xFFFFFFFF);
+  static const surfaceDark = Color(0xFF1E293B);
 
-  // ألوان الخلفية
-  static const Color background = Color(0xFFF5F5F5); // رمادي فاتح جدًا
-  static const Color surface = Colors.white;
-  static const Color card = Colors.white;
+  // Text Colors
+  static const textPrimary = Color(0xFF1F2937);
+  static const textSecondary = Color(0xFF6B7280);
+  static const textLight = Color(0xFFF9FAFB);
 
-  // ألوان النص
-  static const Color textPrimary = Color(0xFF212121); // أسود داكن
-  static const Color textSecondary = Color(0xFF757575); // رمادي متوسط
-  static const Color textLight = Color(0xFFBDBDBD); // رمادي فاتح
+  // Status Colors
+  static const success = Color(0xFF10B981);
+  static const error = Color(0xFFEF4444);
+  static const warning = Color(0xFFF59E0B);
+  static const info = Color(0xFF3B82F6);
 
-  // ألوان الحالة
-  static const Color success = Color(0xFF4CAF50); // أخضر
-  static const Color error = Color(0xFFE53935); // أحمر
-  static const Color warning = Color(0xFFFFA000); // برتقالي
-  static const Color info = Color(0xFF2196F3); // أزرق
+  // Additional Colors
+  static const divider = Color(0xFFE2E8F0);
+  static const disabled = Color(0xFFE5E7EB);
+}
 
-  // ألوان أخرى
-  static const Color divider = Color(0xFFE0E0E0); // رمادي فاتح للفواصل
-  static const Color disabled = Color(0xFFBDBDBD); // رمادي للعناصر المعطلة
-  static const Color overlay = Color(0x80000000); // أسود شفاف للطبقات العلوية
-
-  // تدرجات لونية
-  static const LinearGradient primaryGradient = LinearGradient(
-    colors: [primary, accent],
-    begin: Alignment.topLeft,
-    end: Alignment.bottomRight,
-  );
-
-  static const LinearGradient secondaryGradient = LinearGradient(
-    colors: [secondary, Color(0xFFE6CCB2)],
-    begin: Alignment.topLeft,
-    end: Alignment.bottomRight,
-  );
+extension ColorExtensions on Color {
+  // تحديث الطرق المهملة باستخدام الطرق الجديدة
+  int get rInt => r.toInt();
+  int get gInt => g.toInt();
+  int get bInt => b.toInt();
 }
