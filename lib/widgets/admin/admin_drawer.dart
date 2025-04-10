@@ -7,6 +7,7 @@ import 'package:gpr_coffee_shop/screens/admin/category_management.dart';
 import 'package:gpr_coffee_shop/screens/admin/product_management.dart';
 // استيراد شاشة سجل الطلبات (تأكد من المسار الصحيح)
 import 'package:gpr_coffee_shop/screens/admin/order_history.dart';
+import 'package:gpr_coffee_shop/screens/customer/menu_screen.dart';
 
 class AdminDrawer extends StatelessWidget {
   // تهيئة متغير المتحكم عند البناء بدلاً من إعلانه كقيمة ثابتة
@@ -69,7 +70,7 @@ class AdminDrawer extends StatelessWidget {
             leading: const Icon(Icons.dashboard),
             title: const Text('لوحة التحكم'),
             onTap: () {
-              Get.offAll(() => AdminDashboard());
+              Get.offAll(() => const AdminDashboard());
             },
           ),
           ListTile(
@@ -91,20 +92,20 @@ class AdminDrawer extends StatelessWidget {
             title: const Text('سجل الطلبات'),
             onTap: () {
               // إزالة كلمة const
-              Get.to(() => OrderHistoryScreen());
+              Get.to(() => const OrderHistoryScreen());
             },
           ),
-          ListTile(
-            leading: const Icon(Icons.menu_book, color: Colors.white),
-            title: const Text(
-              'القائمة',
-              style:
-                  TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
-            ),
-            onTap: () {
-              // الإجراء الحالي
-            },
-          ),
+         ListTile(
+  leading: const Icon(Icons.restaurant_menu),
+  title: const Text('قائمة الطعام'),
+  onTap: () {
+    // إغلاق الـ Drawer
+    Navigator.of(context).pop();
+    
+    // الانتقال إلى شاشة القائمة
+    Get.to(() => MenuScreen());
+  },
+),
           const Divider(),
           // إضافة زر العودة للصفحة الرئيسية
           ListTile(

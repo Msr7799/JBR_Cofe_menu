@@ -565,25 +565,42 @@ class _ProductManagementState extends State<ProductManagement> {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('تحديث المنتجات'),
+        title: const Text('تحديث قائمة المنتجات'),
         content: const Text(
-            'هل تريد تحديث المنتجات بالصور الجديدة وحذف المنتجات القديمة؟'),
+            'هل تريد تحديث المنتجات بالمنتجات الجديدة؟ سيتم حذف المنتجات القديمة واستبدالها بالمنتجات الجديدة.'),
         actions: [
           TextButton(
             child: const Text('إلغاء'),
             onPressed: () => Navigator.pop(context),
           ),
           TextButton(
-            child: const Text('تحديث'),
+            style: TextButton.styleFrom(
+              backgroundColor: AppTheme.primaryColor,
+              foregroundColor: Colors.white,
+            ),
+            child: const Text('تحديث القائمة'),
             onPressed: () async {
               Navigator.pop(context);
+              // Show loading indicator
+              Get.dialog(
+                const Center(
+                  child: CircularProgressIndicator(),
+                ),
+                barrierDismissible: false,
+              );
+
               await productController.updateProductsWithNewData();
+
+              // Close loading indicator
+              Get.back();
+
               Get.snackbar(
                 'تم التحديث',
-                'تم تحديث المنتجات وحذف المنتجات القديمة',
+                'تم تحديث قائمة المنتجات بنجاح',
                 snackPosition: SnackPosition.BOTTOM,
                 backgroundColor: Colors.green,
                 colorText: Colors.white,
+                duration: const Duration(seconds: 3),
               );
             },
           ),

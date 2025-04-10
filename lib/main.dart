@@ -8,6 +8,7 @@ import 'package:gpr_coffee_shop/controllers/feedback_controller.dart';
 import 'package:gpr_coffee_shop/controllers/order_controller.dart';
 import 'package:gpr_coffee_shop/controllers/product_controller.dart';
 import 'package:gpr_coffee_shop/controllers/settings_controller.dart';
+import 'package:gpr_coffee_shop/controllers/view_options_controller.dart'; // Add this import
 import 'package:gpr_coffee_shop/services/shared_preferences_service.dart';
 import 'package:gpr_coffee_shop/screens/splash_screen.dart';
 import 'package:gpr_coffee_shop/screens/home_screen.dart';
@@ -24,7 +25,7 @@ import 'package:gpr_coffee_shop/services/app_translation_service.dart';
 import 'package:gpr_coffee_shop/services/notification_service.dart';
 import 'package:gpr_coffee_shop/screens/admin/benefit_pay_qr_management.dart';
 import 'package:gpr_coffee_shop/screens/view_options_screen.dart';
-// import 'package:gpr_coffee_shop/utils/hive_reset_util.dart';
+import 'package:gpr_coffee_shop/utils/hive_reset_util.dart';
 import 'package:gpr_coffee_shop/utils/rendering_helper.dart'; // Add this import
 
 import 'dart:io';
@@ -38,7 +39,7 @@ void main() async {
     RenderingHelper.applyOptimizations();
   }
 
-  // // قم بإزالة التعليق من هذا السطر مرة واحدة للإصلاح
+  // IMPORTANT: Comment this line after running once to reset Hive
   // await HiveResetUtil.resetHiveData();
 
   // تهيئة الترجمات أولاً
@@ -65,6 +66,7 @@ void main() async {
   Get.put(OrderController(storageService));
   Get.put(SettingsController());
   Get.put(FeedbackController());
+  Get.put(ViewOptionsController()); // إضافة ViewOptionsController هنا
 
   // تهيئة التطبيق باللغة المحفوظة
   final savedLanguage = Get.find<SharedPreferencesService>().getLanguage();
@@ -83,20 +85,25 @@ void main() async {
 }
 
 class MyApp extends StatelessWidget {
+  MyApp({Key? key}) : super(key: key);
+
   final SettingsController settingsController = Get.find<SettingsController>();
   final AppTranslationService translationService =
       Get.find<AppTranslationService>();
 
   @override
   Widget build(BuildContext context) {
-    // لا نستخدم Obx هنا، نستخدم GetBuilder بدلاً من ذلك للتتبع اليدوي للتغييرات
     return GetBuilder<SettingsController>(
       builder: (controller) {
+        // تطبيق الثيم مقدماً بدلاً من داخل _getThemeMode
+        final themeMode = _getThemeMode(controller.themeMode);
+
         return GetMaterialApp(
+          key: UniqueKey(), // مفتاح فريد لكل بناء جديد (اختياري)
           title: 'app_name'.tr,
           theme: AppTheme.lightTheme,
           darkTheme: AppTheme.darkTheme,
-          themeMode: _getThemeMode(controller.themeMode),
+          themeMode: themeMode,
           locale: translationService.currentLocale.value,
           translations: Get.find<AppTranslations>(),
           fallbackLocale: const Locale('ar'),
@@ -135,18 +142,17 @@ class MyApp extends StatelessWidget {
   }
 
   ThemeMode _getThemeMode(String mode) {
+    // تنفيذ تغيير الثيم قبل إرجاع ThemeMode
     switch (mode) {
-      case 'light':
-        return ThemeMode.light;
       case 'dark':
         return ThemeMode.dark;
+      case 'light':
+        return ThemeMode.light;
       case 'coffee':
-        // تطبيق ثيم القهوة مع الوضع الفاتح
-        Get.changeTheme(AppTheme.coffeeTheme);
+        // تطبيق الثيم خارج الدالة وليس هنا
         return ThemeMode.light;
       case 'sweet':
-        // تطبيق ثيم الحلويات مع الوضع الفاتح
-        Get.changeTheme(AppTheme.sweetTheme);
+        // تطبيق الثيم خارج الدالة وليس هنا
         return ThemeMode.light;
       case 'system':
       default:

@@ -20,10 +20,10 @@ class AppSettingsAdapter extends TypeAdapter<AppSettings> {
       themeMode: fields[0] as String,
       language: fields[1] as String,
       fontSize: fields[2] as double,
-      socialAccounts: (fields[3] as List).cast<SocialMediaAccount>(),
-      appName: fields[4] as String,
       isFirstRun: fields[5] as bool,
+      appName: fields[4] as String,
       benefitPayQrCodeUrl: fields[6] as String?,
+      menuViewMode: fields[8] as String,
       backgroundSettings: fields[7] as BackgroundSettings?,
     );
   }
@@ -38,14 +38,14 @@ class AppSettingsAdapter extends TypeAdapter<AppSettings> {
       ..write(obj.language)
       ..writeByte(2)
       ..write(obj.fontSize)
-      ..writeByte(3)
-      ..write(obj.socialAccounts)
       ..writeByte(4)
       ..write(obj.appName)
       ..writeByte(5)
       ..write(obj.isFirstRun)
       ..writeByte(6)
       ..write(obj.benefitPayQrCodeUrl)
+      ..writeByte(8)
+      ..write(obj.menuViewMode)
       ..writeByte(7)
       ..write(obj.backgroundSettings);
   }
@@ -57,6 +57,52 @@ class AppSettingsAdapter extends TypeAdapter<AppSettings> {
   bool operator ==(Object other) =>
       identical(this, other) ||
       other is AppSettingsAdapter &&
+          runtimeType == other.runtimeType &&
+          typeId == other.typeId;
+}
+
+class BackgroundSettingsAdapter extends TypeAdapter<BackgroundSettings> {
+  @override
+  final int typeId = 12;
+
+  @override
+  BackgroundSettings read(BinaryReader reader) {
+    final numOfFields = reader.readByte();
+    final fields = <int, dynamic>{
+      for (int i = 0; i < numOfFields; i++) reader.readByte(): reader.read(),
+    };
+    return BackgroundSettings(
+      type: fields[0] as BackgroundType,
+      colorValue: fields[2] as int,
+      textColorValue: fields[3] as int,
+      imagePath: fields[1] as String?,
+      autoTextColor: fields[4] as bool,
+    );
+  }
+
+  @override
+  void write(BinaryWriter writer, BackgroundSettings obj) {
+    writer
+      ..writeByte(5)
+      ..writeByte(0)
+      ..write(obj.type)
+      ..writeByte(2)
+      ..write(obj.colorValue)
+      ..writeByte(3)
+      ..write(obj.textColorValue)
+      ..writeByte(1)
+      ..write(obj.imagePath)
+      ..writeByte(4)
+      ..write(obj.autoTextColor);
+  }
+
+  @override
+  int get hashCode => typeId.hashCode;
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is BackgroundSettingsAdapter &&
           runtimeType == other.runtimeType &&
           typeId == other.typeId;
 }
@@ -100,52 +146,6 @@ class SocialMediaAccountAdapter extends TypeAdapter<SocialMediaAccount> {
   bool operator ==(Object other) =>
       identical(this, other) ||
       other is SocialMediaAccountAdapter &&
-          runtimeType == other.runtimeType &&
-          typeId == other.typeId;
-}
-
-class BackgroundSettingsAdapter extends TypeAdapter<BackgroundSettings> {
-  @override
-  final int typeId = 12;
-
-  @override
-  BackgroundSettings read(BinaryReader reader) {
-    final numOfFields = reader.readByte();
-    final fields = <int, dynamic>{
-      for (int i = 0; i < numOfFields; i++) reader.readByte(): reader.read(),
-    };
-    return BackgroundSettings(
-      type: fields[0] as BackgroundType,
-      imagePath: fields[1] as String?,
-      colorValue: fields[2] as int,
-      textColorValue: fields[3] == null ? 4278190080 : fields[3] as int?,
-      autoTextColor: fields[4] == null ? true : fields[4] as bool?,
-    );
-  }
-
-  @override
-  void write(BinaryWriter writer, BackgroundSettings obj) {
-    writer
-      ..writeByte(5)
-      ..writeByte(0)
-      ..write(obj.type)
-      ..writeByte(1)
-      ..write(obj.imagePath)
-      ..writeByte(2)
-      ..write(obj.colorValue)
-      ..writeByte(3)
-      ..write(obj.textColorValue)
-      ..writeByte(4)
-      ..write(obj.autoTextColor);
-  }
-
-  @override
-  int get hashCode => typeId.hashCode;
-
-  @override
-  bool operator ==(Object other) =>
-      identical(this, other) ||
-      other is BackgroundSettingsAdapter &&
           runtimeType == other.runtimeType &&
           typeId == other.typeId;
 }

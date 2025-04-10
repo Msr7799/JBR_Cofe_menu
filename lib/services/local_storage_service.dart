@@ -1,353 +1,350 @@
+import 'package:get/get.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:gpr_coffee_shop/models/product.dart';
+import 'package:gpr_coffee_shop/models/app_settings.dart';
 import 'package:gpr_coffee_shop/models/category.dart';
 import 'package:gpr_coffee_shop/models/order.dart';
-import 'package:gpr_coffee_shop/models/app_settings.dart';
-import 'package:uuid/uuid.dart';
-import 'package:logger/logger.dart';
+import 'package:gpr_coffee_shop/utils/logger_util.dart';
 
-class LocalStorageService {
-  static const String productsBox = 'products';
-  static const String categoriesBox = 'categories';
-  static const String ordersBox = 'orders';
-  static const String settingsBox = 'settings';
+class LocalStorageService extends GetxService {
+  static const String PRODUCTS_BOX = 'products_box';
+  static const String CATEGORIES_BOX = 'categories_box';
+  static const String ORDERS_BOX = 'orders_box';
+  static const String SETTINGS_BOX = 'settings_box';
 
-  final logger = Logger();
+  late Box _productsBox;
+  late Box _categoriesBox;
+  late Box _ordersBox;
+  late Box _settingsBox;
 
-  Future<void> init() async {
+  Future<LocalStorageService> init() async {
     try {
+      // تهيئة Hive
       await Hive.initFlutter();
 
-      // Register adapters
-      _registerAdapters();
+      // فتح صناديق التخزين
+      _productsBox = await Hive.openBox(PRODUCTS_BOX);
+      _categoriesBox = await Hive.openBox(CATEGORIES_BOX);
+      _ordersBox = await Hive.openBox(ORDERS_BOX);
+      _settingsBox = await Hive.openBox(SETTINGS_BOX);
 
-      // Safely open boxes
-      await _safeOpenBoxes();
+      LoggerUtil.logger.i('تم تهيئة خدمة التخزين المحلي بنجاح');
+      return this;
     } catch (e) {
-      logger.e('Error initializing local storage: $e');
-      // Attempt recovery
-      await Hive.deleteFromDisk();
-      await Future.delayed(const Duration(milliseconds: 300));
-      await Hive.initFlutter();
+      LoggerUtil.logger.e('خطأ في تهيئة خدمة التخزين المحلي: $e');
 
-      // Re-register adapters
-      _registerAdapters();
-
-      // Try opening boxes again
-      await _safeOpenBoxes();
-    }
-  }
-
-  void _registerAdapters() {
-    if (!Hive.isAdapterRegistered(0)) {
-      Hive.registerAdapter(ProductAdapter());
-    }
-    if (!Hive.isAdapterRegistered(1)) {
-      Hive.registerAdapter(CategoryAdapter());
-    }
-    if (!Hive.isAdapterRegistered(2)) {
-      Hive.registerAdapter(OrderAdapter());
-    }
-    if (!Hive.isAdapterRegistered(3)) {
-      Hive.registerAdapter(OrderItemAdapter());
-    }
-    if (!Hive.isAdapterRegistered(4)) {
-      Hive.registerAdapter(OrderStatusAdapter());
-    }
-    if (!Hive.isAdapterRegistered(5)) {
-      Hive.registerAdapter(PaymentTypeAdapter());
-    }
-    if (!Hive.isAdapterRegistered(10)) {
-      Hive.registerAdapter(AppSettingsAdapter());
-    }
-    if (!Hive.isAdapterRegistered(11)) {
-      Hive.registerAdapter(SocialMediaAccountAdapter());
-    }
-
-    // These adapter registrations will work after running build_runner
-    if (!Hive.isAdapterRegistered(12)) {
-      Hive.registerAdapter(BackgroundSettingsAdapter());
-    }
-    if (!Hive.isAdapterRegistered(13)) {
-      Hive.registerAdapter(BackgroundTypeAdapter());
-    }
-  }
-
-  Future<void> _safeOpenBoxes() async {
-    try {
-      await Future.wait([
-        Hive.openBox<Product>(productsBox),
-        Hive.openBox<Category>(categoriesBox),
-        Hive.openBox<Order>(ordersBox),
-        Hive.openBox<AppSettings>(settingsBox),
-      ]);
-    } catch (e) {
-      logger.e('Error opening Hive boxes: $e');
-
-      // If there's an error, we need to completely reset Hive
+      // محاولة إعادة تشغيل Hive في حالة الخطأ
       try {
         await Hive.deleteFromDisk();
         await Future.delayed(const Duration(milliseconds: 500));
-
-        // Re-initialize Hive
         await Hive.initFlutter();
-        _registerAdapters();
 
-        // Try opening fresh boxes
-        await Future.wait([
-          Hive.openBox<Product>(productsBox),
-          Hive.openBox<Category>(categoriesBox),
-          Hive.openBox<Order>(ordersBox),
-          Hive.openBox<AppSettings>(settingsBox),
-        ]);
+        _productsBox = await Hive.openBox(PRODUCTS_BOX);
+        _categoriesBox = await Hive.openBox(CATEGORIES_BOX);
+        _ordersBox = await Hive.openBox(ORDERS_BOX);
+        _settingsBox = await Hive.openBox(SETTINGS_BOX);
 
-        // After opening fresh boxes, save default settings
-        final defaultSettings = AppSettings.defaultSettings();
-        await saveSettings(defaultSettings);
+        LoggerUtil.logger
+            .i('تم إعادة تهيئة خدمة التخزين المحلي بنجاح بعد المشكلة');
+        return this;
       } catch (e2) {
-        logger.e('Fatal error rebuilding database: $e2');
-        // At this point, we can't do much more
+        LoggerUtil.logger.e('فشل في إعادة تهيئة خدمة التخزين المحلي: $e2');
+        rethrow;
       }
     }
   }
 
-  // Products
+  // دوال المنتجات
   Future<List<Product>> getProducts() async {
-    final box = Hive.box<Product>(productsBox);
-    return box.values.toList();
+    try {
+      final productMaps = _productsBox.values.toList();
+      final products = <Product>[];
+
+      for (var item in productMaps) {
+        if (item is Map) {
+          try {
+            products.add(Product.fromJson(Map<String, dynamic>.from(item)));
+          } catch (e) {
+            LoggerUtil.logger.e('خطأ في تحليل المنتج: $e');
+          }
+        }
+      }
+
+      return products;
+    } catch (e) {
+      LoggerUtil.logger.e('خطأ في الحصول على المنتجات: $e');
+      return [];
+    }
   }
 
-  Future<Product?> getProductById(String id) async {
-    final box = Hive.box<Product>(productsBox);
-    return box.get(id);
+  // دالة جديدة للحصول على البيانات الخام للمنتجات
+  Future<List> getProductsRaw() async {
+    try {
+      return _productsBox.values.toList();
+    } catch (e) {
+      LoggerUtil.logger.e('خطأ في الحصول على البيانات الخام للمنتجات: $e');
+      return [];
+    }
+  }
+
+  // دالة جديدة للحصول على المنتجات بالصفحات
+  Future<List<Product>> getProductsPaginated(int page, int pageSize) async {
+    try {
+      final productMaps = _productsBox.values.toList();
+      final products = <Product>[];
+
+      final startIndex = page * pageSize;
+      final endIndex = startIndex + pageSize < productMaps.length
+          ? startIndex + pageSize
+          : productMaps.length;
+
+      if (startIndex >= productMaps.length) {
+        return [];
+      }
+
+      for (int i = startIndex; i < endIndex; i++) {
+        var item = productMaps[i];
+        if (item is Map) {
+          try {
+            products.add(Product.fromJson(Map<String, dynamic>.from(item)));
+          } catch (e) {
+            LoggerUtil.logger.e('خطأ في تحليل المنتج: $e');
+          }
+        }
+      }
+
+      return products;
+    } catch (e) {
+      LoggerUtil.logger.e('خطأ في الحصول على المنتجات المقسمة: $e');
+      return [];
+    }
   }
 
   Future<void> saveProduct(Product product) async {
-    final box = Hive.box<Product>(productsBox);
-    await box.put(product.id, product);
+    try {
+      await _productsBox.put(product.id, product.toJson());
+      LoggerUtil.logger.i('تم حفظ المنتج: ${product.name}');
+    } catch (e) {
+      LoggerUtil.logger.e('خطأ في حفظ المنتج: $e');
+      rethrow;
+    }
   }
 
   Future<void> deleteProduct(String id) async {
-    final box = Hive.box<Product>(productsBox);
-    await box.delete(id);
-  }
-
-  /// Updates products by removing items without images and adding new predefined products
-  Future<void> updateProductsWithNewData() async {
-    // Get all products
-    final allProducts = await getProducts();
-
-    // Remove products without images
-    final productsWithoutImages = allProducts
-        .where(
-            (product) => product.imageUrl == null || product.imageUrl!.isEmpty)
-        .toList();
-
-    for (var product in productsWithoutImages) {
-      await deleteProduct(product.id);
-    }
-
-    // Create the new product objects with appropriate category IDs
-    final categoryList = await getCategories();
-    String sweetsCategoryId = '';
-    String coldDrinksCategoryId = '';
-    String hotDrinksCategoryId = '';
-
-    // Find the appropriate category IDs from the existing categories
-    for (var category in categoryList) {
-      final categoryNameLower = category.name.toLowerCase();
-      if (categoryNameLower.contains('حلو') ||
-          categoryNameLower.contains('كيك') ||
-          categoryNameLower.contains('sweets') ||
-          categoryNameLower.contains('dessert')) {
-        sweetsCategoryId = category.id;
-      } else if (categoryNameLower.contains('بارد') ||
-          categoryNameLower.contains('cold')) {
-        coldDrinksCategoryId = category.id;
-      } else if (categoryNameLower.contains('ساخن') ||
-          categoryNameLower.contains('hot')) {
-        hotDrinksCategoryId = category.id;
-      }
-    }
-
-    // If no matching categories were found, create default IDs
-    sweetsCategoryId =
-        sweetsCategoryId.isNotEmpty ? sweetsCategoryId : 'sweets_category';
-    coldDrinksCategoryId = coldDrinksCategoryId.isNotEmpty
-        ? coldDrinksCategoryId
-        : 'cold_drinks_category';
-    hotDrinksCategoryId = hotDrinksCategoryId.isNotEmpty
-        ? hotDrinksCategoryId
-        : 'hot_drinks_category';
-
-    // Add new products
-    final newProducts = [
-      // Sweets category
-      Product(
-        id: const Uuid().v4(),
-        name: 'كعكة كندر',
-        description:
-            'كعكة الكندر اللذيذة محضرة بطبقات من الكيك الإسفنجي الطري والكريمة الغنية بنكهة الشوكولاتة والحليب، مزينة بقطع من شوكولاتة كندر.',
-        price: 2.500,
-        cost: 1.000,
-        categoryId: sweetsCategoryId,
-        imageUrl: 'assets/images/JBR2.png',
-        isAvailable: true,
-        options: [],
-      ),
-      Product(
-        id: const Uuid().v4(),
-        name: 'كيكة رد فولفت',
-        description:
-            'كيكة الرد فلفت الكلاسيكية بلونها الأحمر المميز وطعمها الرائع، محشوة بكريمة الجبن الناعمة ومغطاة بطبقة من كريمة الجبن الحريرية.',
-        price: 2.400,
-        cost: 1.000,
-        categoryId: sweetsCategoryId,
-        imageUrl: 'assets/images/JBR3.png',
-        isAvailable: true,
-        options: [],
-      ),
-
-      // Cold Drinks category
-      Product(
-        id: const Uuid().v4(),
-        name: 'سبانش لاتيه بارد',
-        description:
-            'سبانش لاتيه البارد، مزيج مثالي من الإسبريسو القوي والحليب المخفوق مع الحليب المكثف المحلى، منعش ومنبه في آن واحد.',
-        price: 2.200,
-        cost: 1.000,
-        categoryId: coldDrinksCategoryId,
-        imageUrl: 'assets/images/JBRD1.png',
-        isAvailable: true,
-        options: [],
-      ),
-      Product(
-        id: const Uuid().v4(),
-        name: 'موهيتو بلو مع ريدبول',
-        description:
-            'موهيتو بلو منعش مع ريدبول، مزيج مبتكر من النعناع الطازج والليمون مع شراب التوت الأزرق، معزز بطاقة ريدبول لتنشيط يومك.',
-        price: 2.300,
-        cost: 1.000,
-        categoryId: coldDrinksCategoryId,
-        imageUrl: 'assets/images/JBRD2.png',
-        isAvailable: true,
-        options: [],
-      ),
-
-      // Hot Drinks category
-      Product(
-        id: const Uuid().v4(),
-        name: 'وايت موكا حار',
-        description:
-            'وايت موكا حار، مشروب فاخر من الإسبريسو الغني ممزوج بالشوكولاتة البيضاء الكريمية والحليب المبخر، يقدم مع طبقة من الكريمة المخفوقة.',
-        price: 2.100,
-        cost: 1.000,
-        categoryId: hotDrinksCategoryId,
-        imageUrl: 'assets/images/JBRH1.png',
-        isAvailable: true,
-        options: [],
-      ),
-      Product(
-        id: const Uuid().v4(),
-        name: 'أمريكانو كولومبي 360',
-        description:
-            'أمريكانو كولومبي 360، مشروب مميز محضر من أجود أنواع البن الكولومبي المحمص بعناية، يتميز بنكهته الغنية والمتوازنة مع لمسة من الحموضة اللطيفة.',
-        price: 2.000,
-        cost: 1.000,
-        categoryId: hotDrinksCategoryId,
-        imageUrl: 'assets/images/JBRH3.png',
-        isAvailable: true,
-        options: [],
-      ),
-      Product(
-        id: const Uuid().v4(),
-        name: 'دبل شوت أكسبريسو',
-        description:
-            'دبل شوت أكسبريسو من البن الأثيوبي الفاخر، يتميز بنكهته الزهرية والفواكه الاستوائية مع لمسة من التوت البري، محمص بدرجة متوسطة لإبراز نكهته الفريدة.',
-        price: 2.100,
-        cost: 0.600,
-        categoryId: hotDrinksCategoryId,
-        imageUrl: 'assets/images/JBRH2.png',
-        isAvailable: true,
-        options: [],
-      ),
-    ];
-
-    // Add each new product
-    for (var product in newProducts) {
-      await saveProduct(product);
+    try {
+      await _productsBox.delete(id);
+      LoggerUtil.logger.i('تم حذف المنتج بمعرف: $id');
+    } catch (e) {
+      LoggerUtil.logger.e('خطأ في حذف المنتج: $e');
+      rethrow;
     }
   }
 
-  // Categories
+  // دوال الفئات
   Future<List<Category>> getCategories() async {
-    final box = Hive.box<Category>(categoriesBox);
-    return box.values.toList();
-  }
+    try {
+      final categoryMaps = _categoriesBox.values.toList();
+      final categories = <Category>[];
 
-  Future<Category?> getCategoryById(String id) async {
-    final box = Hive.box<Category>(categoriesBox);
-    return box.get(id);
+      for (var item in categoryMaps) {
+        if (item is Map) {
+          try {
+            categories.add(Category.fromJson(Map<String, dynamic>.from(item)));
+          } catch (e) {
+            LoggerUtil.logger.e('خطأ في تحليل الفئة: $e');
+          }
+        }
+      }
+
+      return categories;
+    } catch (e) {
+      LoggerUtil.logger.e('خطأ في الحصول على الفئات: $e');
+      return [];
+    }
   }
 
   Future<void> saveCategory(Category category) async {
-    final box = Hive.box<Category>(categoriesBox);
-    await box.put(category.id, category);
-  }
-
-  Future<void> deleteCategory(String id) async {
-    final box = Hive.box<Category>(categoriesBox);
-    await box.delete(id);
-  }
-
-  // Orders
-  Future<List<Order>> getOrders() async {
-    final box = Hive.box<Order>(ordersBox);
-    return box.values.toList();
-  }
-
-  Future<Order?> getOrderById(String id) async {
-    final box = Hive.box<Order>(ordersBox);
-    return box.get(id);
-  }
-
-  Future<void> saveOrder(Order order) async {
-    final box = Hive.box<Order>(ordersBox);
-    await box.put(order.id, order);
-  }
-
-  Future<void> deleteOrder(String id) async {
-    final box = Hive.box<Order>(ordersBox);
-    await box.delete(id);
-  }
-
-  // Settings
-  Future<AppSettings?> getSettings() async {
-    final box = Hive.box<AppSettings>(settingsBox);
-    return box.get('settings');
-  }
-
-  Future<void> saveSettings(AppSettings settings) async {
-    final box = Hive.box<AppSettings>(settingsBox);
-    await box.put('settings', settings);
-  }
-
-  // Clear all data
-  Future<void> clearAllData() async {
     try {
-      await Future.wait([
-        Hive.box<Product>(productsBox).clear(),
-        Hive.box<Category>(categoriesBox).clear(),
-        Hive.box<Order>(ordersBox).clear(),
-        Hive.box<AppSettings>(settingsBox).clear(),
-      ]);
+      await _categoriesBox.put(category.id, category.toJson());
+      LoggerUtil.logger.i('تم حفظ الفئة: ${category.name}');
     } catch (e) {
-      logger.e('Error clearing data: $e');
+      LoggerUtil.logger.e('خطأ في حفظ الفئة: $e');
+      rethrow;
     }
   }
 
-  // Close boxes
-  Future<void> closeBoxes() async {
-    await Hive.close();
+  Future<void> deleteCategory(String id) async {
+    try {
+      await _categoriesBox.delete(id);
+      LoggerUtil.logger.i('تم حذف الفئة بمعرف: $id');
+    } catch (e) {
+      LoggerUtil.logger.e('خطأ في حذف الفئة: $e');
+      rethrow;
+    }
   }
+
+  Future<void> clearCategories() async {
+    try {
+      final box = await Hive.openBox(CATEGORIES_BOX);
+      await box.clear();
+      LoggerUtil.logger.i('تم حذف جميع الفئات');
+    } catch (e) {
+      LoggerUtil.logger.e('خطأ في حذف الفئات: $e');
+      rethrow;
+    }
+  }
+
+  // دوال الطلبات
+  Future<List<Order>> getOrders() async {
+    try {
+      final orderMaps = _ordersBox.values.toList();
+      final orders = <Order>[];
+
+      for (var item in orderMaps) {
+        if (item is Map) {
+          try {
+            orders.add(Order.fromJson(Map<String, dynamic>.from(item)));
+          } catch (e) {
+            LoggerUtil.logger.e('خطأ في تحليل الطلب: $e');
+          }
+        }
+      }
+
+      return orders;
+    } catch (e) {
+      LoggerUtil.logger.e('خطأ في الحصول على الطلبات: $e');
+      return [];
+    }
+  }
+
+  Future<void> saveOrder(Order order) async {
+    try {
+      await _ordersBox.put(order.id, order.toJson());
+      LoggerUtil.logger.i('تم حفظ الطلب بمعرف: ${order.id}');
+    } catch (e) {
+      LoggerUtil.logger.e('خطأ في حفظ الطلب: $e');
+      rethrow;
+    }
+  }
+
+  Future<void> deleteOrder(String id) async {
+    try {
+      await _ordersBox.delete(id);
+      LoggerUtil.logger.i('تم حذف الطلب بمعرف: $id');
+    } catch (e) {
+      LoggerUtil.logger.e('خطأ في حذف الطلب: $e');
+      rethrow;
+    }
+  }
+
+  // دوال الإعدادات
+  Future<AppSettings?> getSettings() async {
+    try {
+      final box = await Hive.openBox(SETTINGS_BOX);
+      if (box.isEmpty) {
+        return null;
+      }
+
+      // استخراج البيانات الخام من Hive
+      final rawData = box.get('app_settings');
+      if (rawData == null) {
+        return null;
+      }
+
+      // تحويل البيانات يدويًا بشكل متعمق
+      if (rawData is Map) {
+        final Map<String, dynamic> safeMap = _convertToStringKeyMap(rawData);
+        return AppSettings.fromJson(safeMap);
+      }
+
+      LoggerUtil.logger.e('بيانات الإعدادات في تنسيق غير متوقع');
+      return null;
+    } catch (e) {
+      LoggerUtil.logger.e('خطأ في الحصول على الإعدادات: $e');
+      return null;
+    }
+  }
+
+  // إضافة دالة جديدة للتحويل المتعمق
+  Map<String, dynamic> _convertToStringKeyMap(Map map) {
+    Map<String, dynamic> result = {};
+
+    map.forEach((key, value) {
+      String stringKey = key is String ? key : key.toString();
+
+      if (value is Map) {
+        result[stringKey] = _convertToStringKeyMap(value);
+      } else if (value is List) {
+        result[stringKey] = _convertList(value);
+      } else {
+        result[stringKey] = value;
+      }
+    });
+
+    return result;
+  }
+
+  // دالة مساعدة لتحويل عناصر القائمة
+  List _convertList(List list) {
+    List result = [];
+
+    for (var item in list) {
+      if (item is Map) {
+        result.add(_convertToStringKeyMap(item));
+      } else if (item is List) {
+        result.add(_convertList(item));
+      } else {
+        result.add(item);
+      }
+    }
+
+    return result;
+  }
+
+  Future<void> saveSettings(AppSettings settings) async {
+    try {
+      final box = await Hive.openBox(SETTINGS_BOX);
+
+      // تحويل إلى Map بشكل صريح
+      final settingsMap = settings.toJson();
+
+      // حفظ البيانات
+      await box.put('app_settings', settingsMap);
+      LoggerUtil.logger.i('تم حفظ الإعدادات بنجاح');
+    } catch (e) {
+      LoggerUtil.logger.e('خطأ في حفظ الإعدادات: $e');
+      throw e; // إعادة إرسال الخطأ للمعالجة في المستوى الأعلى
+    }
+  }
+
+  // حذف جميع البيانات
+  Future<void> clearAllData() async {
+    try {
+      await _productsBox.clear();
+      await _categoriesBox.clear();
+      await _ordersBox.clear();
+      await _settingsBox.clear();
+      LoggerUtil.logger.i('تم حذف جميع البيانات');
+    } catch (e) {
+      LoggerUtil.logger.e('خطأ في حذف البيانات: $e');
+      rethrow;
+    }
+  }
+
+  // إغلاق جميع الصناديق
+  Future<void> closeBoxes() async {
+    try {
+      await _productsBox.close();
+      await _categoriesBox.close();
+      await _ordersBox.close();
+      await _settingsBox.close();
+      LoggerUtil.logger.i('تم إغلاق جميع صناديق التخزين');
+    } catch (e) {
+      LoggerUtil.logger.e('خطأ في إغلاق صناديق التخزين: $e');
+    }
+  }
+
+  read(String s) {}
+
+  void write(String s, bool value) {}
 }

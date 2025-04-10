@@ -51,7 +51,6 @@ class SettingsController extends GetxController {
   // Convenience getters
   String get themeMode => settings.value.themeMode;
   String get language => settings.value.language;
-  List<SocialMediaAccount> get socialAccounts => settings.value.socialAccounts;
 
   // Getters for background and text settings
   BackgroundType get backgroundType => settings.value.backgroundSettings.type;
@@ -84,10 +83,28 @@ class SettingsController extends GetxController {
     update();
   }
 
+  // Text scale factor for app-wide font size
+  double _textScaleFactor = 1.0;
+  double get textScaleFactor => _textScaleFactor;
+
   @override
   void onInit() {
     super.onInit();
     loadSettings();
+    _loadSettings();
+  }
+
+  void _loadSettings() {
+    // تحميل مقياس النص
+    _textScaleFactor =
+        _prefsService.getDouble('text_scale_factor', defaultVal: 1.0);
+    update();
+  }
+
+  void setTextScaleFactor(double value) {
+    _textScaleFactor = value;
+    _prefsService.setDouble('text_scale_factor', value);
+    update();
   }
 
   Future<void> loadSettings() async {
@@ -99,17 +116,18 @@ class SettingsController extends GetxController {
         settings.value = storedSettings;
       } else {
         // If not available in Hive, try loading from SharedPreferences as fallback
-        final themeMode = _prefsService.getThemeMode();
+        final themeString =
+            _prefsService.getString('theme', defaultVal: 'system');
         final language = _prefsService.getLanguage();
 
-        // Create new settings object
+        // Create new settings object with correct parameters
         settings.value = AppSettings(
-          themeMode: themeMode,
+          themeMode:
+              themeString, // themeMode في نموذج AppSettings هو من نوع String
           language: language,
           fontSize: 1.0,
-          socialAccounts: [],
-          appName: 'GPR Coffee Shop',
-          isFirstRun: _prefsService.getBool('isFirstRun', defaultValue: true),
+          appName: 'JBR Coffee Shop',
+          isFirstRun: _prefsService.getBool('isFirstRun', defaultVal: true),
         );
 
         // Save to main storage
@@ -123,16 +141,23 @@ class SettingsController extends GetxController {
     }
   }
 
+  // تعديل دالة saveSettings
   Future<void> saveSettings() async {
     isLoading.value = true;
     try {
-      // Save to Hive (main storage)
+      // حفظ في Hive (التخزين الرئيسي)
       await _storageService.saveSettings(settings.value);
 
-      // Also save critical settings to SharedPreferences as backup
-      await _prefsService.saveThemeMode(settings.value.themeMode);
-      await _prefsService.saveLanguage(settings.value.language);
-      await _prefsService.saveBool('isFirstRun', settings.value.isFirstRun);
+      // حفظ الإعدادات المهمة في SharedPreferences كنسخة احتياطية
+      await _prefsService.setString('theme', settings.value.themeMode);
+      await _prefsService.setLanguage(settings.value.language);
+      await _prefsService.setBool('isFirstRun', settings.value.isFirstRun);
+
+      // تحديث الواجهة (بدون فرض تحديث التطبيق بأكمله)
+      update();
+
+      // تجنب استخدام Get.forceAppUpdate() بشكل متكرر
+      // Get.forceAppUpdate();
     } catch (e) {
       LoggerUtil.logger.e('Error saving settings: $e');
     } finally {
@@ -188,6 +213,7 @@ class SettingsController extends GetxController {
     }
   }
 
+  // تحسين دالة تغيير اللغة لتجنب التحديثات المتزامنة
   Future<void> setLanguage(String languageCode) async {
     try {
       isLoading.value = true;
@@ -197,77 +223,33 @@ class SettingsController extends GetxController {
         val?.language = languageCode;
       });
 
-      // Save settings to both storages
+      // Save settings first
+      await _prefsService.setLanguage(languageCode);
       await saveSettings();
 
       // Create and update locale
       final locale = Locale(languageCode);
-
-      // Update translations first
       Get.updateLocale(locale);
 
-      // Then update the translation service for text direction
+      // Update text direction service
       final translationService = Get.find<AppTranslationService>();
-      await translationService.changeLocale(languageCode);
+      translationService
+          .updateTextDirectionFromLanguage(languageCode); // إزالة await
 
-      // Force rebuild of all Getx widgets
-      Get.forceAppUpdate();
+      // Use a more controlled approach instead of multiple rebuilds
+      await Future.delayed(const Duration(milliseconds: 300));
 
-      // Reset the app state
-      Get.delete<AppTranslationService>();
-      Get.put(AppTranslationService());
-      Get.forceAppUpdate();
-
-      // Show confirmation message
-      await Future.delayed(const Duration(milliseconds: 100));
-      Get.snackbar(
-        'success'.tr,
-        'language_changed'.tr,
-        snackPosition: SnackPosition.BOTTOM,
-      );
-
-      // Restart the app with a clean state
-      await Future.delayed(const Duration(milliseconds: 500));
-      Get.offAll(() => HomeScreen(), transition: Transition.fade);
+      Get.offAll(() => const HomeScreen(), transition: Transition.fade);
     } catch (e) {
       LoggerUtil.logger.e('Error changing language: $e');
-      final isArabic = Get.locale?.languageCode == 'ar';
       Get.snackbar(
-        isArabic ? 'خطأ' : 'Error',
-        isArabic ? 'فشل تغيير اللغة' : 'Failed to change language',
+        'خطأ',
+        'فشل تغيير اللغة',
         snackPosition: SnackPosition.BOTTOM,
       );
     } finally {
       isLoading.value = false;
     }
-  }
-
-  Future<void> addSocialAccount(SocialMediaAccount account) async {
-    settings.update((val) {
-      val?.socialAccounts.add(account);
-    });
-    await saveSettings();
-    update();
-  }
-
-  Future<void> removeSocialAccount(String id) async {
-    settings.update((val) {
-      val?.socialAccounts.removeWhere((account) => account.id == id);
-    });
-    await saveSettings();
-    update();
-  }
-
-  Future<void> updateSocialAccount(SocialMediaAccount account) async {
-    settings.update((val) {
-      final index =
-          val?.socialAccounts.indexWhere((a) => a.id == account.id) ?? -1;
-      if (index != -1) {
-        val?.socialAccounts[index] = account;
-      }
-    });
-    await saveSettings();
-    update();
   }
 
   Future<void> setAppName(String name) async {
@@ -317,7 +299,7 @@ class SettingsController extends GetxController {
   // Set text color
   Future<void> setTextColor(Color color, bool auto) async {
     settings.update((val) {
-      val?.backgroundSettings.textColorValue = color.value;
+      val?.backgroundSettings.textColorValue = color.toARGB32();
       val?.backgroundSettings.autoTextColor = auto;
     });
     await saveSettings();
@@ -345,13 +327,13 @@ class SettingsController extends GetxController {
       final newTextColor = getAdaptiveTextColor(color);
       settings.update((val) {
         val?.backgroundSettings.type = BackgroundType.color;
-        val?.backgroundSettings.colorValue = color.value;
-        val?.backgroundSettings.textColorValue = newTextColor.value;
+        val?.backgroundSettings.colorValue = color.toARGB32();
+        val?.backgroundSettings.textColorValue = newTextColor.toARGB32();
       });
     } else {
       settings.update((val) {
         val?.backgroundSettings.type = BackgroundType.color;
-        val?.backgroundSettings.colorValue = color.value;
+        val?.backgroundSettings.colorValue = color.toARGB32();
       });
     }
 
@@ -376,7 +358,7 @@ class SettingsController extends GetxController {
       );
 
       if (pickedFile != null) {
-        // Delete previous custom background if exists
+        // حذف الصورة السابقة إذا وجدت
         if (backgroundType == BackgroundType.image &&
             backgroundImagePath != null &&
             File(backgroundImagePath!).existsSync()) {
@@ -387,23 +369,33 @@ class SettingsController extends GetxController {
           }
         }
 
-        // Save the new image to app documents directory
+        // حفظ الصورة الجديدة في مجلد التطبيق
         final appDir = await getApplicationDocumentsDirectory();
         final fileName =
             'bg_${DateTime.now().millisecondsSinceEpoch}${path.extension(pickedFile.path)}';
         final savedImagePath = path.join(appDir.path, 'backgrounds', fileName);
 
-        // Ensure directory exists
+        // التأكد من وجود المجلد
         final directory = Directory(path.join(appDir.path, 'backgrounds'));
         if (!await directory.exists()) {
           await directory.create(recursive: true);
         }
 
-        // Copy the image
+        // نسخ الصورة
         final File imageFile = File(pickedFile.path);
-        await imageFile.copy(savedImagePath);
+        final File copiedFile = await imageFile.copy(savedImagePath);
 
-        // Update settings
+        // التحقق من أن الملف تم نسخه بنجاح
+        if (!await copiedFile.exists()) {
+          throw Exception('Failed to save image file');
+        }
+
+        // طباعة معلومات تصحيح
+        LoggerUtil.logger.i('Image saved to: $savedImagePath');
+        LoggerUtil.logger.i('File exists: ${await copiedFile.exists()}');
+        LoggerUtil.logger.i('File size: ${await copiedFile.length()} bytes');
+
+        // تحديث الإعدادات
         settings.update((val) {
           val?.backgroundSettings.type = BackgroundType.image;
           val?.backgroundSettings.imagePath = savedImagePath;
@@ -417,12 +409,15 @@ class SettingsController extends GetxController {
           snackPosition: SnackPosition.BOTTOM,
           duration: const Duration(seconds: 2),
         );
+
+        // فرض تحديث الشاشة الرئيسية
+        Get.forceAppUpdate();
       }
     } catch (e) {
       LoggerUtil.logger.e('Error picking background image: $e');
       Get.snackbar(
         'خطأ',
-        'حدث خطأ أثناء اختيار الصورة',
+        'حدث خطأ أثناء اختيار الصورة: $e',
         snackPosition: SnackPosition.BOTTOM,
         backgroundColor: Colors.red,
         colorText: Colors.white,

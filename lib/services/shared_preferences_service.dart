@@ -9,77 +9,67 @@ class SharedPreferencesService extends GetxService {
     return this;
   }
 
-  // General methods
-  Future<bool> saveString(String key, String value) async {
-    return await _prefs.setString(key, value);
+  // ===== خيارات الثيم =====
+  String? getThemeString() {
+    return _prefs.getString('theme');
   }
 
-  String getString(String key, {String defaultValue = ''}) {
-    return _prefs.getString(key) ?? defaultValue;
+  Future<void> setThemeString(String theme) async {
+    await _prefs.setString('theme', theme);
   }
 
-  Future<bool> saveBool(String key, bool value) async {
-    return await _prefs.setBool(key, value);
-  }
-
-  bool getBool(String key, {bool defaultValue = false}) {
-    return _prefs.getBool(key) ?? defaultValue;
-  }
-
-  Future<bool> saveInt(String key, int value) async {
-    return await _prefs.setInt(key, value);
-  }
-
-  int getInt(String key, {int defaultValue = 0}) {
-    return _prefs.getInt(key) ?? defaultValue;
-  }
-
-  Future<bool> saveDouble(String key, double value) async {
-    return await _prefs.setDouble(key, value);
-  }
-
-  double getDouble(String key, {double defaultValue = 0.0}) {
-    return _prefs.getDouble(key) ?? defaultValue;
-  }
-
-  Future<bool> removeKey(String key) async {
-    return await _prefs.remove(key);
-  }
-
-  Future<bool> clearAll() async {
-    return await _prefs.clear();
-  }
-
-  // App-specific methods
-  Future<bool> saveThemeMode(String mode) async {
-    return await saveString('theme_mode', mode);
-  }
-
-  String getThemeMode() {
-    return getString('theme_mode', defaultValue: 'system');
-  }
-
-  Future<bool> saveLanguage(String languageCode) async {
-    return await saveString('language', languageCode);
-  }
-
+  // ===== خيارات اللغة =====
   String getLanguage() {
-    return getString('language', defaultValue: 'ar');
+    return _prefs.getString('language') ?? 'ar';
   }
 
-  Future<bool> saveIsLoggedIn(bool value) async {
-    return await saveBool('is_logged_in', value);
+  Future<void> setLanguage(String language) async {
+    await _prefs.setString('language', language);
   }
 
-  bool getIsLoggedIn() {
-    return getBool('is_logged_in', defaultValue: false);
+  // التوافق مع الأسماء القديمة
+  Future<void> saveLanguage(String language) async {
+    await setLanguage(language);
   }
 
-  Future<bool> saveUserId(String userId) async {
-    return await saveString('user_id', userId);
+  // ===== طرق عامة للتخزين =====
+  String getString(String key, {String defaultVal = ''}) {
+    return _prefs.getString(key) ?? defaultVal;
   }
 
-  String getUserId() {
-    return getString('user_id');
+  Future<void> setString(String key, String value) async {
+    await _prefs.setString(key, value);
+  }
+
+  bool getBool(String key, {bool defaultVal = false}) {
+    return _prefs.getBool(key) ?? defaultVal;
+  }
+
+  Future<void> setBool(String key, bool value) async {
+    await _prefs.setBool(key, value);
+  }
+
+  int getInt(String key, {int defaultVal = 0}) {
+    return _prefs.getInt(key) ?? defaultVal;
+  }
+
+  Future<void> setInt(String key, int value) async {
+    await _prefs.setInt(key, value);
+  }
+
+  double getDouble(String key, {double defaultVal = 0.0}) {
+    return _prefs.getDouble(key) ?? defaultVal;
+  }
+
+  Future<void> setDouble(String key, double value) async {
+    await _prefs.setDouble(key, value);
+  }
+
+  Future<void> remove(String key) async {
+    await _prefs.remove(key);
+  }
+
+  Future<void> clear() async {
+    await _prefs.clear();
   }
 }

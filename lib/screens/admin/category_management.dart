@@ -4,6 +4,10 @@ import 'package:get/get.dart';
 import 'package:gpr_coffee_shop/constants/theme.dart';
 import 'package:gpr_coffee_shop/controllers/category_controller.dart';
 import 'package:gpr_coffee_shop/models/category.dart';
+import 'package:image_picker/image_picker.dart';
+import 'package:path/path.dart' as path;
+import 'package:path_provider/path_provider.dart';
+import 'dart:io';
 
 class CategoryManagement extends StatelessWidget {
   final CategoryController categoryController;
@@ -18,6 +22,11 @@ class CategoryManagement extends StatelessWidget {
         title: const Text('إدارة الفئات'),
         backgroundColor: AppTheme.primaryColor,
         actions: [
+          IconButton(
+            icon: const Icon(Icons.refresh),
+            tooltip: 'استعادة الفئات الافتراضية',
+            onPressed: () => _showResetCategoriesDialog(context),
+          ),
           IconButton(
             icon: const Icon(Icons.add),
             onPressed: () => _showAddEditCategoryDialog(context),
@@ -138,9 +147,14 @@ class CategoryManagement extends StatelessWidget {
     final isEditing = category != null;
     final nameController =
         TextEditingController(text: isEditing ? category.name : '');
+    final nameEnController =
+        TextEditingController(text: isEditing ? category.nameEn : '');
     final descriptionController =
         TextEditingController(text: isEditing ? category.description : '');
+    final descriptionEnController =
+        TextEditingController(text: isEditing ? category.descriptionEn : '');
     final formKey = GlobalKey<FormState>();
+    String? selectedImagePath = isEditing ? category.iconPath : null;
 
     Get.dialog(
       Dialog(
@@ -151,112 +165,248 @@ class CategoryManagement extends StatelessWidget {
           padding: const EdgeInsets.all(16),
           child: Form(
             key: formKey,
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Text(
-                  isEditing ? 'تعديل فئة' : 'إضافة فئة جديدة',
-                  style: const TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-                const SizedBox(height: 16),
-                Neumorphic(
-                  style: const NeumorphicStyle(
-                    depth: -3,
-                    intensity: 0.7,
-                  ),
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 16),
-                    child: TextFormField(
-                      controller: nameController,
-                      decoration: const InputDecoration(
-                        labelText: 'اسم الفئة',
-                        border: InputBorder.none,
-                      ),
-                      validator: (value) {
-                        if (value == null || value.isEmpty) {
-                          return 'يرجى إدخال اسم الفئة';
-                        }
-                        return null;
-                      },
+            child: SingleChildScrollView(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    isEditing ? 'تعديل فئة' : 'إضافة فئة جديدة',
+                    style: const TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
                     ),
                   ),
-                ),
-                const SizedBox(height: 16),
-                Neumorphic(
-                  style: const NeumorphicStyle(
-                    depth: -3,
-                    intensity: 0.7,
-                  ),
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 16),
-                    child: TextFormField(
-                      controller: descriptionController,
-                      decoration: const InputDecoration(
-                        labelText: 'وصف الفئة',
-                        border: InputBorder.none,
+                  const SizedBox(height: 16),
+
+                  // إضافة صورة للفئة
+                  GestureDetector(
+                    onTap: () async {
+                      final pickedImage = await _pickImage();
+                      if (pickedImage != null) {
+                        selectedImagePath = pickedImage;
+                      }
+                    },
+                    child: Container(
+                      width: 100,
+                      height: 100,
+                      decoration: BoxDecoration(
+                        color: Colors.grey[200],
+                        borderRadius: BorderRadius.circular(8),
+                        border: Border.all(color: Colors.grey),
                       ),
-                      maxLines: 3,
+                      child: Center(
+                        child: selectedImagePath != null
+                            ? Image.asset(
+                                selectedImagePath!,
+                                width: 100,
+                                height: 100,
+                                fit: BoxFit.cover,
+                                errorBuilder: (context, error, stackTrace) =>
+                                    const Icon(Icons.image_not_supported,
+                                        size: 40),
+                              )
+                            : const Icon(Icons.add_photo_alternate, size: 40),
+                      ),
                     ),
                   ),
-                ),
-                const SizedBox(height: 24),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.end,
-                  children: [
-                    TextButton(
-                      onPressed: () => Get.back(),
-                      child: const Text('إلغاء'),
+                  const SizedBox(height: 10),
+                  const Text('اضغط لإضافة صورة',
+                      style: TextStyle(fontSize: 12)),
+
+                  const SizedBox(height: 16),
+                  // اسم بالعربية
+                  Neumorphic(
+                    style: const NeumorphicStyle(
+                      depth: -3,
+                      intensity: 0.7,
                     ),
-                    const SizedBox(width: 16),
-                    NeumorphicButton(
-                      style: const NeumorphicStyle(
-                        color: AppTheme.primaryColor,
-                      ),
-                      onPressed: () {
-                        if (formKey.currentState!.validate()) {
-                          if (isEditing) {
-                            final updatedCategory = Category(
-                              id: category.id,
-                              name: nameController.text,
-                              description: descriptionController.text,
-                              iconPath: category.iconPath ?? 'assets/images/placeholder.png',
-                              order: category.order,
-                            );
-                            categoryController.updateCategory(updatedCategory);
-                          } else {
-                            final newCategory = Category(
-                              id: DateTime.now().millisecondsSinceEpoch.toString(),
-                              name: nameController.text,
-                              description: descriptionController.text,
-                              iconPath: 'assets/images/placeholder.png',
-                              order: categoryController.categories.length,
-                            );
-                            categoryController.addCategory(newCategory);
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 16),
+                      child: TextFormField(
+                        controller: nameController,
+                        decoration: const InputDecoration(
+                          labelText: 'اسم الفئة (عربي)',
+                          border: InputBorder.none,
+                        ),
+                        validator: (value) {
+                          if (value == null || value.isEmpty) {
+                            return 'يرجى إدخال اسم الفئة بالعربية';
                           }
-                          Get.back();
-                          Get.snackbar(
-                            'تم بنجاح',
-                            isEditing ? 'تم تحديث الفئة' : 'تم إضافة الفئة',
-                            snackPosition: SnackPosition.BOTTOM,
-                          );
-                        }
-                      },
-                      child: Text(
-                        isEditing ? 'حفظ التعديلات' : 'إضافة',
-                        style: const TextStyle(color: Colors.white),
+                          return null;
+                        },
                       ),
                     ),
-                  ],
-                ),
-              ],
+                  ),
+
+                  const SizedBox(height: 16),
+                  // اسم بالإنجليزية
+                  Neumorphic(
+                    style: const NeumorphicStyle(
+                      depth: -3,
+                      intensity: 0.7,
+                    ),
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 16),
+                      child: TextFormField(
+                        controller: nameEnController,
+                        decoration: const InputDecoration(
+                          labelText: 'اسم الفئة (إنجليزي)',
+                          border: InputBorder.none,
+                        ),
+                        validator: (value) {
+                          if (value == null || value.isEmpty) {
+                            return 'يرجى إدخال اسم الفئة بالإنجليزية';
+                          }
+                          return null;
+                        },
+                      ),
+                    ),
+                  ),
+
+                  const SizedBox(height: 16),
+                  // وصف بالعربية
+                  Neumorphic(
+                    style: const NeumorphicStyle(
+                      depth: -3,
+                      intensity: 0.7,
+                    ),
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 16),
+                      child: TextFormField(
+                        controller: descriptionController,
+                        decoration: const InputDecoration(
+                          labelText: 'وصف الفئة (عربي)',
+                          border: InputBorder.none,
+                        ),
+                        maxLines: 2,
+                      ),
+                    ),
+                  ),
+
+                  const SizedBox(height: 16),
+                  // وصف بالإنجليزية
+                  Neumorphic(
+                    style: const NeumorphicStyle(
+                      depth: -3,
+                      intensity: 0.7,
+                    ),
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 16),
+                      child: TextFormField(
+                        controller: descriptionEnController,
+                        decoration: const InputDecoration(
+                          labelText: 'وصف الفئة (إنجليزي)',
+                          border: InputBorder.none,
+                        ),
+                        maxLines: 2,
+                      ),
+                    ),
+                  ),
+
+                  const SizedBox(height: 24),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.end,
+                    children: [
+                      TextButton(
+                        onPressed: () => Get.back(),
+                        child: const Text('إلغاء'),
+                      ),
+                      const SizedBox(width: 16),
+                      NeumorphicButton(
+                        style: const NeumorphicStyle(
+                          color: AppTheme.primaryColor,
+                        ),
+                        onPressed: () {
+                          if (formKey.currentState!.validate()) {
+                            if (isEditing) {
+                              final updatedCategory = Category(
+                                id: category.id,
+                                name: nameController.text,
+                                nameEn: nameEnController.text,
+                                description: descriptionController.text,
+                                descriptionEn: descriptionEnController.text,
+                                iconPath: selectedImagePath ??
+                                    category.iconPath ??
+                                    'assets/images/placeholder.png',
+                                order: category.order,
+                                isActive: category.isActive,
+                              );
+                              categoryController
+                                  .updateCategory(updatedCategory);
+                            } else {
+                              final newCategory = Category(
+                                id: DateTime.now()
+                                    .millisecondsSinceEpoch
+                                    .toString(),
+                                name: nameController.text,
+                                nameEn: nameEnController.text,
+                                description: descriptionController.text,
+                                descriptionEn: descriptionEnController.text,
+                                iconPath: selectedImagePath ??
+                                    'assets/images/placeholder.png',
+                                order: categoryController.categories.length,
+                                isActive: true,
+                              );
+                              categoryController.addCategory(newCategory);
+                            }
+                            Get.back();
+                            Get.snackbar(
+                              'تم بنجاح',
+                              isEditing ? 'تم تحديث الفئة' : 'تم إضافة الفئة',
+                              snackPosition: SnackPosition.BOTTOM,
+                            );
+                          }
+                        },
+                        child: Text(
+                          isEditing ? 'حفظ التعديلات' : 'إضافة',
+                          style: const TextStyle(color: Colors.white),
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
             ),
           ),
         ),
       ),
     );
+  }
+
+  Future<String?> _pickImage() async {
+    try {
+      final ImagePicker picker = ImagePicker();
+      final XFile? pickedFile =
+          await picker.pickImage(source: ImageSource.gallery);
+
+      if (pickedFile != null) {
+        final appDir = await getApplicationDocumentsDirectory();
+        final fileName =
+            'category_${DateTime.now().millisecondsSinceEpoch}${path.extension(pickedFile.path)}';
+        final savedImagePath =
+            path.join(appDir.path, 'category_images', fileName);
+
+        final imageDir = Directory(path.join(appDir.path, 'category_images'));
+        if (!await imageDir.exists()) {
+          await imageDir.create(recursive: true);
+        }
+
+        final File imageFile = File(pickedFile.path);
+        await imageFile.copy(savedImagePath);
+
+        return savedImagePath;
+      }
+      return null;
+    } catch (e) {
+      Get.snackbar(
+        'خطأ',
+        'حدث خطأ أثناء اختيار الصورة',
+        snackPosition: SnackPosition.BOTTOM,
+        backgroundColor: Colors.red,
+        colorText: Colors.white,
+      );
+      return null;
+    }
   }
 
   void _showDeleteConfirmationDialog(Category category) {
@@ -277,6 +427,31 @@ class CategoryManagement extends StatelessWidget {
             child: const Text(
               'حذف',
               style: TextStyle(color: Colors.red),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showResetCategoriesDialog(BuildContext context) {
+    Get.dialog(
+      AlertDialog(
+        title: const Text('استعادة الفئات الافتراضية'),
+        content: const Text('هل أنت متأكد من استعادة الفئات الافتراضية؟'),
+        actions: [
+          TextButton(
+            onPressed: () => Get.back(),
+            child: const Text('إلغاء'),
+          ),
+          TextButton(
+            onPressed: () {
+              categoryController.resetCategories();
+              Get.back();
+            },
+            child: const Text(
+              'استعادة',
+              style: TextStyle(color: Colors.green),
             ),
           ),
         ],

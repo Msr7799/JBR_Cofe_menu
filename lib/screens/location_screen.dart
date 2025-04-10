@@ -4,6 +4,7 @@ import 'package:get/get.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:gpr_coffee_shop/constants/colors.dart';
 import 'package:gpr_coffee_shop/screens/home_screen.dart';
+
 /// شاشة موقع المقهى والمعلومات
 class LocationScreen extends StatelessWidget {
   const LocationScreen({super.key});
@@ -273,7 +274,7 @@ class LocationScreen extends StatelessWidget {
         Expanded(
           child: _buildContactButton(
             icon: Icons.call,
-            title: 'اتصل بنا',
+            title: 'call_us'.tr,
             onTap: () => _launchPhone('+97312345678'),
           ),
         ),
@@ -281,7 +282,7 @@ class LocationScreen extends StatelessWidget {
         Expanded(
           child: _buildContactButton(
             icon: Icons.email,
-            title: 'راسلنا',
+            title: 'email_us'.tr,
             onTap: () => _launchEmail('info@gprcoffee.com'),
           ),
         ),
@@ -289,7 +290,7 @@ class LocationScreen extends StatelessWidget {
         Expanded(
           child: _buildContactButton(
             icon: Icons.chat,
-            title: 'واتساب',
+            title: 'whatsapp_us'.tr,
             onTap: () => _launchWhatsapp('+97312345678'),
           ),
         ),

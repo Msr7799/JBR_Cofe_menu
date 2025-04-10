@@ -86,6 +86,21 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
                 const SizedBox(height: 24),
 
+                // View options section
+                _buildSectionHeader('خيارات العرض'),
+                _buildCard(
+                  child: ListTile(
+                    leading: const Icon(Icons.visibility,
+                        color: AppTheme.primaryColor),
+                    title: Text('خيارات العرض'.tr),
+                    subtitle: Text('تخصيص طريقة عرض قائمة المنتجات'.tr),
+                    trailing: const Icon(Icons.arrow_forward_ios),
+                    onTap: () => Get.toNamed('/view-options'),
+                  ),
+                ),
+
+                const SizedBox(height: 24),
+
                 // About section
                 _buildSectionHeader('about'.tr),
                 _buildCard(
@@ -180,10 +195,11 @@ class _SettingsScreenState extends State<SettingsScreen> {
           shrinkWrap: true,
           physics: const NeverScrollableScrollPhysics(),
           gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-            crossAxisCount: 3, // Changed from 2 to 3 for smaller boxes
-            childAspectRatio: 0.9, // Changed from 1.2 to 0.9
-            crossAxisSpacing: 8, // Reduced from 12
-            mainAxisSpacing: 8, // Reduced from 12
+            crossAxisCount:
+                4, // تغيير من 3 إلى 4 لوضع الثيمات الأربعة في صف واحد
+            childAspectRatio: 0.7, // تعديل النسبة لجعل البطاقات أطول قليلاً
+            crossAxisSpacing: 6, // تقليل المسافة بين البطاقات
+            mainAxisSpacing: 6, // تقليل المسافة بين الصفوف
           ),
           itemCount: settingsController.availableThemes.length,
           itemBuilder: (context, index) {

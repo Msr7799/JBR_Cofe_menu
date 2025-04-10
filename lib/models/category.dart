@@ -1,5 +1,6 @@
 import 'package:hive/hive.dart';
 import 'package:json_annotation/json_annotation.dart';
+import 'package:get/get.dart';
 
 part 'category.g.dart';
 
@@ -24,6 +25,12 @@ class Category extends HiveObject {
   @HiveField(5)
   final bool isActive;
 
+  @HiveField(6) // Added field for English name
+  final String nameEn;
+
+  @HiveField(7) // Added field for English description
+  final String descriptionEn;
+
   Category({
     required this.id,
     required this.name,
@@ -31,7 +38,14 @@ class Category extends HiveObject {
     this.iconPath,
     this.order = 0,
     this.isActive = true,
+    this.nameEn = '', // Default value
+    this.descriptionEn = '', // Default value,
   });
+
+  // Localized getters for name and description
+  String get localizedName => Get.locale?.languageCode == 'en' ? nameEn : name;
+  String get localizedDescription =>
+      Get.locale?.languageCode == 'en' ? descriptionEn : description;
 
   factory Category.fromJson(Map<String, dynamic> json) =>
       _$CategoryFromJson(json);
@@ -44,6 +58,8 @@ class Category extends HiveObject {
     String? iconPath,
     int? order,
     bool? isActive,
+    String? nameEn,
+    String? descriptionEn,
   }) {
     return Category(
       id: id ?? this.id,
@@ -52,6 +68,8 @@ class Category extends HiveObject {
       iconPath: iconPath ?? this.iconPath,
       order: order ?? this.order,
       isActive: isActive ?? this.isActive,
+      nameEn: nameEn ?? this.nameEn,
+      descriptionEn: descriptionEn ?? this.descriptionEn,
     );
   }
 }

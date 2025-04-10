@@ -14,6 +14,9 @@ import 'package:gpr_coffee_shop/screens/admin/login_screen.dart';
 import 'package:gpr_coffee_shop/screens/customer/menu_screen.dart';
 import 'package:gpr_coffee_shop/screens/customer/rate_screen.dart';
 import 'package:gpr_coffee_shop/screens/settings_screen.dart';
+import 'package:gpr_coffee_shop/services/shared_preferences_service.dart';
+import 'package:gpr_coffee_shop/screens/view_options_screen.dart';
+import 'package:gpr_coffee_shop/screens/about_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({Key? key}) : super(key: key);
@@ -22,14 +25,24 @@ class HomeScreen extends StatefulWidget {
   _HomeScreenState createState() => _HomeScreenState();
 }
 
-class _HomeScreenState extends State<HomeScreen>
-    with SingleTickerProviderStateMixin {
+class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateMixin {
+  // تعريف مفاتيح فريدة لكل مكون
+  final GlobalKey _backgroundKey = GlobalKey(debugLabel: 'background_container');
+  final GlobalKey _contentKey = GlobalKey(debugLabel: 'content_container');
+
   final AuthController authController = Get.find<AuthController>();
   final SettingsController settingsController = Get.find<SettingsController>();
   late final FeedbackController feedbackController =
       Get.find<FeedbackController>();
   late AnimationController _animationController;
   bool _reducedMotion = false;
+
+  // View options variables
+  String _viewMode = 'grid'; // Default value: grid view
+  bool _showImages = true; // Default value: show images
+
+  // Add service reference for preferences
+  final _prefsService = Get.find<SharedPreferencesService>();
 
   @override
   void initState() {
@@ -44,6 +57,7 @@ class _HomeScreenState extends State<HomeScreen>
     }
 
     _checkPerformance();
+    _loadViewPreferences();
   }
 
   void _checkPerformance() {
@@ -59,6 +73,94 @@ class _HomeScreenState extends State<HomeScreen>
     });
   }
 
+  void _loadViewPreferences() {
+    setState(() {
+      _viewMode = _prefsService.getString('view_mode') ?? 'grid';
+      _showImages = _prefsService.getBool('show_images') ?? true;
+    });
+  }
+
+  void _showViewOptionsDialog(BuildContext context) {
+    final RxString viewMode = _viewMode.obs;
+    final RxBool showImages = _showImages.obs;
+
+    Get.dialog(
+      AlertDialog(
+        title: const Text('خيارات العرض'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text(
+              'طريقة عرض المنتجات:',
+              style: TextStyle(fontWeight: FontWeight.bold),
+            ),
+            const SizedBox(height: 8),
+            Obx(() => RadioListTile<String>(
+                  title: const Text('عرض شبكي'),
+                  value: 'grid',
+                  groupValue: viewMode.value,
+                  onChanged: (value) => viewMode.value = value!,
+                )),
+            Obx(() => RadioListTile<String>(
+                  title: const Text('عرض قائمة'),
+                  value: 'list',
+                  groupValue: viewMode.value,
+                  onChanged: (value) => viewMode.value = value!,
+                )),
+            Obx(() => RadioListTile<String>(
+                  title: const Text('عرض مدمج'),
+                  value: 'compact',
+                  groupValue: viewMode.value,
+                  onChanged: (value) => viewMode.value = value!,
+                )),
+            const Divider(),
+            Obx(() => SwitchListTile(
+                  title: const Text('عرض الصور'),
+                  value: showImages.value,
+                  onChanged: (value) => showImages.value = value,
+                )),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Get.back(),
+            child: const Text('إلغاء'),
+          ),
+          ElevatedButton(
+            onPressed: () {
+              // Save the settings locally
+              setState(() {
+                _viewMode = viewMode.value;
+                _showImages = showImages.value;
+              });
+
+              // Persist the settings
+              _prefsService.setString('view_mode', _viewMode);
+              _prefsService.setBool('show_images', _showImages);
+
+              // Close the dialog
+              Get.back();
+
+              // Show confirmation message
+              Get.snackbar(
+                'تم الحفظ',
+                'تم حفظ إعدادات العرض بنجاح',
+                snackPosition: SnackPosition.BOTTOM,
+                backgroundColor: Colors.green.withAlpha(180),
+                colorText: Colors.white,
+              );
+            },
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppTheme.primaryColor,
+            ),
+            child: const Text('حفظ'),
+          ),
+        ],
+      ),
+    );
+  }
+
   @override
   void dispose() {
     _animationController.dispose();
@@ -67,120 +169,128 @@ class _HomeScreenState extends State<HomeScreen>
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      body: OrientationBuilder(
-        builder: (context, orientation) {
-          return Stack(
-            children: [
-              // Background based on settings
-              GetBuilder<SettingsController>(
-                builder: (controller) {
-                  switch (controller.backgroundType) {
-                    case BackgroundType.default_bg:
-                      // Default animated background
-                      return Stack(
-                        children: [
-                          AnimatedBuilder(
-                            animation: _animationController,
-                            builder: (context, child) {
-                              return Container(
-                                decoration: BoxDecoration(
-                                  gradient: LinearGradient(
-                                    begin: Alignment.topLeft,
-                                    end: Alignment.bottomRight,
-                                    colors: const [
-                                      Color(0xFF7D6E83),
-                                      Color(0xFFD0B8A8),
-                                      Color(0xFFF8EDE3),
-                                    ],
-                                    stops: [
-                                      _animationController.value * 0.3,
-                                      _animationController.value * 0.7,
-                                      _animationController.value,
-                                    ],
-                                  ),
-                                ),
-                              );
-                            },
-                          ),
-                          Positioned.fill(
-                            child: AnimatedBuilder(
-                              animation: _animationController,
-                              builder: (context, child) {
-                                return CustomPaint(
-                                  painter: BackgroundPainter(
-                                    animation: _animationController.value,
-                                  ),
-                                );
-                              },
-                            ),
-                          ),
-                          Container(
-                            decoration: const BoxDecoration(
-                              image: DecorationImage(
-                                image: AssetImage('assets/images/JBRbg1.png'),
-                                fit: BoxFit.cover,
-                                opacity: 0.15,
-                              ),
-                            ),
-                          ),
-                        ],
-                      );
-                    case BackgroundType.color:
-                      // Simple color background
-                      return Container(
-                        color: controller.backgroundColor,
-                      );
-                    case BackgroundType.image:
-                      // Custom image background
-                      final imagePath = controller.backgroundImagePath;
-                      if (imagePath != null && File(imagePath).existsSync()) {
-                        return Container(
-                          decoration: BoxDecoration(
-                            image: DecorationImage(
-                              image: FileImage(File(imagePath)),
-                              fit: BoxFit.cover,
-                            ),
-                          ),
-                        );
-                      } else {
-                        // Fallback to default if image not found
-                        controller.resetToDefaultBackground();
-                        return Container(
-                          decoration: const BoxDecoration(
-                            gradient: LinearGradient(
-                              begin: Alignment.topLeft,
-                              end: Alignment.bottomRight,
-                              colors: [
-                                Color(0xFF7D6E83),
-                                Color(0xFFD0B8A8),
-                                Color(0xFFF8EDE3),
-                              ],
-                            ),
-                          ),
-                        );
-                      }
-                  }
-                },
-              ),
+    final settingsController = Get.find<SettingsController>();
 
-              // Blur overlay
-              BackdropFilter(
-                filter: ImageFilter.blur(sigmaX: 3, sigmaY: 3),
-                child: Container(
-                  color: Colors.white.withAlpha(25),
+    // استخدام GetBuilder بدلاً من Obx لتجنب التحديثات المتعددة
+    return GetBuilder<SettingsController>(
+      builder: (controller) {
+        // استخراج إعدادات الخلفية من المتحكم
+        final backgroundType = controller.backgroundType;
+        final backgroundImagePath = controller.backgroundImagePath;
+        final backgroundColor = controller.backgroundColor;
+
+        return Scaffold(
+          // تطبيق الخلفية بناءً على النوع المختار
+          extendBodyBehindAppBar: true,
+          appBar: AppBar(
+            title: const Text(
+              'JBR Coffee Shop',
+              style: TextStyle(
+                color: AppTheme.textLightColor,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            centerTitle: true,
+            actions: [
+              IconButton(
+                icon: const Icon(Icons.view_list),
+                tooltip: 'خيارات العرض',
+                onPressed: () => _showViewOptionsDialog(context),
+              ),
+            ],
+          ),
+          body: Container(
+            key: _backgroundKey, // استخدام مفتاح فريد
+            // دمج خلفية الشاشة هنا
+            decoration: _buildBackgroundDecoration(
+              backgroundType,
+              backgroundColor,
+              backgroundImagePath,
+            ),
+            child: SafeArea(
+              child: Container(
+                key: _contentKey, // استخدام مفتاح فريد
+                child: OrientationBuilder(
+                  builder: (context, orientation) {
+                    return Stack(
+                      children: [
+                        AnimatedBuilder(
+                          animation: _animationController,
+                          builder: (context, child) {
+                            return Container(
+                              decoration: BoxDecoration(
+                                gradient: LinearGradient(
+                                  begin: Alignment.topLeft,
+                                  end: Alignment.bottomRight,
+                                  colors: const [
+                                    Color(0xFF7D6E83),
+                                    Color(0xFFD0B8A8),
+                                    Color(0xFFF8EDE3),
+                                  ],
+                                  stops: [
+                                    _animationController.value * 0.3,
+                                    _animationController.value * 0.7,
+                                    _animationController.value,
+                                  ],
+                                ),
+                              ),
+                            );
+                          },
+                        ),
+                        BackdropFilter(
+                          filter: ImageFilter.blur(sigmaX: 3, sigmaY: 3),
+                          child: Container(
+                            color: Colors.white.withAlpha(25),
+                          ),
+                        ),
+                        orientation == Orientation.portrait
+                            ? _buildPortraitLayout(context)
+                            : _buildLandscapeLayout(context),
+                      ],
+                    );
+                  },
                 ),
               ),
-
-              // Main content (portrait or landscape)
-              orientation == Orientation.portrait
-                  ? _buildPortraitLayout(context)
-                  : _buildLandscapeLayout(context),
-            ],
-          );
-        },
-      ),
+            ),
+          ),
+        );
+      },
     );
+  }
+
+  BoxDecoration _buildBackgroundDecoration(
+    BackgroundType type,
+    Color backgroundColor,
+    String? imagePath,
+  ) {
+    switch (type) {
+      case BackgroundType.color:
+        return BoxDecoration(color: backgroundColor);
+
+      case BackgroundType.image:
+        if (imagePath != null && File(imagePath).existsSync()) {
+          return BoxDecoration(
+            image: DecorationImage(
+              image: FileImage(File(imagePath)),
+              fit: BoxFit.cover,
+            ),
+          );
+        }
+        // إذا كانت الصورة غير متوفرة، ارجع للخلفية الافتراضية
+        return const BoxDecoration(
+          color: Colors.white,
+        );
+
+      case BackgroundType.default_bg:
+      default:
+        return const BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+            colors: [Color(0xFFF8F8F8), Color(0xFFF0F0F0)],
+          ),
+        );
+    }
   }
 
   Widget _buildPortraitLayout(BuildContext context) {
@@ -347,7 +457,7 @@ class _HomeScreenState extends State<HomeScreen>
                           _buildNavigationButton(
                             title: 'rate'.tr,
                             icon: Icons.star_rate,
-                            onTap: () => Get.to(() => RateScreen()),
+                            onTap: () => Get.to(() => const RateScreen()),
                             color: const Color(0xFFB85C38),
                           ),
                           SizedBox(height: screenHeight * 0.015),
@@ -356,7 +466,7 @@ class _HomeScreenState extends State<HomeScreen>
                             icon: Icons.admin_panel_settings,
                             onTap: () {
                               if (authController.isAdmin.value) {
-                                Get.to(() => AdminDashboard());
+                                Get.to(() => const AdminDashboard());
                               } else {
                                 Get.to(() => LoginScreen());
                               }
@@ -365,10 +475,24 @@ class _HomeScreenState extends State<HomeScreen>
                           ),
                           SizedBox(height: screenHeight * 0.015),
                           _buildNavigationButton(
+                            title: 'خيارات العرض',
+                            icon: Icons.view_list,
+                            onTap: () => _showViewOptionsDialog(context),
+                            color: const Color(0xFF50727B),
+                          ),
+                          SizedBox(height: screenHeight * 0.015),
+                          _buildNavigationButton(
                             title: 'settings'.tr,
                             icon: Icons.settings,
-                            onTap: () => Get.to(() => SettingsScreen()),
+                            onTap: () => Get.to(() => const SettingsScreen()),
                             color: const Color(0xFF5E5B52),
+                          ),
+                          SizedBox(height: screenHeight * 0.015),
+                          _buildNavigationButton(
+                            title: 'حول البرنامج',
+                            icon: Icons.info_outline,
+                            onTap: () => Get.to(() => const AboutScreen()),
+                            color: const Color(0xFF795548),
                           ),
                         ],
                       ),
@@ -419,7 +543,6 @@ class _HomeScreenState extends State<HomeScreen>
 
   Widget _buildLandscapeLayout(BuildContext context) {
     final screenHeight = MediaQuery.of(context).size.height;
-    final screenWidth = MediaQuery.of(context).size.width;
     final textColor = settingsController.textColor;
 
     return SafeArea(
@@ -550,10 +673,22 @@ class _HomeScreenState extends State<HomeScreen>
                               color: const Color(0xFF4D4546),
                             ),
                             _buildLandscapeButton(
+                              title: 'خيارات العرض',
+                              icon: Icons.view_list,
+                              onTap: () => _showViewOptionsDialog(context),
+                              color: const Color(0xFF50727B),
+                            ),
+                            _buildLandscapeButton(
                               title: 'settings'.tr,
                               icon: Icons.settings,
                               onTap: () => Get.to(() => SettingsScreen()),
                               color: const Color(0xFF5E5B52),
+                            ),
+                            _buildLandscapeButton(
+                              title: 'حول البرنامج',
+                              icon: Icons.info_outline,
+                              onTap: () => Get.to(() => const AboutScreen()),
+                              color: const Color(0xFF795548),
                             ),
                           ],
                         ),
@@ -758,7 +893,7 @@ class _HomeScreenState extends State<HomeScreen>
                             ),
                             const SizedBox(width: 8),
                             Text(
-                              'آراء العملاء',
+                              'آراء الزبائن',
                               style: TextStyle(
                                 fontSize: isPortrait ? 18 : 16,
                                 fontWeight: FontWeight.bold,
@@ -978,6 +1113,113 @@ class _HomeScreenState extends State<HomeScreen>
           ),
         ),
       ),
+    );
+  }
+
+  Widget _buildOptionCard({
+    required String title,
+    required IconData icon,
+    required VoidCallback onTap,
+    required Gradient gradient,
+  }) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Neumorphic(
+        style: NeumorphicStyle(
+          depth: 8,
+          intensity: 0.8,
+          shape: NeumorphicShape.flat,
+          boxShape: NeumorphicBoxShape.roundRect(BorderRadius.circular(16)),
+          color: Colors.white.withAlpha(217),
+          lightSource: LightSource.topLeft,
+        ),
+        child: Container(
+          width: MediaQuery.of(context).size.width * 0.4,
+          height: MediaQuery.of(context).size.height * 0.15,
+          decoration: BoxDecoration(
+            gradient: gradient,
+            borderRadius: BorderRadius.circular(16),
+          ),
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(
+                icon,
+                color: Colors.white,
+                size: 36,
+              ),
+              const SizedBox(height: 12),
+              Text(
+                title,
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildMainOptions() {
+    return Column(
+      children: [
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+          children: [
+            _buildOptionCard(
+              title: 'القائمة',
+              icon: Icons.restaurant_menu,
+              onTap: () => Get.to(() => MenuScreen()),
+              gradient: const LinearGradient(
+                colors: [Colors.amber, Colors.orange],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+              ),
+            ),
+            _buildOptionCard(
+              title: 'تقييم',
+              icon: Icons.star,
+              onTap: () => Get.to(() => RateScreen()),
+              gradient: const LinearGradient(
+                colors: [Colors.lightBlue, Colors.blue],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 20),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+          children: [
+            _buildOptionCard(
+              title: 'الإعدادات',
+              icon: Icons.settings,
+              onTap: () => Get.to(() => SettingsScreen()),
+              gradient: const LinearGradient(
+                colors: [Colors.purple, Colors.deepPurple],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+              ),
+            ),
+            _buildOptionCard(
+              title: 'خيارات العرض',
+              icon: Icons.visibility,
+              onTap: () => Get.to(() => ViewOptionsScreen()),
+              gradient: const LinearGradient(
+                colors: [Colors.teal, Colors.green],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+              ),
+            ),
+          ],
+        ),
+      ],
     );
   }
 }

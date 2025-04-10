@@ -23,13 +23,15 @@ class CategoryAdapter extends TypeAdapter<Category> {
       iconPath: fields[3] as String?,
       order: fields[4] as int,
       isActive: fields[5] as bool,
+      nameEn: fields[6] as String,
+      descriptionEn: fields[7] as String,
     );
   }
 
   @override
   void write(BinaryWriter writer, Category obj) {
     writer
-      ..writeByte(6)
+      ..writeByte(8)
       ..writeByte(0)
       ..write(obj.id)
       ..writeByte(1)
@@ -41,7 +43,11 @@ class CategoryAdapter extends TypeAdapter<Category> {
       ..writeByte(4)
       ..write(obj.order)
       ..writeByte(5)
-      ..write(obj.isActive);
+      ..write(obj.isActive)
+      ..writeByte(6)
+      ..write(obj.nameEn)
+      ..writeByte(7)
+      ..write(obj.descriptionEn);
   }
 
   @override
@@ -115,6 +121,8 @@ Category _$CategoryFromJson(Map<String, dynamic> json) => Category(
       iconPath: json['iconPath'] as String?,
       order: (json['order'] as num?)?.toInt() ?? 0,
       isActive: json['isActive'] as bool? ?? true,
+      nameEn: json['nameEn'] as String? ?? '',
+      descriptionEn: json['descriptionEn'] as String? ?? '',
     );
 
 Map<String, dynamic> _$CategoryToJson(Category instance) => <String, dynamic>{
@@ -124,4 +132,6 @@ Map<String, dynamic> _$CategoryToJson(Category instance) => <String, dynamic>{
       'iconPath': instance.iconPath,
       'order': instance.order,
       'isActive': instance.isActive,
+      'nameEn': instance.nameEn,
+      'descriptionEn': instance.descriptionEn,
     };

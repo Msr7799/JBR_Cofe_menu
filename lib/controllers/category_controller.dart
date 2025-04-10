@@ -4,7 +4,7 @@ import 'package:gpr_coffee_shop/models/category.dart';
 import 'package:gpr_coffee_shop/services/local_storage_service.dart';
 import 'package:uuid/uuid.dart';
 import 'package:gpr_coffee_shop/utils/logger_util.dart';
-
+import 'package:gpr_coffee_shop/data/menu_data.dart';
 
 class CategoryController extends GetxController {
   final LocalStorageService _storage;
@@ -40,27 +40,7 @@ class CategoryController extends GetxController {
   }
 
   Future<void> _addSampleCategories() async {
-    final sampleCategories = [
-      Category(
-        id: '1',
-        name: 'قهوة ساخنة',
-        description: 'مجموعة متنوعة من القهوة الساخنة',
-        iconPath:
-            'assets/images/JBRH2.png', // استخدم iconPath بدلاً من image
-      ),
-      Category(
-        id: '2',
-        name: 'قهوة باردة',
-        description: 'مشروبات القهوة الباردة المنعشة',
-        iconPath: 'assets/images/placeholder.png',
-      ),
-      Category(
-        id: '3',
-        name: 'حلويات',
-        description: 'تشكيلة من الحلويات الشهية',
-        iconPath: 'assets/images/placeholder.png',
-      ),
-    ];
+    final sampleCategories = MenuData.getCategories();
 
     for (var category in sampleCategories) {
       await _storage.saveCategory(category);
@@ -199,5 +179,47 @@ class CategoryController extends GetxController {
 
   void selectCategory(String? id) {
     selectedCategoryId.value = id ?? '';
+  }
+
+  Future<void> resetCategories() async {
+    try {
+      isLoading.value = true;
+
+      // احصل على الفئات الافتراضية من ملف menu_data.dart
+      final defaultCategories = MenuData.getCategories();
+
+      // احذف جميع الفئات الحالية
+      await _storage.clearCategories();
+
+      // أضف الفئات الافتراضية
+      for (var category in defaultCategories) {
+        await _storage.saveCategory(category);
+      }
+
+      // أعد تحميل القائمة
+      categories.assignAll(defaultCategories);
+      categories.refresh();
+
+      Get.snackbar(
+        'نجاح',
+        'تم إعادة ضبط الفئات إلى الحالة الافتراضية',
+        snackPosition: SnackPosition.BOTTOM,
+        backgroundColor: Colors.green,
+        colorText: Colors.white,
+        duration: const Duration(seconds: 2),
+      );
+    } catch (e) {
+      LoggerUtil.logger.e('Error resetting categories: $e');
+      Get.snackbar(
+        'خطأ',
+        'حدث خطأ أثناء إعادة ضبط الفئات',
+        snackPosition: SnackPosition.BOTTOM,
+        backgroundColor: Colors.red,
+        colorText: Colors.white,
+        duration: const Duration(seconds: 2),
+      );
+    } finally {
+      isLoading.value = false;
+    }
   }
 }

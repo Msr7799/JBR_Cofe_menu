@@ -1,21 +1,31 @@
-import 'package:hive/hive.dart';
 import 'package:flutter/material.dart';
+import 'package:hive/hive.dart';
 
 part 'app_settings.g.dart';
 
-@HiveType(typeId: 10)
-class AppSettings extends HiveObject {
+// تعريف انواع خلفية التطبيق
+@HiveType(typeId: 13)
+enum BackgroundType {
   @HiveField(0)
-  String themeMode;
+  default_bg,
+  @HiveField(1)
+  color,
+  @HiveField(2)
+  image
+}
+
+// نموذج إعدادات التطبيق
+@HiveType(typeId: 10)
+class AppSettings {
+  // إعدادات عامة
+  @HiveField(0)
+  String themeMode; // هذا صحيح، نحن نخزن واضع الثيم كسلسلة نصية
 
   @HiveField(1)
   String language;
 
   @HiveField(2)
   double fontSize;
-
-  @HiveField(3)
-  List<SocialMediaAccount> socialAccounts;
 
   @HiveField(4)
   String appName;
@@ -26,57 +36,147 @@ class AppSettings extends HiveObject {
   @HiveField(6)
   String? benefitPayQrCodeUrl;
 
-  @HiveField(7)
-  BackgroundSettings backgroundSettings;
-
   @HiveField(8)
   String menuViewMode;
 
+  // إعدادات الخلفية
+  @HiveField(7)
+  BackgroundSettings backgroundSettings;
+
   AppSettings({
-    required this.themeMode,
-    required this.language,
-    required this.fontSize,
-    required this.socialAccounts,
-    required this.appName,
-    required this.isFirstRun,
+    this.themeMode = 'system',
+    this.language = 'ar',
+    this.fontSize = 1.0,
+    this.isFirstRun = true,
+    this.appName = 'JBR Coffee Shop',
     this.benefitPayQrCodeUrl,
+    this.menuViewMode = 'grid',
     BackgroundSettings? backgroundSettings,
-    this.menuViewMode = 'cards',
-  }) : this.backgroundSettings =
+  }) : backgroundSettings =
             backgroundSettings ?? BackgroundSettings.defaultSettings();
 
+  // إعدادات افتراضية
   factory AppSettings.defaultSettings() {
     return AppSettings(
-      themeMode: 'light',
+      themeMode: 'system',
       language: 'ar',
       fontSize: 1.0,
-      socialAccounts: [],
-      appName: 'JBR Coffee Shop',
       isFirstRun: true,
+      appName: 'JBR Coffee Shop',
+      benefitPayQrCodeUrl: null,
+      menuViewMode: 'grid',
       backgroundSettings: BackgroundSettings.defaultSettings(),
-      menuViewMode: 'cards',
     );
   }
 
-  MenuViewMode get viewMode {
-    switch (menuViewMode) {
-      case 'list':
-        return MenuViewMode.list;
-      case 'textOnly':
-        return MenuViewMode.textOnly;
-      case 'singleProduct':
-        return MenuViewMode.singleProduct;
-      case 'categories':
-        return MenuViewMode.categories;
-      case 'cards':
-      default:
-        return MenuViewMode.cards;
+  // تحويل من JSON
+  factory AppSettings.fromJson(Map<String, dynamic> json) {
+    return AppSettings(
+      themeMode: json['themeMode'] as String? ?? 'system',
+      language: json['language'] as String? ?? 'ar',
+      fontSize: (json['fontSize'] as num?)?.toDouble() ?? 1.0,
+      isFirstRun: json['isFirstRun'] as bool? ?? true,
+      appName: json['appName'] as String? ?? 'JBR Coffee Shop',
+      benefitPayQrCodeUrl: json['benefitPayQrCodeUrl'] as String?,
+      menuViewMode: json['menuViewMode'] as String? ?? 'grid',
+      backgroundSettings: json['backgroundSettings'] != null
+          ? BackgroundSettings.fromJson(
+              json['backgroundSettings'] as Map<String, dynamic>)
+          : BackgroundSettings.defaultSettings(),
+    );
+  }
+
+  // تحويل إلى JSON
+  Map<String, dynamic> toJson() {
+    return {
+      'themeMode': themeMode,
+      'language': language,
+      'fontSize': fontSize,
+      'isFirstRun': isFirstRun,
+      'appName': appName,
+      'benefitPayQrCodeUrl': benefitPayQrCodeUrl,
+      'menuViewMode': menuViewMode,
+      'backgroundSettings': backgroundSettings.toJson(),
+    };
+  }
+}
+
+// نموذج إعدادات الخلفية
+@HiveType(typeId: 12)
+class BackgroundSettings {
+  @HiveField(0)
+  BackgroundType type;
+
+  @HiveField(2)
+  int colorValue;
+
+  @HiveField(3)
+  int textColorValue;
+
+  @HiveField(1)
+  String? imagePath;
+
+  @HiveField(4)
+  bool autoTextColor;
+
+  BackgroundSettings({
+    this.type = BackgroundType.default_bg,
+    this.colorValue = 0xFFFFFFFF, // أبيض افتراضي
+    this.textColorValue = 0xFF000000, // أسود افتراضي
+    this.imagePath,
+    this.autoTextColor = true,
+  });
+
+  // إعدادات افتراضية
+  factory BackgroundSettings.defaultSettings() {
+    return BackgroundSettings(
+      type: BackgroundType.default_bg,
+      colorValue: 0xFFFFFFFF,
+      textColorValue: 0xFF000000,
+      imagePath: null,
+      autoTextColor: true,
+    );
+  }
+
+  // تحويل من JSON
+  factory BackgroundSettings.fromJson(Map<String, dynamic> json) {
+    return BackgroundSettings(
+      type: _parseBackgroundType(json['type']),
+      colorValue: json['colorValue'] as int? ?? 0xFFFFFFFF,
+      textColorValue: json['textColorValue'] as int? ?? 0xFF000000,
+      imagePath: json['imagePath'] as String?,
+      autoTextColor: json['autoTextColor'] as bool? ?? true,
+    );
+  }
+
+  // تحويل إلى JSON
+  Map<String, dynamic> toJson() {
+    return {
+      'type': type.index,
+      'colorValue': colorValue,
+      'textColorValue': textColorValue,
+      'imagePath': imagePath,
+      'autoTextColor': autoTextColor,
+    };
+  }
+
+  // دالة مساعدة لتحويل القيمة إلى نوع الخلفية
+  static BackgroundType _parseBackgroundType(dynamic value) {
+    if (value is BackgroundType) {
+      return value;
+    } else if (value is int &&
+        value >= 0 &&
+        value < BackgroundType.values.length) {
+      return BackgroundType.values[value];
+    } else {
+      return BackgroundType.default_bg;
     }
   }
 }
 
+// فئة فارغة مطلوبة فقط للتوافق مع ملف app_settings.g.dart المولّد تلقائيًا
 @HiveType(typeId: 11)
-class SocialMediaAccount extends HiveObject {
+class SocialMediaAccount {
   @HiveField(0)
   String id;
 
@@ -95,60 +195,4 @@ class SocialMediaAccount extends HiveObject {
     required this.url,
     required this.icon,
   });
-}
-
-@HiveType(typeId: 12)
-class BackgroundSettings extends HiveObject {
-  @HiveField(0)
-  BackgroundType type;
-
-  @HiveField(1)
-  String? imagePath;
-
-  @HiveField(2)
-  int colorValue;
-
-  @HiveField(3, defaultValue: 0xFF000000) // Black as default
-  int textColorValue;
-
-  @HiveField(4, defaultValue: true)
-  bool autoTextColor;
-
-  BackgroundSettings({
-    required this.type,
-    this.imagePath,
-    required this.colorValue,
-    int? textColorValue,
-    bool? autoTextColor,
-  })  : this.textColorValue = textColorValue ?? Colors.black.value,
-        this.autoTextColor = autoTextColor ?? true;
-
-  factory BackgroundSettings.defaultSettings() {
-    return BackgroundSettings(
-      type: BackgroundType.default_bg,
-      colorValue: Colors.white.value,
-      textColorValue: Colors.black.value,
-      autoTextColor: true,
-    );
-  }
-}
-
-@HiveType(typeId: 13)
-enum BackgroundType {
-  @HiveField(0)
-  default_bg,
-
-  @HiveField(1)
-  color,
-
-  @HiveField(2)
-  image
-}
-
-enum MenuViewMode {
-  cards, // بطاقات (الافتراضي)
-  list, // قائمة
-  textOnly, // نص فقط
-  singleProduct, // منتج واحد في كل صفحة
-  categories // فئات
 }

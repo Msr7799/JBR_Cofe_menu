@@ -1,173 +1,190 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_neumorphic_plus/flutter_neumorphic.dart';
 import 'package:get/get.dart';
-import 'package:gpr_coffee_shop/controllers/settings_controller.dart';
-import 'package:gpr_coffee_shop/widgets/custom_app_bar.dart';
+import 'package:gpr_coffee_shop/constants/theme.dart';
+import 'package:flutter_neumorphic_plus/flutter_neumorphic.dart';
+import 'package:gpr_coffee_shop/utils/view_options_helper.dart';
+
 
 class ViewOptionsScreen extends StatelessWidget {
-  final SettingsController settingsController = Get.find<SettingsController>();
+  // استخدام متغيرات Rx لتخزين قيمة وضع العرض وإعدادات الصور
+  final RxString viewMode = ViewOptionsHelper.getViewMode().obs;
+  final RxBool showImages = ViewOptionsHelper.getShowImages().obs;
+  // استخدام المتغيرات الجديدة
+  final RxBool useAnimations = ViewOptionsHelper.getUseAnimations().obs;
+  final RxBool showOrderButton = ViewOptionsHelper.getShowOrderButton().obs;
 
   ViewOptionsScreen({Key? key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: CustomAppBar(
-        title: 'view_options'.tr,
-        showBackButton: true,
+      appBar: AppBar(
+        title: const Text('خيارات العرض'),
+        backgroundColor: AppTheme.primaryColor,
       ),
       body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16.0),
+        padding: const EdgeInsets.all(16),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            _buildSectionTitle('display_options'.tr),
-            const SizedBox(height: 12),
-            _buildThemeSelector(),
-            const SizedBox(height: 24),
-            _buildSectionTitle('text_size'.tr),
-            const SizedBox(height: 12),
-            _buildTextSizeSelector(),
-            const SizedBox(height: 24),
-            _buildSectionTitle('layout_options'.tr),
-            const SizedBox(height: 12),
-            _buildLayoutOptions(),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildSectionTitle(String title) {
-    return Text(
-      title,
-      style: const TextStyle(
-        fontSize: 18,
-        fontWeight: FontWeight.bold,
-      ),
-    );
-  }
-
-  Widget _buildThemeSelector() {
-    return GetBuilder<SettingsController>(
-      builder: (controller) {
-        return Column(
-          children: [
-            _buildThemeOption('light', 'light_theme'.tr, Icons.light_mode),
-            _buildThemeOption('dark', 'dark_theme'.tr, Icons.dark_mode),
-            _buildThemeOption('coffee', 'coffee_theme'.tr, Icons.coffee),
-            _buildThemeOption('sweet', 'sweet_theme'.tr, Icons.cake),
-            _buildThemeOption(
-                'system', 'system_theme'.tr, Icons.settings_system_daydream),
-          ],
-        );
-      },
-    );
-  }
-
-  Widget _buildThemeOption(String value, String title, IconData icon) {
-    return Obx(() {
-      final isSelected = settingsController.themeMode == value;
-      return Padding(
-        padding: const EdgeInsets.symmetric(vertical: 6.0),
-        child: NeumorphicButton(
-          style: NeumorphicStyle(
-            depth: isSelected ? -3 : 3,
-            intensity: 0.7,
-            color: isSelected ? Get.theme.colorScheme.primaryContainer : null,
-          ),
-          padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
-          onPressed: () => settingsController.setThemeMode(value),
-          child: Row(
-            children: [
-              Icon(icon, size: 24),
-              const SizedBox(width: 16),
-              Text(title, style: const TextStyle(fontSize: 16)),
-              const Spacer(),
-              if (isSelected) const Icon(Icons.check, color: Colors.green),
-            ],
-          ),
-        ),
-      );
-    });
-  }
-
-  Widget _buildTextSizeSelector() {
-    return GetBuilder<SettingsController>(
-      builder: (controller) {
-        return NeumorphicSlider(
-          height: 15,
-          value: controller.textScaleFactor ?? 1.0,
-          min: 0.8,
-          max: 1.4,
-          onChanged: (value) {
-            controller.setTextScaleFactor(value);
-          },
-          thumb: Container(
-            decoration: const BoxDecoration(
-              shape: BoxShape.circle,
-              color: Colors.white,
+            _buildSectionHeader('طريقة عرض المنتجات'),
+            _buildCard(
+              child: Column(
+                children: [
+                  _buildViewModeSetting(),
+                ],
+              ),
             ),
-            child: const Icon(Icons.text_fields, size: 20),
-          ),
-        );
-      },
-    );
-  }
-
-  Widget _buildLayoutOptions() {
-    return GetBuilder<SettingsController>(
-      builder: (controller) {
-        return Column(
-          children: [
-            _buildSwitchOption(
-              title: 'compact_view'.tr,
-              value: controller.compactView ?? false,
-              onChanged: (value) => controller.setCompactView(value),
-              icon: Icons.view_compact,
+            const SizedBox(height: 20),
+            _buildSectionHeader('خيارات العرض'),
+            _buildCard(
+              child: Column(
+                children: [
+                  Obx(() => SwitchListTile(
+                        title: const Text('عرض الصور'),
+                        subtitle: const Text('عرض صور المنتجات في القائمة'),
+                        value: showImages.value,
+                        onChanged: (value) {
+                          showImages.value = value;
+                          ViewOptionsHelper.saveShowImages(value);
+                        },
+                      )),
+                ],
+              ),
             ),
-            _buildSwitchOption(
-              title: 'show_images'.tr,
-              value: controller.showImages ?? true,
-              onChanged: (value) => controller.setShowImages(value),
-              icon: Icons.image,
+            const SizedBox(height: 20),
+            _buildSectionHeader('تنسيق واجهة المستخدم'),
+            _buildCard(
+              child: Column(
+                children: [
+                  Obx(() => SwitchListTile(
+                        title: const Text('استخدام التأثيرات الحركية'),
+                        subtitle: const Text(
+                            'تظهر المنتجات بتأثيرات حركية عند التفاعل معها'),
+                        value: useAnimations.value,
+                        onChanged: (value) {
+                          useAnimations.value = value;
+                          ViewOptionsHelper.saveUseAnimations(value);
+                        },
+                      )),
+                  Obx(() => SwitchListTile(
+                        title: const Text('عرض زر الطلب مباشرة'),
+                        subtitle:
+                            const Text('عرض زر الطلب مباشرة على بطاقة المنتج'),
+                        value: showOrderButton.value,
+                        onChanged: (value) {
+                          showOrderButton.value = value;
+                          ViewOptionsHelper.saveShowOrderButton(value);
+                        },
+                      )),
+                ],
+              ),
             ),
-          ],
-        );
-      },
-    );
-  }
+            const SizedBox(height: 30),
+            Center(
+              child: ElevatedButton.icon(
+                icon: const Icon(Icons.save),
+                label: const Text('حفظ الإعدادات'),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppTheme.primaryColor,
+                  foregroundColor: Colors.white,
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                ),
+                onPressed: () {
+                  // حفظ جميع الإعدادات مرة واحدة للتأكد من تطبيقها
+                  ViewOptionsHelper.saveViewMode(viewMode.value);
+                  ViewOptionsHelper.saveShowImages(showImages.value);
+                  ViewOptionsHelper.saveUseAnimations(useAnimations.value);
+                  ViewOptionsHelper.saveShowOrderButton(showOrderButton.value);
 
-  Widget _buildSwitchOption({
-    required String title,
-    required bool value,
-    required Function(bool) onChanged,
-    required IconData icon,
-  }) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 8.0),
-      child: NeumorphicButton(
-        style: const NeumorphicStyle(
-          depth: 2,
-          intensity: 0.6,
-        ),
-        padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
-        child: Row(
-          children: [
-            Icon(icon, size: 24),
-            const SizedBox(width: 16),
-            Text(title, style: const TextStyle(fontSize: 16)),
-            const Spacer(),
-            NeumorphicSwitch(
-              value: value,
-              onChanged: onChanged,
-              style: const NeumorphicSwitchStyle(
-                lightSource: LightSource.topLeft,
+                  // عرض رسالة تأكيد
+                  Get.snackbar(
+                    'تم الحفظ',
+                    'تم حفظ إعدادات العرض بنجاح',
+                    snackPosition: SnackPosition.BOTTOM,
+                    backgroundColor: Colors.green.withOpacity(0.7),
+                    colorText: Colors.white,
+                    duration: const Duration(seconds: 2),
+                  );
+
+                  // العودة للشاشة السابقة بعد الحفظ
+                  // Get.back(); // علّق هذا السطر إذا كنت تريد البقاء في الشاشة بعد الحفظ
+                },
               ),
             ),
           ],
         ),
-        onPressed: () => onChanged(!value),
+      ),
+    );
+  }
+
+  Widget _buildViewModeSetting() {
+    return Obx(() => Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text(
+              'اختر طريقة عرض المنتجات:',
+              style: TextStyle(fontWeight: FontWeight.bold),
+            ),
+            const SizedBox(height: 10),
+            RadioListTile<String>(
+              title: const Text('عرض شبكي (شبكة)'),
+              subtitle: const Text('عرض المنتجات في شبكة من البطاقات'),
+              value: 'grid',
+              groupValue: viewMode.value,
+              onChanged: (value) {
+                viewMode.value = value!;
+                ViewOptionsHelper.saveViewMode(value);
+              },
+            ),
+            RadioListTile<String>(
+              title: const Text('عرض قائمة'),
+              subtitle: const Text('عرض المنتجات في قائمة عمودية'),
+              value: 'list',
+              groupValue: viewMode.value,
+              onChanged: (value) {
+                viewMode.value = value!;
+                ViewOptionsHelper.saveViewMode(value);
+              },
+            ),
+            RadioListTile<String>(
+              title: const Text('عرض مدمج'),
+              subtitle: const Text('عرض مدمج للمنتجات في صفوف'),
+              value: 'compact',
+              groupValue: viewMode.value,
+              onChanged: (value) {
+                viewMode.value = value!;
+                ViewOptionsHelper.saveViewMode(value);
+              },
+            ),
+          ],
+        ));
+  }
+
+  Widget _buildSectionHeader(String title) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 12, right: 8, left: 8),
+      child: Text(
+        title,
+        style: const TextStyle(
+          fontSize: 18,
+          fontWeight: FontWeight.bold,
+          color: AppTheme.primaryColor,
+        ),
+      ),
+    );
+  }
+
+  Widget _buildCard({required Widget child}) {
+    return Card(
+      elevation: 2,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: child,
       ),
     );
   }
