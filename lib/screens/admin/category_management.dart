@@ -96,10 +96,7 @@ class CategoryManagement extends StatelessWidget {
                 borderRadius: BorderRadius.circular(8),
               ),
               child: category.iconPath != null
-                  ? Image.asset(
-                      category.iconPath!,
-                      fit: BoxFit.cover,
-                    )
+                  ? _buildCategoryImage(category.iconPath!)
                   : const Icon(Icons.image_not_supported),
             ),
             const SizedBox(width: 16),
@@ -143,6 +140,31 @@ class CategoryManagement extends StatelessWidget {
     );
   }
 
+  // Helper method to determine if the image is an asset or a file
+  Widget _buildCategoryImage(String path) {
+    // Check if the path is a local file path
+    if (path.startsWith('C:') || path.startsWith('/') || path.contains('Documents')) {
+      return Image.file(
+        File(path),
+        fit: BoxFit.cover,
+        errorBuilder: (context, error, stackTrace) {
+          print('خطأ تحميل الصورة: $path, $error');
+          return const Icon(Icons.broken_image);
+        },
+      );
+    } else {
+      // Otherwise assume it's an asset path
+      return Image.asset(
+        path,
+        fit: BoxFit.cover,
+        errorBuilder: (context, error, stackTrace) {
+          print('خطأ تحميل الأصول: $path, $error');
+          return const Icon(Icons.broken_image);
+        },
+      );
+    }
+  }
+
   void _showAddEditCategoryDialog(BuildContext context, [Category? category]) {
     final isEditing = category != null;
     final nameController =
@@ -155,6 +177,9 @@ class CategoryManagement extends StatelessWidget {
         TextEditingController(text: isEditing ? category.descriptionEn : '');
     final formKey = GlobalKey<FormState>();
     String? selectedImagePath = isEditing ? category.iconPath : null;
+    
+    // Use RxString to trigger UI updates when image changes
+    final Rx<String?> rxSelectedImagePath = (isEditing ? category.iconPath : null).obs;
 
     Get.dialog(
       Dialog(
@@ -184,6 +209,7 @@ class CategoryManagement extends StatelessWidget {
                       final pickedImage = await _pickImage();
                       if (pickedImage != null) {
                         selectedImagePath = pickedImage;
+                        rxSelectedImagePath.value = pickedImage;
                       }
                     },
                     child: Container(
@@ -195,17 +221,9 @@ class CategoryManagement extends StatelessWidget {
                         border: Border.all(color: Colors.grey),
                       ),
                       child: Center(
-                        child: selectedImagePath != null
-                            ? Image.asset(
-                                selectedImagePath!,
-                                width: 100,
-                                height: 100,
-                                fit: BoxFit.cover,
-                                errorBuilder: (context, error, stackTrace) =>
-                                    const Icon(Icons.image_not_supported,
-                                        size: 40),
-                              )
-                            : const Icon(Icons.add_photo_alternate, size: 40),
+                        child: Obx(() => rxSelectedImagePath.value != null
+                            ? _buildCategoryImage(rxSelectedImagePath.value!)
+                            : const Icon(Icons.add_photo_alternate, size: 40)),
                       ),
                     ),
                   ),

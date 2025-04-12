@@ -585,4 +585,44 @@ class _AdminDashboardState extends State<AdminDashboard> {
       ),
     );
   }
+
+  // Helper method to determine if the image is an asset or a file
+  Widget _buildProductImage(String? imagePath, {double size = 60}) {
+    if (imagePath == null || imagePath.isEmpty) {
+      return Icon(Icons.image_not_supported, size: size * 0.5);
+    }
+
+    try {
+      // Check if the path is a local file path
+      if (imagePath.startsWith('C:') ||
+          imagePath.startsWith('/') ||
+          imagePath.contains('Documents')) {
+        return Image.file(
+          File(imagePath),
+          fit: BoxFit.cover,
+          width: size,
+          height: size,
+          errorBuilder: (context, error, stackTrace) {
+            print('خطأ تحميل الصورة: $imagePath, $error');
+            return Icon(Icons.broken_image, size: size * 0.5);
+          },
+        );
+      } else {
+        // Otherwise assume it's an asset path
+        return Image.asset(
+          imagePath,
+          fit: BoxFit.cover,
+          width: size,
+          height: size,
+          errorBuilder: (context, error, stackTrace) {
+            print('خطأ تحميل الأصول: $imagePath, $error');
+            return Icon(Icons.broken_image, size: size * 0.5);
+          },
+        );
+      }
+    } catch (e) {
+      LoggerUtil.logger.e('Error building product image: $e');
+      return Icon(Icons.broken_image, size: size * 0.5);
+    }
+  }
 }

@@ -179,7 +179,22 @@ class SettingsController extends GetxController {
 
     // تطبيق الثيم الجديد فورًا
     Get.changeThemeMode(_getThemeMode(mode));
+
+    // Apply specific theme based on mode
+    if (mode == 'light') {
+      Get.changeTheme(AppTheme.lightTheme);
+    } else if (mode == 'dark') {
+      Get.changeTheme(AppTheme.darkTheme);
+    } else if (mode == 'coffee') {
+      Get.changeTheme(AppTheme.coffeeTheme);
+    } else if (mode == 'sweet') {
+      Get.changeTheme(AppTheme.sweetTheme);
+    }
+
     update();
+
+    // Force update to ensure theme is applied throughout the app
+    Get.forceAppUpdate();
 
     // إظهار رسالة تأكيد
     Get.snackbar(
@@ -218,28 +233,31 @@ class SettingsController extends GetxController {
     try {
       isLoading.value = true;
 
-      // Update settings value
+      // تحديث قيمة اللغة في الإعدادات
       settings.update((val) {
         val?.language = languageCode;
       });
 
-      // Save settings first
-      await _prefsService.setLanguage(languageCode);
+      // حفظ الإعدادات أولاً
       await saveSettings();
 
-      // Create and update locale
-      final locale = Locale(languageCode);
-      Get.updateLocale(locale);
-
-      // Update text direction service
+      // استخدام خدمة الترجمة لتغيير اللغة واتجاه النص
       final translationService = Get.find<AppTranslationService>();
-      translationService
-          .updateTextDirectionFromLanguage(languageCode); // إزالة await
+      await translationService.changeLocale(languageCode);
 
-      // Use a more controlled approach instead of multiple rebuilds
-      await Future.delayed(const Duration(milliseconds: 300));
+      // تحديث واجهة المستخدم
+      update();
 
-      Get.offAll(() => const HomeScreen(), transition: Transition.fade);
+      // عرض رسالة نجاح بناءً على اللغة المختارة
+      Get.snackbar(
+        'language_changed'.tr,
+        languageCode == 'ar'
+            ? 'تم تغيير اللغة بنجاح'
+            : 'Language changed successfully',
+        snackPosition: SnackPosition.BOTTOM,
+      );
+
+      // لا نحتاج لـ Get.offAll هنا لأن changeLocale تقوم بذلك بالفعل
     } catch (e) {
       LoggerUtil.logger.e('Error changing language: $e');
       Get.snackbar(
@@ -339,6 +357,9 @@ class SettingsController extends GetxController {
 
     await saveSettings();
     update();
+
+    // Force update the home screen to reflect background changes
+    Get.forceAppUpdate();
 
     Get.snackbar(
       'تم تغيير الخلفية',

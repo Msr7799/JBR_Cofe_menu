@@ -365,9 +365,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Text(
-          'اختر خلفية الشاشة الرئيسية',
-          style: TextStyle(
+        Text(
+          'background_settings'.tr,
+          style: const TextStyle(
             fontSize: 16,
             fontWeight: FontWeight.bold,
           ),
@@ -390,9 +390,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
         ),
 
         // Color selection
-        const Text(
-          'اختر لون الخلفية:',
-          style: TextStyle(fontWeight: FontWeight.w500),
+        Text(
+          'choose_color'.tr,
+          style: const TextStyle(fontWeight: FontWeight.w500),
         ),
         const SizedBox(height: 8),
         SingleChildScrollView(
@@ -437,17 +437,17 @@ class _SettingsScreenState extends State<SettingsScreen> {
         const SizedBox(height: 20),
 
         // Text color settings
-        const Text(
-          'اختر لون النص:',
-          style: TextStyle(fontWeight: FontWeight.w500),
+        Text(
+          'text_color'.tr,
+          style: const TextStyle(fontWeight: FontWeight.w500),
         ),
         const SizedBox(height: 8),
 
         // Auto text color switch
         SwitchListTile(
-          title: const Text(
-            'لون نص تلقائي (يتغير مع الخلفية)',
-            style: TextStyle(fontSize: 14),
+          title: Text(
+            'auto_text_color'.tr,
+            style: const TextStyle(fontSize: 14),
           ),
           value: settingsController.autoTextColor,
           onChanged: (value) {
@@ -518,7 +518,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
         Center(
           child: ElevatedButton.icon(
             icon: const Icon(Icons.image),
-            label: const Text('اختيار صورة من الجهاز'),
+            label: Text('pick_background_image'.tr),
             onPressed: () => settingsController.pickAndSetBackgroundImage(),
             style: ElevatedButton.styleFrom(
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
@@ -534,7 +534,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
         Center(
           child: TextButton.icon(
             icon: const Icon(Icons.restore),
-            label: const Text('استعادة الخلفية الافتراضية'),
+            label: Text('reset_to_default'.tr),
             onPressed: () => settingsController.resetToDefaultBackground(),
           ),
         ),
@@ -571,10 +571,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 height: double.infinity,
               ),
             ),
-            const Center(
+            Center(
               child: Text(
-                'الخلفية الافتراضية',
-                style: TextStyle(
+                'Default'.tr,
+                style: const TextStyle(
                   color: Colors.white,
                   fontSize: 16,
                   fontWeight: FontWeight.bold,
@@ -596,7 +596,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
           color: settingsController.backgroundColor,
           child: Center(
             child: Text(
-              'لون مخصص',
+              'Custom Color'.tr,
               style: TextStyle(
                 color:
                     settingsController.backgroundColor.computeLuminance() > 0.5
@@ -626,13 +626,12 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   padding:
                       const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                   decoration: BoxDecoration(
-                    color: Colors.black
-                        .withAlpha(150), // Fixed: Changed from withOpacity
+                    color: Colors.black.withAlpha(150),
                     borderRadius: BorderRadius.circular(4),
                   ),
-                  child: const Text(
-                    'صورة مخصصة',
-                    style: TextStyle(
+                  child: Text(
+                    'Custom Image'.tr,
+                    style: const TextStyle(
                       color: Colors.white,
                       fontSize: 12,
                     ),
@@ -642,10 +641,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
             ],
           );
         } else {
-          return const Center(
+          return Center(
             child: Text(
-              'الصورة غير متوفرة',
-              style: TextStyle(color: Colors.red),
+              'Image Not Available'.tr,
+              style: const TextStyle(color: Colors.red),
             ),
           );
         }

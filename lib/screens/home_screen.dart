@@ -25,9 +25,11 @@ class HomeScreen extends StatefulWidget {
   _HomeScreenState createState() => _HomeScreenState();
 }
 
-class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateMixin {
+class _HomeScreenState extends State<HomeScreen>
+    with SingleTickerProviderStateMixin {
   // تعريف مفاتيح فريدة لكل مكون
-  final GlobalKey _backgroundKey = GlobalKey(debugLabel: 'background_container');
+  final GlobalKey _backgroundKey =
+      GlobalKey(debugLabel: 'background_container');
   final GlobalKey _contentKey = GlobalKey(debugLabel: 'content_container');
 
   final AuthController authController = Get.find<AuthController>();
@@ -169,8 +171,6 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
 
   @override
   Widget build(BuildContext context) {
-    final settingsController = Get.find<SettingsController>();
-
     // استخدام GetBuilder بدلاً من Obx لتجنب التحديثات المتعددة
     return GetBuilder<SettingsController>(
       builder: (controller) {
@@ -178,11 +178,14 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
         final backgroundType = controller.backgroundType;
         final backgroundImagePath = controller.backgroundImagePath;
         final backgroundColor = controller.backgroundColor;
+        final textColor = controller.textColor;
 
         return Scaffold(
           // تطبيق الخلفية بناءً على النوع المختار
           extendBodyBehindAppBar: true,
           appBar: AppBar(
+            backgroundColor: Colors.transparent,
+            elevation: 0,
             title: const Text(
               'JBR Coffee Shop',
               style: TextStyle(
@@ -199,9 +202,12 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
               ),
             ],
           ),
+          // تطبيق الخلفية مباشرة على الـ Scaffold
+          backgroundColor:
+              backgroundType == BackgroundType.color ? backgroundColor : null,
           body: Container(
             key: _backgroundKey, // استخدام مفتاح فريد
-            // دمج خلفية الشاشة هنا
+            // تطبيق الخلفية بناءً على النوع المختار
             decoration: _buildBackgroundDecoration(
               backgroundType,
               backgroundColor,
@@ -214,35 +220,40 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
                   builder: (context, orientation) {
                     return Stack(
                       children: [
-                        AnimatedBuilder(
-                          animation: _animationController,
-                          builder: (context, child) {
-                            return Container(
-                              decoration: BoxDecoration(
-                                gradient: LinearGradient(
-                                  begin: Alignment.topLeft,
-                                  end: Alignment.bottomRight,
-                                  colors: const [
-                                    Color(0xFF7D6E83),
-                                    Color(0xFFD0B8A8),
-                                    Color(0xFFF8EDE3),
-                                  ],
-                                  stops: [
-                                    _animationController.value * 0.3,
-                                    _animationController.value * 0.7,
-                                    _animationController.value,
-                                  ],
+                        // إزالة الخلفية الإفتراضية المتحركة إذا كان المستخدم قد اختار خلفية مخصصة
+                        if (backgroundType == BackgroundType.default_bg)
+                          AnimatedBuilder(
+                            animation: _animationController,
+                            builder: (context, child) {
+                              return Container(
+                                decoration: BoxDecoration(
+                                  gradient: LinearGradient(
+                                    begin: Alignment.topLeft,
+                                    end: Alignment.bottomRight,
+                                    colors: const [
+                                      Color(0xFF7D6E83),
+                                      Color(0xFFD0B8A8),
+                                      Color(0xFFF8EDE3),
+                                    ],
+                                    stops: [
+                                      _animationController.value * 0.3,
+                                      _animationController.value * 0.7,
+                                      _animationController.value,
+                                    ],
+                                  ),
                                 ),
-                              ),
-                            );
-                          },
-                        ),
-                        BackdropFilter(
-                          filter: ImageFilter.blur(sigmaX: 3, sigmaY: 3),
-                          child: Container(
-                            color: Colors.white.withAlpha(25),
+                              );
+                            },
                           ),
-                        ),
+
+                        // إضافة تأثير خفيف للخلفية إذا كان المستخدم قد اختار خلفية مخصصة
+                        if (backgroundType == BackgroundType.default_bg)
+                          BackdropFilter(
+                            filter: ImageFilter.blur(sigmaX: 3, sigmaY: 3),
+                            child: Container(
+                              color: Colors.white.withAlpha(25),
+                            ),
+                          ),
                         orientation == Orientation.portrait
                             ? _buildPortraitLayout(context)
                             : _buildLandscapeLayout(context),
@@ -278,7 +289,11 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
         }
         // إذا كانت الصورة غير متوفرة، ارجع للخلفية الافتراضية
         return const BoxDecoration(
-          color: Colors.white,
+          gradient: LinearGradient(
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+            colors: [Color(0xFFF8F8F8), Color(0xFFF0F0F0)],
+          ),
         );
 
       case BackgroundType.default_bg:

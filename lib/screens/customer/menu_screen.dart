@@ -10,6 +10,7 @@ import 'package:gpr_coffee_shop/widgets/product_card.dart';
 import 'package:gpr_coffee_shop/screens/home_screen.dart';
 import 'package:gpr_coffee_shop/utils/view_options_helper.dart';
 import 'package:gpr_coffee_shop/utils/image_helper.dart';
+import 'dart:io';
 
 class MenuScreen extends StatelessWidget {
   final ProductController productController = Get.find<ProductController>();
@@ -238,12 +239,7 @@ class MenuScreen extends StatelessWidget {
                     margin: const EdgeInsets.only(right: 12),
                     child: ClipRRect(
                       borderRadius: BorderRadius.circular(8),
-                      child: Image.asset(
-                        product.imageUrl!,
-                        fit: BoxFit.cover,
-                        errorBuilder: (_, __, ___) =>
-                            const Icon(Icons.image_not_supported, size: 60),
-                      ),
+                      child: _buildProductImage(product.imageUrl),
                     ),
                   ),
                 Expanded(
@@ -310,12 +306,7 @@ class MenuScreen extends StatelessWidget {
                     margin: const EdgeInsets.only(right: 12),
                     child: ClipRRect(
                       borderRadius: BorderRadius.circular(8),
-                      child: Image.asset(
-                        product.imageUrl!,
-                        fit: BoxFit.cover,
-                        errorBuilder: (_, __, ___) =>
-                            const Icon(Icons.image_not_supported),
-                      ),
+                      child: _buildProductImage(product.imageUrl),
                     ),
                   ),
                 Expanded(
@@ -440,15 +431,7 @@ class MenuScreen extends StatelessWidget {
                     ),
                     child: ClipRRect(
                       borderRadius: BorderRadius.circular(8),
-                      child: Image.asset(
-                        product.imageUrl!,
-                        fit: BoxFit.cover, // تغيير من scaleDown إلى cover
-                        errorBuilder: (_, __, ___) => Icon(
-                          Icons.coffee,
-                          size: 80,
-                          color: Colors.brown[300],
-                        ),
-                      ),
+                      child: _buildProductImage(product.imageUrl),
                     ),
                   ),
                 ),
@@ -651,5 +634,41 @@ class MenuScreen extends StatelessWidget {
         ],
       ),
     );
+  }
+
+  // Helper method to properly load product images
+  Widget _buildProductImage(String? imagePath) {
+    if (imagePath == null || imagePath.isEmpty) {
+      return const Icon(Icons.image_not_supported, size: 60);
+    }
+
+    try {
+      // Check if the path is a local file path
+      if (imagePath.startsWith('C:') ||
+          imagePath.startsWith('/') ||
+          imagePath.contains('Documents')) {
+        return Image.file(
+          File(imagePath),
+          fit: BoxFit.cover,
+          errorBuilder: (context, error, stackTrace) {
+            print('خطأ تحميل الصورة: $imagePath, $error');
+            return const Icon(Icons.broken_image, size: 60);
+          },
+        );
+      } else {
+        // Otherwise assume it's an asset path
+        return Image.asset(
+          imagePath,
+          fit: BoxFit.cover,
+          errorBuilder: (context, error, stackTrace) {
+            print('خطأ تحميل الأصول: $imagePath, $error');
+            return const Icon(Icons.broken_image, size: 60);
+          },
+        );
+      }
+    } catch (e) {
+      print('Error building product image: $e');
+      return const Icon(Icons.broken_image, size: 60);
+    }
   }
 }

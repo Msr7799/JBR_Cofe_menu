@@ -201,16 +201,33 @@ class _ProductCardState extends State<ProductCard>
   Widget _buildProductImage() {
     if (widget.product.imageUrl != null &&
         widget.product.imageUrl!.isNotEmpty) {
-      return Image.asset(
-        widget.product.imageUrl!,
-        fit: BoxFit.cover,
-        width: double.infinity,
-        height: double.infinity,
-        errorBuilder: (ctx, error, _) {
-          print('خطأ تحميل الصورة: ${widget.product.imageUrl}, $error');
-          return _buildErrorPlaceholder();
-        },
-      );
+      // Check if the path is a local file path
+      if (widget.product.imageUrl!.startsWith('C:') ||
+          widget.product.imageUrl!.startsWith('/') ||
+          widget.product.imageUrl!.contains('Documents')) {
+        return Image.file(
+          File(widget.product.imageUrl!),
+          fit: BoxFit.cover,
+          width: double.infinity,
+          height: double.infinity,
+          errorBuilder: (ctx, error, _) {
+            print('خطأ تحميل الصورة: ${widget.product.imageUrl}, $error');
+            return _buildErrorPlaceholder();
+          },
+        );
+      } else {
+        // It's an asset path
+        return Image.asset(
+          widget.product.imageUrl!,
+          fit: BoxFit.cover,
+          width: double.infinity,
+          height: double.infinity,
+          errorBuilder: (ctx, error, _) {
+            print('خطأ تحميل الصورة: ${widget.product.imageUrl}, $error');
+            return _buildErrorPlaceholder();
+          },
+        );
+      }
     } else {
       return _buildErrorPlaceholder();
     }

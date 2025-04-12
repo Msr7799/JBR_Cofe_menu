@@ -9,6 +9,10 @@ import 'package:gpr_coffee_shop/controllers/order_controller.dart';
 import 'package:gpr_coffee_shop/controllers/product_controller.dart';
 import 'package:gpr_coffee_shop/controllers/settings_controller.dart';
 import 'package:gpr_coffee_shop/controllers/view_options_controller.dart'; // Add this import
+import 'package:gpr_coffee_shop/models/app_settings.dart';
+import 'package:gpr_coffee_shop/models/category.dart';
+import 'package:gpr_coffee_shop/models/order.dart';
+import 'package:gpr_coffee_shop/models/product.dart';
 import 'package:gpr_coffee_shop/services/shared_preferences_service.dart';
 import 'package:gpr_coffee_shop/screens/splash_screen.dart';
 import 'package:gpr_coffee_shop/screens/home_screen.dart';
@@ -27,8 +31,40 @@ import 'package:gpr_coffee_shop/screens/admin/benefit_pay_qr_management.dart';
 import 'package:gpr_coffee_shop/screens/view_options_screen.dart';
 import 'package:gpr_coffee_shop/utils/hive_reset_util.dart';
 import 'package:gpr_coffee_shop/utils/rendering_helper.dart'; // Add this import
+import 'package:hive_flutter/hive_flutter.dart';
 
 import 'dart:io';
+
+// Function to register all Hive adapters
+Future<void> _registerHiveAdapters() async {
+  try {
+    // Register app settings adapters
+    Hive.registerAdapter(AppSettingsAdapter());
+    Hive.registerAdapter(BackgroundSettingsAdapter());
+    Hive.registerAdapter(BackgroundTypeAdapter());
+
+    // Register product related adapters
+    Hive.registerAdapter(ProductAdapter());
+    // Note: ProductOptionAdapter and OptionChoiceAdapter seem to be missing
+    // Uncomment these when you implement them
+    // Hive.registerAdapter(ProductOptionAdapter());
+    // Hive.registerAdapter(OptionChoiceAdapter());
+
+    // Register category adapters
+    Hive.registerAdapter(CategoryAdapter());
+
+    // Register order related adapters
+    Hive.registerAdapter(OrderAdapter());
+    Hive.registerAdapter(OrderItemAdapter());
+    Hive.registerAdapter(OrderStatusAdapter());
+    Hive.registerAdapter(PaymentTypeAdapter());
+
+    print("✅ All Hive adapters registered successfully");
+  } catch (e) {
+    print("⚠️ Error registering Hive adapters: $e");
+    // Continue execution as some adapters might already be registered
+  }
+}
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -41,6 +77,10 @@ void main() async {
 
   // IMPORTANT: Comment this line after running once to reset Hive
   // await HiveResetUtil.resetHiveData();
+
+  // Initialize Hive and register adapters
+  await Hive.initFlutter();
+  await _registerHiveAdapters();
 
   // تهيئة الترجمات أولاً
   final translations = AppTranslations();
