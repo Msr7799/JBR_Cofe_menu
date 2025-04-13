@@ -473,4 +473,81 @@ class SettingsController extends GetxController {
       duration: const Duration(seconds: 2),
     );
   }
+
+  // دالة للحصول على مسار صورة اللوغو
+  String? get logoPath => settings.value.logoPath;
+
+  // دالة لتعيين مسار صورة اللوغو
+  Future<void> setLogoPath(String path) async {
+    settings.update((val) {
+      val?.logoPath = path;
+    });
+    await saveSettings();
+    update();
+
+    Get.snackbar(
+      'تم التغيير',
+      'تم تغيير شعار التطبيق بنجاح',
+      snackPosition: SnackPosition.BOTTOM,
+      duration: const Duration(seconds: 2),
+    );
+  }
+
+  // دالة لتحميل لوقو مخصص واستخدامه
+  Future<void> pickAndSetCustomLogo() async {
+    try {
+      final ImagePicker picker = ImagePicker();
+      final XFile? pickedFile = await picker.pickImage(
+        source: ImageSource.gallery,
+        imageQuality: 100,
+      );
+
+      if (pickedFile != null) {
+        // حفظ الصورة في مجلد التطبيق
+        final appDir = await getApplicationDocumentsDirectory();
+        final fileName =
+            'custom_logo_${DateTime.now().millisecondsSinceEpoch}${path.extension(pickedFile.path)}';
+        final savedImagePath = path.join(appDir.path, 'logos', fileName);
+
+        // التأكد من وجود المجلد
+        final directory = Directory(path.join(appDir.path, 'logos'));
+        if (!await directory.exists()) {
+          await directory.create(recursive: true);
+        }
+
+        // نسخ الصورة
+        final File imageFile = File(pickedFile.path);
+        final File copiedFile = await imageFile.copy(savedImagePath);
+
+        // التحقق من أن الملف تم نسخه بنجاح
+        if (!await copiedFile.exists()) {
+          throw Exception('فشل في حفظ الصورة');
+        }
+
+        // تحديث مسار الصورة في الإعدادات
+        settings.update((val) {
+          val?.logoPath = savedImagePath;
+        });
+        await saveSettings();
+        update();
+
+        // عرض رسالة نجاح
+        Get.snackbar(
+          'تم التغيير',
+          'تم تغيير شعار التطبيق بنجاح',
+          snackPosition: SnackPosition.BOTTOM,
+          duration: const Duration(seconds: 2),
+        );
+      }
+    } catch (e) {
+      LoggerUtil.logger.e('خطأ في تحميل شعار مخصص: $e');
+      Get.snackbar(
+        'خطأ',
+        'حدث خطأ أثناء تحميل الشعار المخصص: $e',
+        snackPosition: SnackPosition.BOTTOM,
+        backgroundColor: Colors.red.withAlpha(180),
+        colorText: Colors.white,
+      );
+    }
+  }
 }

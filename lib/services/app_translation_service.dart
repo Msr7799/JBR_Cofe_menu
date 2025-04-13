@@ -2,8 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:gpr_coffee_shop/services/shared_preferences_service.dart';
 import 'package:gpr_coffee_shop/screens/home_screen.dart';
+import 'package:gpr_coffee_shop/utils/logger_util.dart';
 
-class AppTranslationService extends GetxService {
+// Changed from GetxService to GetxController to fix type bound error with GetBuilder
+class AppTranslationService extends GetxController {
   final Rx<TextDirection> textDirection = TextDirection.rtl.obs;
   final Rx<Locale> currentLocale = const Locale('ar').obs;
 
@@ -54,20 +56,40 @@ class AppTranslationService extends GetxService {
       // Update translations
       Get.updateLocale(Locale(languageCode));
 
-      // Force rebuild for immediate effect
-      await Future.delayed(const Duration(milliseconds: 50));
-      Get.forceAppUpdate();
+      // Log success for debugging
+      LoggerUtil.logger.i('تغيير اللغة إلى: $languageCode');
 
-      // تأكد من تحديث الواجهة بعد تغيير اللغة - استخدام Get.offAll بشكل صحيح
-      if (Get.currentRoute == '/') {
-        Get.offAll(() => const HomeScreen());
-      } else {
-        // إعادة تحميل الصفحة الحالية
-        final currentRoute = Get.currentRoute;
-        Get.offAllNamed(currentRoute);
-      }
+      // Update the UI to reflect the changes
+      update(['language_switcher']);
+
+      // Use a more reliable approach to rebuild the UI after language change
+      await Future.delayed(const Duration(milliseconds: 100));
+
+      // Force app update in a safe way using separate microtask
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        Future.microtask(() {
+          Get.forceAppUpdate();
+
+          // Only navigate if needed - avoid rebuilding during layout
+          if (Get.currentRoute == '/') {
+            // Use a safer way to refresh the home screen
+            final currentContext = Get.context;
+            if (currentContext != null && currentContext.mounted) {
+              Get.offAll(() => const HomeScreen(),
+                  transition: Transition.fade,
+                  duration: const Duration(milliseconds: 300));
+            }
+          } else {
+            // For other routes, just update the locale without navigation
+            // This avoids layout issues during rebuilds
+            LoggerUtil.logger.i('تم تحديث اللغة للشاشة: ${Get.currentRoute}');
+          }
+        });
+      });
+
+      return;
     } catch (e) {
-      print('Error changing language: $e');
+      LoggerUtil.logger.e('خطأ في تغيير اللغة: $e');
       Get.snackbar(
         languageCode == 'ar' ? 'خطأ' : 'Error',
         languageCode == 'ar' ? 'فشل تغيير اللغة' : 'Failed to change language',

@@ -86,6 +86,10 @@ class AppSettings {
     );
   }
 
+  String? get logoPath => null;
+
+  set logoPath(String? logoPath) {}
+
   // تحويل إلى JSON
   Map<String, dynamic> toJson() {
     return {

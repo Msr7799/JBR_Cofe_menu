@@ -31,6 +31,7 @@ dependencies:
   shared_preferences: ^2.2.0
   share_plus: ^7.2.1
   logger: ^2.0.2
+  intl: ^0.18.1  # Add this line for date/time formatting
 
 dev_dependencies:
   flutter_test:
@@ -45,6 +46,7 @@ flutter:
 
   assets:
     - assets/images/
+    - assets/images/bahrain_flag.png
     # أضف مسارات إضافية للصور حسب الحاجة
     # - assets/other_images/
 

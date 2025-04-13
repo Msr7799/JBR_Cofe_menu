@@ -203,7 +203,27 @@ class LocalStorageService extends GetxService {
       for (var item in orderMaps) {
         if (item is Map) {
           try {
-            orders.add(Order.fromJson(Map<String, dynamic>.from(item)));
+            // Make sure we're working with a properly typed Map
+            Map<String, dynamic> orderMap = _convertToStringKeyMap(item);
+
+            // Check if the order items are properly formatted
+            if (orderMap.containsKey('items') && orderMap['items'] is List) {
+              List<dynamic> rawItems = orderMap['items'];
+              List<Map<String, dynamic>> processedItems = [];
+
+              // Convert each item to the proper format
+              for (var orderItem in rawItems) {
+                if (orderItem is Map) {
+                  processedItems.add(_convertToStringKeyMap(orderItem));
+                }
+              }
+
+              // Update the order map with properly formatted items
+              orderMap['items'] = processedItems;
+            }
+
+            // Now create the Order object from the properly formatted map
+            orders.add(Order.fromJson(orderMap));
           } catch (e) {
             LoggerUtil.logger.e('خطأ في تحليل الطلب: $e');
           }

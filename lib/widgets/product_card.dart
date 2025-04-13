@@ -13,12 +13,18 @@ class ProductCard extends StatefulWidget {
   final Product product;
   final VoidCallback? onTap;
   final bool showImage;
+  final double cardSize;
+  final Color textColor;
+  final Color priceColor;
 
   const ProductCard({
     Key? key,
     required this.product,
     this.onTap,
     this.showImage = true,
+    this.cardSize = 1.0,
+    this.textColor = Colors.black,
+    this.priceColor = AppTheme.primaryColor,
   }) : super(key: key);
 
   @override
@@ -52,6 +58,9 @@ class _ProductCardState extends State<ProductCard>
 
   @override
   Widget build(BuildContext context) {
+    // استخدام قيمة cardSize للتحكم في الحجم
+    final scaleFactor = widget.cardSize;
+
     return MouseRegion(
       onEnter: (_) {
         setState(() => _isHovering = true);
@@ -132,10 +141,10 @@ class _ProductCardState extends State<ProductCard>
                                   color: Colors.black.withAlpha(153),
                                   shape: BoxShape.circle,
                                 ),
-                                child: const Icon(
+                                child: Icon(
                                   Icons.zoom_in,
                                   color: Colors.white,
-                                  size: 20,
+                                  size: 20 * scaleFactor,
                                 ),
                               ),
                             ),
@@ -145,25 +154,26 @@ class _ProductCardState extends State<ProductCard>
                     ),
                   Container(
                     height: widget.showImage ? contentHeight : availableHeight,
-                    padding: const EdgeInsets.fromLTRB(8.0, 6.0, 8.0, 4.0),
+                    padding: EdgeInsets.all(8.0 * scaleFactor),
                     child: Column(
                       mainAxisSize: MainAxisSize.min,
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
                           widget.product.localizedName,
-                          style: const TextStyle(
+                          style: TextStyle(
                             fontWeight: FontWeight.bold,
-                            fontSize: 16,
+                            fontSize: 16 * scaleFactor,
+                            color: widget.textColor,
                           ),
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
                         ),
-                        const SizedBox(height: 1),
+                        SizedBox(height: 1 * scaleFactor),
                         Text(
                           widget.product.localizedDescription,
                           style: TextStyle(
-                            fontSize: 12,
+                            fontSize: 12 * scaleFactor,
                             color: Colors.grey[700],
                           ),
                           maxLines: 1,
@@ -176,16 +186,18 @@ class _ProductCardState extends State<ProductCard>
                             Text(
                               "${widget.product.price.toStringAsFixed(3)} د.ب",
                               style: TextStyle(
-                                color: Theme.of(context).primaryColor,
+                                color: widget.priceColor,
                                 fontWeight: FontWeight.bold,
-                                fontSize: 15,
+                                fontSize: 15 * scaleFactor,
                               ),
                             ),
                             _buildQuantitySelector(),
                           ],
                         ),
-                        const SizedBox(height: 4),
-                        if (widget.product.isAvailable) _buildOrderButton(),
+                        SizedBox(height: 4 * scaleFactor),
+                        if (widget.product.isAvailable &&
+                            ViewOptionsHelper.getShowOrderButton())
+                          _buildOrderButton(scaleFactor),
                       ],
                     ),
                   ),
@@ -234,6 +246,7 @@ class _ProductCardState extends State<ProductCard>
   }
 
   Widget _buildQuantitySelector() {
+    final scaleFactor = widget.cardSize;
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
@@ -244,34 +257,34 @@ class _ProductCardState extends State<ProductCard>
             });
           },
           child: Container(
-            width: 24,
-            height: 24,
+            width: 24 * scaleFactor,
+            height: 24 * scaleFactor,
             decoration: BoxDecoration(
               color: AppTheme.primaryColor.withOpacity(0.1),
-              borderRadius: BorderRadius.circular(4),
+              borderRadius: BorderRadius.circular(4 * scaleFactor),
             ),
             alignment: Alignment.center,
-            child: const Icon(
+            child: Icon(
               Icons.remove,
-              size: 16,
+              size: 16 * scaleFactor,
               color: AppTheme.primaryColor,
             ),
           ),
         ),
         Container(
-          width: 28,
-          height: 24,
+          width: 28 * scaleFactor,
+          height: 24 * scaleFactor,
           alignment: Alignment.center,
-          margin: const EdgeInsets.symmetric(horizontal: 3),
+          margin: EdgeInsets.symmetric(horizontal: 3 * scaleFactor),
           decoration: BoxDecoration(
             border: Border.all(color: Colors.grey.shade300),
-            borderRadius: BorderRadius.circular(4),
+            borderRadius: BorderRadius.circular(4 * scaleFactor),
           ),
           child: Text(
             quantity.toString(),
-            style: const TextStyle(
+            style: TextStyle(
               fontWeight: FontWeight.bold,
-              fontSize: 13,
+              fontSize: 13 * scaleFactor,
             ),
           ),
         ),
@@ -282,16 +295,16 @@ class _ProductCardState extends State<ProductCard>
             });
           },
           child: Container(
-            width: 24,
-            height: 24,
+            width: 24 * scaleFactor,
+            height: 24 * scaleFactor,
             decoration: BoxDecoration(
               color: AppTheme.primaryColor,
-              borderRadius: BorderRadius.circular(4),
+              borderRadius: BorderRadius.circular(4 * scaleFactor),
             ),
             alignment: Alignment.center,
-            child: const Icon(
+            child: Icon(
               Icons.add,
-              size: 16,
+              size: 16 * scaleFactor,
               color: Colors.white,
             ),
           ),
@@ -300,27 +313,27 @@ class _ProductCardState extends State<ProductCard>
     );
   }
 
-  Widget _buildOrderButton() {
+  Widget _buildOrderButton(double scale) {
     return SizedBox(
-      height: 30,
+      height: 30 * scale,
       width: double.infinity,
       child: ElevatedButton(
         onPressed: _placeOrder,
         style: ElevatedButton.styleFrom(
           backgroundColor: const Color(0xFF800000),
           foregroundColor: Colors.white,
-          padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 0),
+          padding: EdgeInsets.symmetric(horizontal: 4 * scale, vertical: 0),
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(6),
+            borderRadius: BorderRadius.circular(6 * scale),
           ),
           elevation: 2,
-          minimumSize: const Size(10, 20),
+          minimumSize: Size(10, 20 * scale),
         ),
-        child: const Text(
+        child: Text(
           'طلب',
           style: TextStyle(
             fontWeight: FontWeight.bold,
-            fontSize: 14,
+            fontSize: 14 * scale,
           ),
         ),
       ),
@@ -328,6 +341,7 @@ class _ProductCardState extends State<ProductCard>
   }
 
   Widget _buildErrorPlaceholder() {
+    final scaleFactor = widget.cardSize;
     return Container(
       color: Colors.grey[200],
       child: Center(
@@ -336,16 +350,16 @@ class _ProductCardState extends State<ProductCard>
           children: [
             Icon(
               Icons.image_not_supported,
-              size: 40,
+              size: 40 * scaleFactor,
               color: Colors.grey[400],
             ),
-            const SizedBox(height: 4),
+            SizedBox(height: 4 * scaleFactor),
             Text(
               widget.product.name,
               style: TextStyle(
                 color: Colors.grey[600],
                 fontWeight: FontWeight.w500,
-                fontSize: 14,
+                fontSize: 14 * scaleFactor,
               ),
               textAlign: TextAlign.center,
               maxLines: 1,
@@ -477,7 +491,7 @@ class _ProductCardState extends State<ProductCard>
                     children: [
                       Text(
                         widget.product.localizedName,
-                        style: const TextStyle(
+                        style: TextStyle(
                           color: Colors.white,
                           fontSize: 24,
                           fontWeight: FontWeight.bold,
@@ -531,19 +545,15 @@ class _ProductCardState extends State<ProductCard>
                   margin: const EdgeInsets.only(bottom: 16),
                   child: ClipRRect(
                     borderRadius: BorderRadius.circular(12),
-                    child: Image.asset(
-                      product.imageUrl!,
-                      fit: BoxFit.cover,
-                      errorBuilder: (_, __, ___) =>
-                          const Icon(Icons.image_not_supported, size: 64),
-                    ),
+                    child: _buildProductImage(),
                   ),
                 ),
               Text(
                 product.localizedName,
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: 24,
                   fontWeight: FontWeight.bold,
+                  color: widget.textColor,
                 ),
               ),
               const SizedBox(height: 10),
@@ -556,10 +566,10 @@ class _ProductCardState extends State<ProductCard>
               const SizedBox(height: 12),
               Text(
                 '${product.price.toStringAsFixed(3)} د.ب',
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: 18,
                   fontWeight: FontWeight.bold,
-                  color: AppTheme.primaryColor,
+                  color: widget.priceColor,
                 ),
               ),
               const SizedBox(height: 20),

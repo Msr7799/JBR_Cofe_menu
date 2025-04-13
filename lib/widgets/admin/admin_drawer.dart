@@ -45,7 +45,9 @@ class AdminDrawer extends StatelessWidget {
                 Obx(
                   () => Text(
                     // تعديل هذا السطر - AuthController لا يحتوي على خاصية user
-                    authController.isAdmin.value ? 'المدير' : 'غير مسجل دخول',
+                    authController.isAdmin.value
+                        ? 'admin'.tr
+                        : 'not_logged_in'.tr,
                     style: const TextStyle(
                       color: Colors.white,
                       fontSize: 18,
@@ -54,9 +56,9 @@ class AdminDrawer extends StatelessWidget {
                   ),
                 ),
                 const SizedBox(height: 4),
-                const Text(
-                  'مدير النظام',
-                  style: TextStyle(
+                Text(
+                  'system_admin'.tr,
+                  style: const TextStyle(
                     color: Colors.white70,
                     fontSize: 14,
                   ),
@@ -68,49 +70,49 @@ class AdminDrawer extends StatelessWidget {
           const SizedBox(height: 8),
           ListTile(
             leading: const Icon(Icons.dashboard),
-            title: const Text('لوحة التحكم'),
+            title: Text('dashboard'.tr),
             onTap: () {
               Get.offAll(() => const AdminDashboard());
             },
           ),
           ListTile(
             leading: const Icon(Icons.category),
-            title: const Text('إدارة الفئات'),
+            title: Text('category_management'.tr),
             onTap: () {
               Get.to(() => CategoryManagement());
             },
           ),
           ListTile(
             leading: const Icon(Icons.inventory),
-            title: const Text('إدارة المنتجات'),
+            title: Text('product_management'.tr),
             onTap: () {
               Get.to(() => const ProductManagement());
             },
           ),
           ListTile(
             leading: const Icon(Icons.receipt_long),
-            title: const Text('سجل الطلبات'),
+            title: Text('order_history'.tr),
             onTap: () {
               // إزالة كلمة const
               Get.to(() => const OrderHistoryScreen());
             },
           ),
-         ListTile(
-  leading: const Icon(Icons.restaurant_menu),
-  title: const Text('قائمة الطعام'),
-  onTap: () {
-    // إغلاق الـ Drawer
-    Navigator.of(context).pop();
-    
-    // الانتقال إلى شاشة القائمة
-    Get.to(() => MenuScreen());
-  },
-),
+          ListTile(
+            leading: const Icon(Icons.restaurant_menu),
+            title: Text('menu'.tr),
+            onTap: () {
+              // إغلاق الـ Drawer
+              Navigator.of(context).pop();
+
+              // الانتقال إلى شاشة القائمة
+              Get.to(() => MenuScreen());
+            },
+          ),
           const Divider(),
           // إضافة زر العودة للصفحة الرئيسية
           ListTile(
             leading: const Icon(Icons.home, color: AppTheme.primaryColor),
-            title: const Text('الصفحة الرئيسية'),
+            title: Text('home'.tr),
             onTap: () {
               // إغلاق القائمة الجانبية
               Navigator.pop(context);
@@ -123,8 +125,7 @@ class AdminDrawer extends StatelessWidget {
           // إصلاح زر تسجيل الخروج
           ListTile(
             leading: const Icon(Icons.logout, color: Colors.red),
-            title:
-                const Text('تسجيل الخروج', style: TextStyle(color: Colors.red)),
+            title: Text('logout'.tr, style: const TextStyle(color: Colors.red)),
             onTap: () {
               // إغلاق القائمة الجانبية
               Navigator.pop(context);
@@ -132,15 +133,15 @@ class AdminDrawer extends StatelessWidget {
               // عرض مربع حوار للتأكيد
               Get.dialog(
                 AlertDialog(
-                  title: const Text('تسجيل الخروج'),
-                  content: const Text('هل أنت متأكد من أنك تريد تسجيل الخروج؟'),
+                  title: Text('logout'.tr),
+                  content: Text('confirm_logout'.tr),
                   actions: [
                     TextButton(
-                      child: const Text('إلغاء'),
+                      child: Text('cancel'.tr),
                       onPressed: () => Get.back(),
                     ),
                     TextButton(
-                      child: const Text('تسجيل الخروج'),
+                      child: Text('logout'.tr),
                       onPressed: () async {
                         final authController = Get.find<AuthController>();
 

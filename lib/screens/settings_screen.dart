@@ -64,6 +64,14 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
                 const SizedBox(height: 24),
 
+                // Logo settings section - New section for logo selection
+                _buildSectionHeader('شعار التطبيق'),
+                _buildCard(
+                  child: _buildLogoSelector(),
+                ),
+
+                const SizedBox(height: 24),
+
                 // Background settings section
                 _buildSectionHeader('خلفية الشاشة الرئيسية'),
                 _buildCard(
@@ -651,14 +659,174 @@ class _SettingsScreenState extends State<SettingsScreen> {
     }
   }
 
+  // دالة لعرض واجهة اختيار اللوقو
+  Widget _buildLogoSelector() {
+    // قائمة شعارات التطبيق المتوفرة - اقتصرت على 3 شعارات فقط
+    final List<String> availableLogos = [
+      'assets/images/logo.png',
+      'assets/images/JBR.png',
+      'assets/images/JBR1.png',
+    ];
+
+    // الحصول على مسار الشعار الحالي
+    final currentLogo = settingsController.logoPath ?? 'assets/images/logo.png';
+
+    // التحقق مما إذا كان اللوقو الحالي هو لوقو مخصص
+    bool isCustomLogo = currentLogo.contains('custom_logo_');
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        // عنوان القسم
+        Text(
+          'اختيار شعار التطبيق',
+          style: const TextStyle(
+            fontSize: 16,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+        const SizedBox(height: 12),
+
+        // معاينة الشعار الحالي - تم تصغير الحجم
+        Center(
+          child: Column(
+            children: [
+              Container(
+                width: 80, // تم تصغير الحجم من 100 إلى 80
+                height: 80, // تم تصغير الحجم من 100 إلى 80
+                padding: const EdgeInsets.all(6), // تصغير الحشو
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(10),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withOpacity(0.1),
+                      blurRadius: 6,
+                      spreadRadius: 1,
+                    ),
+                  ],
+                ),
+                child: isCustomLogo
+                    ? Image.file(
+                        File(currentLogo),
+                        fit: BoxFit.contain,
+                        errorBuilder: (context, error, stackTrace) {
+                          // إظهار شعار افتراضي في حالة وجود خطأ
+                          return Image.asset('assets/images/logo.png',
+                              fit: BoxFit.contain);
+                        },
+                      )
+                    : Image.asset(
+                        currentLogo,
+                        fit: BoxFit.contain,
+                      ),
+              ),
+              const SizedBox(height: 6),
+              Text(
+                'الشعار الحالي',
+                style: TextStyle(
+                  fontSize: 11, // تصغير حجم النص
+                  color: Colors.grey.shade600,
+                ),
+              ),
+            ],
+          ),
+        ),
+
+        const SizedBox(height: 16), // تقليل المسافة
+        Text(
+          'اختر شعاراً آخر:',
+          style: const TextStyle(
+            fontSize: 14,
+            fontWeight: FontWeight.w500,
+          ),
+        ),
+        const SizedBox(height: 10), // تقليل المسافة
+
+        // عرض الشعارات المتاحة في صف واحد
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+          children: availableLogos.map((logo) {
+            final isSelected = currentLogo == logo;
+
+            return GestureDetector(
+              onTap: () => settingsController.setLogoPath(logo),
+              child: Container(
+                width: 70,
+                height: 70,
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(8),
+                  border: Border.all(
+                    color: isSelected
+                        ? AppTheme.primaryColor
+                        : Colors.grey.shade300,
+                    width: isSelected ? 2 : 1,
+                  ),
+                ),
+                padding: const EdgeInsets.all(6),
+                child: Stack(
+                  children: [
+                    Center(
+                      child: Image.asset(
+                        logo,
+                        fit: BoxFit.contain,
+                      ),
+                    ),
+                    if (isSelected)
+                      Positioned(
+                        right: 0,
+                        bottom: 0,
+                        child: Container(
+                          decoration: BoxDecoration(
+                            color: AppTheme.primaryColor,
+                            shape: BoxShape.circle,
+                          ),
+                          padding: const EdgeInsets.all(2),
+                          child: const Icon(
+                            Icons.check,
+                            color: Colors.white,
+                            size: 12, // تم تصغير حجم الأيقونة
+                          ),
+                        ),
+                      ),
+                  ],
+                ),
+              ),
+            );
+          }).toList(),
+        ),
+
+        const SizedBox(height: 16),
+
+        // زر لتحميل شعار مخصص - تم تفعيله
+        Center(
+          child: ElevatedButton.icon(
+            onPressed: () => settingsController.pickAndSetCustomLogo(),
+            icon: const Icon(Icons.add_photo_alternate, size: 18),
+            label: const Text('تحميل شعار مخصص'),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppTheme.primaryColor,
+              foregroundColor: Colors.white,
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
   void _showAboutDialog() {
+    // استخدام الشعار المحدد من قبل المستخدم
+    final logoPath = settingsController.logoPath ?? 'assets/images/logo.png';
+
     showDialog(
       context: context,
       builder: (context) => AboutDialog(
         applicationName: 'JBR Coffee Shop',
         applicationVersion: appVersion,
         applicationIcon: Image.asset(
-          'assets/images/logo.png',
+          logoPath,
           width: 48,
           height: 48,
         ),
@@ -675,12 +843,15 @@ class _SettingsScreenState extends State<SettingsScreen> {
   }
 
   void _showLicensesDialog() {
+    // استخدام الشعار المحدد من قبل المستخدم
+    final logoPath = settingsController.logoPath ?? 'assets/images/logo.png';
+
     showLicensePage(
       context: context,
       applicationName: 'JBR Coffee Shop',
       applicationVersion: appVersion,
       applicationIcon: Image.asset(
-        'assets/images/logo.png',
+        logoPath,
         width: 48,
         height: 48,
       ),

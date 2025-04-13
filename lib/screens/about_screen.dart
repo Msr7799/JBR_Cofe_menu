@@ -2,6 +2,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:gpr_coffee_shop/constants/theme.dart';
+import 'package:gpr_coffee_shop/controllers/settings_controller.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:flutter_neumorphic_plus/flutter_neumorphic.dart';
 
@@ -11,6 +12,8 @@ class AboutScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     const appVersion = '1.0.0';
+    final settingsController = Get.find<SettingsController>();
+    final logoPath = settingsController.logoPath ?? 'assets/images/logo.png';
 
     return Scaffold(
       appBar: AppBar(
@@ -27,7 +30,7 @@ class AboutScreen extends StatelessWidget {
         padding: const EdgeInsets.all(16.0),
         child: Column(
           children: [
-            // Logo and app name
+            // Logo and app name - استخدام اللوقو المختار من قِبَل المستخدم
             Center(
               child: Column(
                 children: [
@@ -46,25 +49,25 @@ class AboutScreen extends StatelessWidget {
                       height: 120,
                       padding: const EdgeInsets.all(16),
                       child: Image.asset(
-                        'assets/images/logo.png',
+                        logoPath,
                         fit: BoxFit.contain,
                       ),
                     ),
                   ),
                   const SizedBox(height: 16),
-                  Text(
+                  const Text(
                     'JBR Coffee Shop',
                     style: TextStyle(
                       fontSize: 24,
                       fontWeight: FontWeight.bold,
-                      color: Colors.brown.shade900,
+                      color: Color.fromARGB(255, 197, 184, 181),
                     ),
                   ),
-                  Text(
+                  const Text(
                     'أفضل مذاق للقهوة والمشروبات',
                     style: TextStyle(
                       fontSize: 16,
-                      color: Colors.brown.shade700,
+                      color: Color.fromARGB(255, 216, 211, 210),
                     ),
                   ),
                 ],
@@ -221,13 +224,17 @@ class AboutScreen extends StatelessWidget {
   }
 
   void _showAboutDialog(BuildContext context) {
+    // استخدام الشعار المختار من المستخدم
+    final settingsController = Get.find<SettingsController>();
+    final logoPath = settingsController.logoPath ?? 'assets/images/logo.png';
+    
     showDialog(
       context: context,
       builder: (context) => AboutDialog(
         applicationName: 'JBR Coffee Shop',
         applicationVersion: '1.0.0',
         applicationIcon: Image.asset(
-          'assets/images/logo.png',
+          logoPath,
           width: 48,
           height: 48,
         ),
@@ -244,12 +251,16 @@ class AboutScreen extends StatelessWidget {
   }
 
   void _showLicensesDialog(BuildContext context) {
+    // استخدام الشعار المختار من المستخدم
+    final settingsController = Get.find<SettingsController>();
+    final logoPath = settingsController.logoPath ?? 'assets/images/logo.png';
+    
     showLicensePage(
       context: context,
       applicationName: 'JBR Coffee Shop',
       applicationVersion: '1.0.0',
       applicationIcon: Image.asset(
-        'assets/images/logo.png',
+        logoPath,
         width: 48,
         height: 48,
       ),

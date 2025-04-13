@@ -92,7 +92,7 @@ class CategoryManagement extends StatelessWidget {
               width: 60,
               height: 60,
               decoration: BoxDecoration(
-                color: Colors.grey[200],
+                color: const Color.fromARGB(255, 29, 27, 27),
                 borderRadius: BorderRadius.circular(8),
               ),
               child: category.iconPath != null

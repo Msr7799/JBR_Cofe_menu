@@ -47,7 +47,7 @@ class _AdminDashboardState extends State<AdminDashboard> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('لوحة التحكم'),
+        title: Text('dashboard'.tr),
         centerTitle: true,
         backgroundColor: AppTheme.primaryColor,
         foregroundColor: Colors.white,
@@ -65,11 +65,11 @@ class _AdminDashboardState extends State<AdminDashboard> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const Padding(
-                        padding: EdgeInsets.only(bottom: 16.0, top: 8.0),
+                      Padding(
+                        padding: const EdgeInsets.only(bottom: 16.0, top: 8.0),
                         child: Text(
-                          'الإدارة والتحكم',
-                          style: TextStyle(
+                          'admin'.tr,
+                          style: const TextStyle(
                             fontSize: 20,
                             fontWeight: FontWeight.bold,
                           ),
@@ -82,9 +82,9 @@ class _AdminDashboardState extends State<AdminDashboard> {
                         child: Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
-                            const Text(
-                              'الإحصائيات',
-                              style: TextStyle(
+                            Text(
+                              'statistics'.tr,
+                              style: const TextStyle(
                                 fontSize: 20,
                                 fontWeight: FontWeight.bold,
                               ),
@@ -93,8 +93,8 @@ class _AdminDashboardState extends State<AdminDashboard> {
                               onPressed: () => _showResetStatsDialog(context),
                               icon: const Icon(Icons.refresh,
                                   color: Colors.white),
-                              label: const Text('تصفير الإحصائيات',
-                                  style: TextStyle(color: Colors.white)),
+                              label: Text('reset_stats'.tr,
+                                  style: const TextStyle(color: Colors.white)),
                               style: ElevatedButton.styleFrom(
                                 backgroundColor: Colors.red,
                                 foregroundColor: Colors.white,
@@ -110,7 +110,7 @@ class _AdminDashboardState extends State<AdminDashboard> {
                       const SizedBox(height: 24),
                       Obx(() => _buildRecentOrders()),
                       const SizedBox(height: 24),
-                      _buildSectionHeader('إعدادات النظام'),
+                      _buildSectionHeader('system_settings'.tr),
                       _buildSystemSettingsCard(context),
                     ],
                   ),
@@ -134,8 +134,9 @@ class _AdminDashboardState extends State<AdminDashboard> {
       children: [
         Expanded(
           child: DataCard(
-            title: 'مبيعات اليوم',
-            value: '${stats['totalSales']?.toStringAsFixed(3) ?? '0.000'} د.ب',
+            title: 'daily_sales'.tr,
+            value:
+                '${stats['totalSales']?.toStringAsFixed(3) ?? '0.000'} ${'currency'.tr}',
             icon: Icons.attach_money,
             customColor: Colors.green.shade600,
             onTap: () {
@@ -146,8 +147,9 @@ class _AdminDashboardState extends State<AdminDashboard> {
         const SizedBox(width: 8),
         Expanded(
           child: DataCard(
-            title: 'أرباح اليوم',
-            value: '${stats['totalProfit']?.toStringAsFixed(3) ?? '0.000'} د.ب',
+            title: 'daily_profits'.tr,
+            value:
+                '${stats['totalProfit']?.toStringAsFixed(3) ?? '0.000'} ${'currency'.tr}',
             icon: Icons.trending_up,
             customColor: Colors.blue.shade600,
             onTap: () {},
@@ -156,7 +158,7 @@ class _AdminDashboardState extends State<AdminDashboard> {
         const SizedBox(width: 8),
         Expanded(
           child: DataCard(
-            title: 'عدد الطلبات',
+            title: 'order_count'.tr,
             value: stats['orderCount']?.toString() ?? '0',
             icon: Icons.receipt_long,
             customColor: Colors.orange.shade600,
@@ -188,9 +190,9 @@ class _AdminDashboardState extends State<AdminDashboard> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text(
-              'المنتجات الأكثر مبيعاً',
-              style: TextStyle(
+            Text(
+              'popular_products'.tr,
+              style: const TextStyle(
                 fontSize: 18,
                 fontWeight: FontWeight.bold,
               ),
@@ -199,12 +201,12 @@ class _AdminDashboardState extends State<AdminDashboard> {
             if (chartData.isNotEmpty)
               SalesChart(data: chartData)
             else
-              const Center(
+              Center(
                 child: Padding(
-                  padding: EdgeInsets.all(20.0),
+                  padding: const EdgeInsets.all(20.0),
                   child: Text(
-                    'لا توجد بيانات مبيعات بعد',
-                    style: TextStyle(color: Colors.grey),
+                    'no_sales_data'.tr,
+                    style: const TextStyle(color: Colors.grey),
                   ),
                 ),
               ),
@@ -222,9 +224,9 @@ class _AdminDashboardState extends State<AdminDashboard> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text(
-              'المنتجات الأكثر مبيعاً',
-              style: TextStyle(
+            Text(
+              'popular_products'.tr,
+              style: const TextStyle(
                 fontSize: 18,
                 fontWeight: FontWeight.bold,
               ),
@@ -252,9 +254,9 @@ class _AdminDashboardState extends State<AdminDashboard> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text(
-              'آخر الطلبات',
-              style: TextStyle(
+            Text(
+              'recent_orders'.tr,
+              style: const TextStyle(
                 fontSize: 18,
                 fontWeight: FontWeight.bold,
               ),
@@ -270,7 +272,7 @@ class _AdminDashboardState extends State<AdminDashboard> {
                 return ListTile(
                   title: Text('#${order.id.substring(0, 8)}'),
                   subtitle: Text(
-                    '${order.total.toStringAsFixed(3)} د.ب',
+                    '${order.total.toStringAsFixed(3)} ${'currency'.tr}',
                   ),
                   trailing: _buildOrderStatusChip(order.status),
                 );
@@ -289,19 +291,19 @@ class _AdminDashboardState extends State<AdminDashboard> {
     switch (status) {
       case OrderStatus.pending:
         color = Colors.orange;
-        label = 'معلق';
+        label = 'pending'.tr;
         break;
       case OrderStatus.processing:
         color = Colors.blue;
-        label = 'قيد التحضير';
+        label = 'processing'.tr;
         break;
       case OrderStatus.completed:
         color = Colors.green;
-        label = 'مكتمل';
+        label = 'completed'.tr;
         break;
       case OrderStatus.cancelled:
         color = Colors.red;
-        label = 'ملغي';
+        label = 'cancelled'.tr;
         break;
     }
 
@@ -315,65 +317,70 @@ class _AdminDashboardState extends State<AdminDashboard> {
   }
 
   Widget _buildAdminCards() {
+    // Use smaller grid for more compact view
     return GridView.count(
-      crossAxisCount: 2,
+      crossAxisCount: 3, // Changed from 2 to 3 for smaller cards
       shrinkWrap: true,
       physics: const NeverScrollableScrollPhysics(),
-      mainAxisSpacing: 16.0,
-      crossAxisSpacing: 16.0,
+      mainAxisSpacing: 12.0, // Reduced spacing
+      crossAxisSpacing: 12.0, // Reduced spacing
+      childAspectRatio: 0.85, // Make cards slightly taller than wide
       children: [
         _buildAdminActionCard(
           icon: Icons.category,
-          title: 'إدارة الفئات',
-          subtitle: '${categoryController.categories.length} فئة',
+          title: 'category_management'.tr,
+          subtitle:
+              '${categoryController.categories.length} ${'categories'.tr.toLowerCase()}',
           color: Colors.teal,
           onTap: () => Get.to(() => CategoryManagement()),
         ),
         _buildAdminActionCard(
           icon: Icons.shopping_bag,
-          title: 'إدارة المنتجات',
-          subtitle: '${productController.products.length} منتج',
+          title: 'product_management'.tr,
+          subtitle:
+              '${productController.products.length} ${'products'.tr.toLowerCase()}',
           color: Colors.indigo,
           onTap: () => Get.to(() => const ProductManagement()),
         ),
         _buildAdminActionCard(
           icon: Icons.receipt_long,
-          title: 'سجل الطلبات',
-          subtitle: '${orderController.orders.length} طلب',
+          title: 'order_history'.tr,
+          subtitle:
+              '${orderController.orders.length} ${'orders'.tr.toLowerCase()}',
           color: Colors.amber.shade700,
           onTap: () => Get.to(() => const OrderHistoryScreen()),
         ),
         _buildAdminActionCard(
           icon: Icons.settings,
-          title: 'إعدادات التطبيق',
-          subtitle: 'تخصيص إعدادات المقهى',
+          title: 'settings'.tr,
+          subtitle: 'app_settings'.tr,
           color: Colors.blueGrey,
           onTap: () => Get.toNamed('/settings'),
         ),
         _buildAdminActionCard(
           icon: Icons.insert_chart,
-          title: 'التقارير والإحصائيات',
-          subtitle: 'تحليل أداء المبيعات',
+          title: 'reports'.tr,
+          subtitle: 'sales_overview'.tr,
           color: Colors.green.shade600,
           onTap: () {
             Get.snackbar(
-              'قريباً',
-              'سيتم إضافة هذه الميزة قريباً',
+              'coming_soon'.tr,
+              'feature_coming_soon'.tr,
               snackPosition: SnackPosition.BOTTOM,
             );
           },
         ),
         _buildAdminActionCard(
           icon: Icons.qr_code,
-          title: 'رمز الدفع QR',
-          subtitle: 'إنشاء وإدارة رمز الدفع',
+          title: 'benefitpayQR'.tr,
+          subtitle: 'manage_qr'.tr,
           color: Colors.purple,
           onTap: () => Get.toNamed('/benefit-pay-qr'),
         ),
         _buildAdminActionCard(
           icon: Icons.feedback,
-          title: 'إدارة التعليقات',
-          subtitle: 'مراجعة وإدارة التعليقات والمقترحات',
+          title: 'feedback_management'.tr,
+          subtitle: 'manage_feedback'.tr,
           color: AppTheme.primaryColor,
           onTap: () => Get.to(() => FeedbackManagement()),
         ),
@@ -390,39 +397,43 @@ class _AdminDashboardState extends State<AdminDashboard> {
   }) {
     return InkWell(
       onTap: onTap,
-      borderRadius: BorderRadius.circular(12),
+      borderRadius: BorderRadius.circular(8),
       child: Card(
-        elevation: 3,
+        elevation: 2,
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(12),
+          borderRadius: BorderRadius.circular(8),
         ),
         child: Padding(
-          padding: const EdgeInsets.all(16.0),
+          padding: const EdgeInsets.all(8.0), // Reduced padding
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               CircleAvatar(
-                radius: 30,
+                radius: 22, // Smaller radius
                 backgroundColor: color.withOpacity(0.2),
-                child: Icon(icon, size: 30, color: color),
+                child: Icon(icon, size: 22, color: color), // Smaller icon
               ),
-              const SizedBox(height: 12),
+              const SizedBox(height: 8), // Reduced spacing
               Text(
                 title,
                 style: const TextStyle(
-                  fontSize: 16,
+                  fontSize: 13, // Smaller font size
                   fontWeight: FontWeight.bold,
                 ),
                 textAlign: TextAlign.center,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
               ),
-              const SizedBox(height: 4),
+              const SizedBox(height: 2), // Reduced spacing
               Text(
                 subtitle,
                 style: TextStyle(
-                  fontSize: 12,
+                  fontSize: 10, // Smaller font size
                   color: Colors.grey[600],
                 ),
                 textAlign: TextAlign.center,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
               ),
             ],
           ),
@@ -436,32 +447,32 @@ class _AdminDashboardState extends State<AdminDashboard> {
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          title: const Text('تصفير الإحصائيات'),
-          content: const Text(
-            'هل أنت متأكد من أنك تريد تصفير جميع إحصائيات اليوم؟ هذا الإجراء لا يمكن التراجع عنه.',
-            style: TextStyle(fontSize: 14),
+          title: Text('reset_stats'.tr),
+          content: Text(
+            'reset_stats_confirmation'.tr,
+            style: const TextStyle(fontSize: 14),
           ),
           actions: [
             TextButton(
               onPressed: () {
                 Navigator.of(context).pop();
               },
-              child: const Text('إلغاء'),
+              child: Text('cancel'.tr),
             ),
             TextButton(
               onPressed: () async {
                 Navigator.of(context).pop();
                 await _exportStatsAsText();
               },
-              child: const Text('تصدير وحفظ البيانات'),
+              child: Text('export_and_save'.tr),
             ),
             TextButton(
               onPressed: () {
                 _resetStats();
                 Navigator.of(context).pop();
                 Get.snackbar(
-                  'تمت العملية',
-                  'تم تصفير الإحصائيات بنجاح',
+                  'success'.tr,
+                  'stats_reset_success'.tr,
                   snackPosition: SnackPosition.BOTTOM,
                   backgroundColor: Colors.green,
                   colorText: Colors.white,
@@ -470,7 +481,7 @@ class _AdminDashboardState extends State<AdminDashboard> {
               style: TextButton.styleFrom(
                 foregroundColor: Colors.red,
               ),
-              child: const Text('تصفير بدون حفظ'),
+              child: Text('reset_without_save'.tr),
             ),
           ],
         );
@@ -560,9 +571,8 @@ class _AdminDashboardState extends State<AdminDashboard> {
           children: [
             ListTile(
               leading: const Icon(Icons.restore, color: Colors.red),
-              title: const Text('إعادة ضبط المصنع'),
-              subtitle: const Text(
-                  'حذف جميع البيانات وإعادة التطبيق للإعدادات الافتراضية'),
+              title: Text('factory_reset'.tr),
+              subtitle: Text('factory_reset_description'.tr),
               trailing: const Icon(Icons.warning, color: Colors.red),
               onTap: () => HiveResetUtil.showResetConfirmationDialog(context),
             ),
