@@ -66,12 +66,18 @@ class MenuScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final screenWidth = MediaQuery.of(context).size.width;
+    final screenHeight = MediaQuery.of(context).size.height;
     final isSmallScreen = screenWidth < 600;
+    // Add more granular screen size checks
+    final isVerySmallScreen = screenWidth < 360;
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('القائمة',
-            style: TextStyle(color: AppTheme.primaryColor)),
+        title: Text('القائمة',
+            style: TextStyle(
+              color: AppTheme.primaryColor,
+              fontSize: isVerySmallScreen ? 18 : 20,
+            )),
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
           onPressed: () => Get.offAll(() => const HomeScreen()),
@@ -99,57 +105,76 @@ class MenuScreen extends StatelessWidget {
             ),
         ],
       ),
-      body: Obx(
-        () => categoryController.isLoading.value ||
-                productController.isLoading.value
-            ? _buildLoadingView()
-            : Column(
-                children: [
-                  // شريط البحث السريع
-                  Padding(
-                    padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
-                    child: TextField(
-                      decoration: InputDecoration(
-                        hintText: 'بحث سريع عن المنتجات...',
-                        prefixIcon: const Icon(Icons.search),
-                        suffixIcon: Obx(() => searchQuery.value.isNotEmpty
-                            ? IconButton(
-                                icon: const Icon(Icons.clear),
-                                onPressed: () {
-                                  searchQuery.value = '';
-                                  // إعادة تعيين FocusNode لإخفاء لوحة المفاتيح
-                                  FocusScope.of(context).unfocus();
-                                },
-                              )
-                            : const SizedBox.shrink()),
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(12),
-                          borderSide: BorderSide(color: Colors.grey.shade300),
+      body: RefreshIndicator(
+        onRefresh: () async {
+          // Add refresh functionality if needed
+          await Future.delayed(Duration(milliseconds: 500));
+        },
+        child: Obx(
+          () => categoryController.isLoading.value ||
+                  productController.isLoading.value
+              ? _buildLoadingView()
+              : Column(
+                  children: [
+                    // شريط البحث السريع - adjust padding based on screen size
+                    Padding(
+                      padding: EdgeInsets.fromLTRB(isVerySmallScreen ? 8 : 16,
+                          8, isVerySmallScreen ? 8 : 16, 0),
+                      child: TextField(
+                        decoration: InputDecoration(
+                          hintText: 'بحث سريع عن المنتجات...',
+                          prefixIcon: const Icon(Icons.search),
+                          suffixIcon: Obx(() => searchQuery.value.isNotEmpty
+                              ? IconButton(
+                                  icon: const Icon(Icons.clear),
+                                  onPressed: () {
+                                    searchQuery.value = '';
+                                    // إعادة تعيين FocusNode لإخفاء لوحة المفاتيح
+                                    FocusScope.of(context).unfocus();
+                                  },
+                                )
+                              : const SizedBox.shrink()),
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(12),
+                            borderSide: BorderSide(color: Colors.grey.shade300),
+                          ),
+                          enabledBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(12),
+                            borderSide: BorderSide(color: Colors.grey.shade300),
+                          ),
+                          filled: true,
+                          fillColor: Colors.grey.shade50,
+                          // Adjust content padding based on screen size
+                          contentPadding: EdgeInsets.symmetric(
+                              horizontal: isVerySmallScreen ? 8 : 16,
+                              vertical: isVerySmallScreen ? 8 : 12),
                         ),
-                        enabledBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(12),
-                          borderSide: BorderSide(color: Colors.grey.shade300),
-                        ),
-                        filled: true,
-                        fillColor: Colors.grey.shade50,
+                        onChanged: (value) {
+                          searchQuery.value = value;
+                        },
+                        // Make text smaller on very small screens
+                        style: TextStyle(fontSize: isVerySmallScreen ? 14 : 16),
                       ),
-                      onChanged: (value) {
-                        searchQuery.value = value;
-                      },
                     ),
-                  ),
 
-                  // قسم تصفية الفئات (يظهر فقط في طريقة عرض المنتجات)
-                  if (!showCategoryView.value) _buildCategoriesSection(),
+                    // قسم تصفية الفئات (يظهر فقط في طريقة عرض المنتجات)
+                    if (!showCategoryView.value)
+                      Container(
+                        height: 50,
+                        child: _buildCategoriesSection(isVerySmallScreen),
+                      ),
 
-                  // عرض الفئات أو المنتجات حسب الخيار المحدد
-                  Expanded(
-                    child: Obx(() => showCategoryView.value
-                        ? _buildCategoriesView(isSmallScreen)
-                        : _buildProductsSection(viewMode, isSmallScreen)),
-                  ),
-                ],
-              ),
+                    // عرض الفئات أو المنتجات حسب الخيار المحدد
+                    Expanded(
+                      child: Obx(() => showCategoryView.value
+                          ? _buildCategoriesView(
+                              isSmallScreen, isVerySmallScreen)
+                          : _buildProductsSection(
+                              viewMode, isSmallScreen, isVerySmallScreen)),
+                    ),
+                  ],
+                ),
+        ),
       ),
     );
   }
@@ -170,47 +195,25 @@ class MenuScreen extends StatelessWidget {
   }
 
   // شريط تصفية الفئات
-  Widget _buildCategoriesSection() {
-    return Container(
-      height: 50,
-      padding: const EdgeInsets.symmetric(horizontal: 16),
-      child: ListView.builder(
-        scrollDirection: Axis.horizontal,
-        itemCount: categoryController.categories.length + 1,
-        itemBuilder: (context, index) {
-          if (index == 0) {
-            return Padding(
-              padding: const EdgeInsets.only(right: 8),
-              child: Obx(() => ChoiceChip(
-                    label: const Text('الكل'),
-                    selected:
-                        categoryController.selectedCategoryId.value.isEmpty,
-                    onSelected: (selected) {
-                      if (selected) {
-                        categoryController.selectedCategoryId.value = '';
-                      }
-                    },
-                    backgroundColor: AppTheme.backgroundColor,
-                    selectedColor: AppTheme.primaryColor.withAlpha(51),
-                    labelStyle: TextStyle(
-                      color: AppTheme.primaryColor,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  )),
-            );
-          }
-
-          final category = categoryController.categories[index - 1];
+  Widget _buildCategoriesSection(bool isVerySmallScreen) {
+    return ListView.builder(
+      scrollDirection: Axis.horizontal,
+      physics: const BouncingScrollPhysics(),
+      itemCount: categoryController.categories.length + 1,
+      padding: EdgeInsets.symmetric(
+          horizontal: isVerySmallScreen ? 8 : 16, vertical: 8),
+      itemBuilder: (context, index) {
+        if (index == 0) {
           return Padding(
             padding: const EdgeInsets.only(right: 8),
             child: Obx(() => ChoiceChip(
-                  label: Text(category.localizedName), // استخدام الاسم المترجم
-                  selected: categoryController.selectedCategoryId.value ==
-                      category.id,
+                  label: Text(
+                    'الكل',
+                    style: TextStyle(fontSize: isVerySmallScreen ? 12 : 14),
+                  ),
+                  selected: categoryController.selectedCategoryId.value.isEmpty,
                   onSelected: (selected) {
                     if (selected) {
-                      categoryController.selectedCategoryId.value = category.id;
-                    } else {
                       categoryController.selectedCategoryId.value = '';
                     }
                   },
@@ -222,13 +225,39 @@ class MenuScreen extends StatelessWidget {
                   ),
                 )),
           );
-        },
-      ),
+        }
+
+        final category = categoryController.categories[index - 1];
+        return Padding(
+          padding: const EdgeInsets.only(right: 8),
+          child: Obx(() => ChoiceChip(
+                label: Text(
+                  category.localizedName,
+                  style: TextStyle(fontSize: isVerySmallScreen ? 12 : 14),
+                ), // استخدام الاسم المترجم
+                selected:
+                    categoryController.selectedCategoryId.value == category.id,
+                onSelected: (selected) {
+                  if (selected) {
+                    categoryController.selectedCategoryId.value = category.id;
+                  } else {
+                    categoryController.selectedCategoryId.value = '';
+                  }
+                },
+                backgroundColor: AppTheme.backgroundColor,
+                selectedColor: AppTheme.primaryColor.withAlpha(51),
+                labelStyle: TextStyle(
+                  color: AppTheme.primaryColor,
+                  fontWeight: FontWeight.bold,
+                ),
+              )),
+        );
+      },
     );
   }
 
   // عرض شاشة الفئات
-  Widget _buildCategoriesView(bool isSmallScreen) {
+  Widget _buildCategoriesView(bool isSmallScreen, bool isVerySmallScreen) {
     return Obx(() {
       if (categoryController.categories.isEmpty) {
         return const Center(
@@ -266,17 +295,21 @@ class MenuScreen extends StatelessWidget {
         );
       }
 
-      // استخدام عرض الشبكة للفئات
+      // استخدام عرض الشبكة للفئات - Adaptively determine crossAxisCount based on screen width
+      final crossAxisCount = isVerySmallScreen ? 2 : (isSmallScreen ? 2 : 3);
+      final childAspectRatio = isVerySmallScreen ? 0.8 : 0.9;
+      final spacing = isVerySmallScreen ? 8.0 : 16.0;
+
       return Padding(
-        padding: const EdgeInsets.all(16),
+        padding: EdgeInsets.all(isVerySmallScreen ? 8 : 16),
         child: useAnimations
             ? AnimationLimiter(
                 child: GridView.builder(
                   gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                    crossAxisCount: isSmallScreen ? 2 : 3,
-                    childAspectRatio: 0.9,
-                    crossAxisSpacing: 16,
-                    mainAxisSpacing: 16,
+                    crossAxisCount: crossAxisCount,
+                    childAspectRatio: childAspectRatio,
+                    crossAxisSpacing: spacing,
+                    mainAxisSpacing: spacing,
                   ),
                   itemCount: filteredCategories.length,
                   itemBuilder: (context, index) {
@@ -284,7 +317,7 @@ class MenuScreen extends StatelessWidget {
                     return AnimationConfiguration.staggeredGrid(
                       position: index,
                       duration: const Duration(milliseconds: 375),
-                      columnCount: isSmallScreen ? 2 : 3,
+                      columnCount: crossAxisCount,
                       child: SlideAnimation(
                         verticalOffset: 50.0,
                         child: FadeInAnimation(
@@ -306,10 +339,10 @@ class MenuScreen extends StatelessWidget {
               )
             : GridView.builder(
                 gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                  crossAxisCount: isSmallScreen ? 2 : 3,
-                  childAspectRatio: 0.9,
-                  crossAxisSpacing: 16,
-                  mainAxisSpacing: 16,
+                  crossAxisCount: crossAxisCount,
+                  childAspectRatio: childAspectRatio,
+                  crossAxisSpacing: spacing,
+                  mainAxisSpacing: spacing,
                 ),
                 itemCount: filteredCategories.length,
                 itemBuilder: (context, index) {
@@ -330,7 +363,8 @@ class MenuScreen extends StatelessWidget {
   }
 
   // عرض شاشة المنتجات
-  Widget _buildProductsSection(String viewMode, bool isSmallScreen) {
+  Widget _buildProductsSection(
+      String viewMode, bool isSmallScreen, bool isVerySmallScreen) {
     return Obx(() {
       // فلترة المنتجات حسب الفئة المحددة
       List<Product> filteredProducts =
@@ -386,31 +420,43 @@ class MenuScreen extends StatelessWidget {
       }
 
       if (viewMode == 'grid') {
-        return _buildGridView(filteredProducts, showImages, isSmallScreen);
+        return _buildGridView(
+            filteredProducts, showImages, isSmallScreen, isVerySmallScreen);
       } else if (viewMode == 'list') {
-        return _buildListView(filteredProducts, showImages);
+        return _buildListView(filteredProducts, showImages, isVerySmallScreen);
       } else {
-        return _buildCompactView(filteredProducts, showImages);
+        return _buildCompactView(
+            filteredProducts, showImages, isVerySmallScreen);
       }
     });
   }
 
   // عرض المنتجات كشبكة
-  Widget _buildGridView(
-      List<Product> products, bool showImages, bool isSmallScreen) {
-    final crossAxisCount = isSmallScreen ? 2 : 3;
+  Widget _buildGridView(List<Product> products, bool showImages,
+      bool isSmallScreen, bool isVerySmallScreen) {
+    // More adaptive grid based on screen size
+    final crossAxisCount = isVerySmallScreen ? 1 : (isSmallScreen ? 2 : 3);
+    final aspectRatio = isVerySmallScreen
+        ? 1.0 *
+            cardSize // More rectangular for single column on very small screens
+        : 0.7 * cardSize; // Original aspect ratio for larger screens
+
+    final padding = isVerySmallScreen ? 8.0 : 16.0;
+    final spacing = isVerySmallScreen ? 8.0 : 16.0;
 
     return Padding(
-      padding: const EdgeInsets.all(16),
+      padding: EdgeInsets.all(padding),
       child: useAnimations
           ? AnimationLimiter(
               child: GridView.builder(
                 gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
                   crossAxisCount: crossAxisCount,
-                  childAspectRatio: 0.7 * cardSize,
-                  crossAxisSpacing: 16,
-                  mainAxisSpacing: 16,
+                  childAspectRatio: aspectRatio,
+                  crossAxisSpacing: spacing,
+                  mainAxisSpacing: spacing,
                 ),
+                physics:
+                    const AlwaysScrollableScrollPhysics(), // Enable scrolling
                 itemCount: products.length,
                 itemBuilder: (context, index) {
                   final product = products[index];
@@ -438,10 +484,12 @@ class MenuScreen extends StatelessWidget {
           : GridView.builder(
               gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
                 crossAxisCount: crossAxisCount,
-                childAspectRatio: 0.7 * cardSize,
-                crossAxisSpacing: 16,
-                mainAxisSpacing: 16,
+                childAspectRatio: aspectRatio,
+                crossAxisSpacing: spacing,
+                mainAxisSpacing: spacing,
               ),
+              physics:
+                  const AlwaysScrollableScrollPhysics(), // Enable scrolling
               itemCount: products.length,
               itemBuilder: (context, index) {
                 final product = products[index];
@@ -459,28 +507,33 @@ class MenuScreen extends StatelessWidget {
   }
 
   // عرض المنتجات كقائمة
-  Widget _buildListView(List<Product> products, bool showImages) {
+  Widget _buildListView(
+      List<Product> products, bool showImages, bool isVerySmallScreen) {
+    final padding = isVerySmallScreen ? 8.0 : 16.0;
+    final margin = isVerySmallScreen ? 8.0 : 12.0;
+
     return ListView.builder(
-      padding: const EdgeInsets.all(16),
+      padding: EdgeInsets.all(padding),
       itemCount: products.length,
+      physics: const AlwaysScrollableScrollPhysics(), // Enable scrolling
       itemBuilder: (context, index) {
         final product = products[index];
 
         final itemWidget = Card(
-          margin: const EdgeInsets.only(bottom: 12),
+          margin: EdgeInsets.only(bottom: margin),
           elevation: 2,
           shape:
               RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
           child: Padding(
-            padding: const EdgeInsets.all(12.0),
+            padding: EdgeInsets.all(isVerySmallScreen ? 8.0 : 12.0),
             child: Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 if (showImages && product.imageUrl != null)
                   Container(
-                    width: 100 * cardSize,
-                    height: 100 * cardSize,
-                    margin: const EdgeInsets.only(right: 12),
+                    width: isVerySmallScreen ? 80 * cardSize : 100 * cardSize,
+                    height: isVerySmallScreen ? 80 * cardSize : 100 * cardSize,
+                    margin: EdgeInsets.only(right: isVerySmallScreen ? 8 : 12),
                     child: ClipRRect(
                       borderRadius: BorderRadius.circular(8),
                       child: _buildProductImage(product.imageUrl),
@@ -494,18 +547,18 @@ class MenuScreen extends StatelessWidget {
                         product.localizedName,
                         style: TextStyle(
                           fontWeight: FontWeight.bold,
-                          fontSize: 18,
+                          fontSize: isVerySmallScreen ? 16 : 18,
                           color: textColor,
                         ),
                       ),
-                      const SizedBox(height: 6),
+                      SizedBox(height: isVerySmallScreen ? 4 : 6),
                       Text(
                         product.localizedDescription,
-                        style: const TextStyle(fontSize: 14),
+                        style: TextStyle(fontSize: isVerySmallScreen ? 12 : 14),
                         maxLines: 2,
                         overflow: TextOverflow.ellipsis,
                       ),
-                      const SizedBox(height: 8),
+                      SizedBox(height: isVerySmallScreen ? 6 : 8),
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
@@ -514,10 +567,10 @@ class MenuScreen extends StatelessWidget {
                             style: TextStyle(
                               color: priceColor,
                               fontWeight: FontWeight.bold,
-                              fontSize: 16,
+                              fontSize: isVerySmallScreen ? 14 : 16,
                             ),
                           ),
-                          _buildQuantitySelector(product.id),
+                          _buildQuantitySelector(product.id, isVerySmallScreen),
                         ],
                       ),
                     ],
@@ -551,25 +604,30 @@ class MenuScreen extends StatelessWidget {
   }
 
   // عرض المنتجات بطريقة مدمجة
-  Widget _buildCompactView(List<Product> products, bool showImages) {
+  Widget _buildCompactView(
+      List<Product> products, bool showImages, bool isVerySmallScreen) {
+    final padding = isVerySmallScreen ? 8.0 : 16.0;
+    final margin = isVerySmallScreen ? 6.0 : 8.0;
+
     return ListView.builder(
-      padding: const EdgeInsets.all(16),
+      padding: EdgeInsets.all(padding),
       itemCount: products.length,
+      physics: const AlwaysScrollableScrollPhysics(), // Enable scrolling
       itemBuilder: (context, index) {
         final product = products[index];
 
         final itemWidget = Card(
-          margin: const EdgeInsets.only(bottom: 8),
+          margin: EdgeInsets.only(bottom: margin),
           child: Padding(
-            padding: const EdgeInsets.all(12.0),
+            padding: EdgeInsets.all(isVerySmallScreen ? 8.0 : 12.0),
             child: Row(
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
                 if (showImages && product.imageUrl != null)
                   Container(
-                    width: 60 * cardSize,
-                    height: 60 * cardSize,
-                    margin: const EdgeInsets.only(right: 12),
+                    width: isVerySmallScreen ? 50 * cardSize : 60 * cardSize,
+                    height: isVerySmallScreen ? 50 * cardSize : 60 * cardSize,
+                    margin: EdgeInsets.only(right: isVerySmallScreen ? 8 : 12),
                     child: ClipRRect(
                       borderRadius: BorderRadius.circular(8),
                       child: _buildProductImage(product.imageUrl),
@@ -583,22 +641,23 @@ class MenuScreen extends StatelessWidget {
                         product.localizedName,
                         style: TextStyle(
                           fontWeight: FontWeight.bold,
-                          fontSize: 16,
+                          fontSize: isVerySmallScreen ? 14 : 16,
                           color: textColor,
                         ),
                       ),
-                      const SizedBox(height: 4),
+                      SizedBox(height: isVerySmallScreen ? 2 : 4),
                       Text(
                         '${product.price.toStringAsFixed(3)} د.ب',
                         style: TextStyle(
                           color: priceColor,
                           fontWeight: FontWeight.bold,
+                          fontSize: isVerySmallScreen ? 13 : 14,
                         ),
                       ),
                     ],
                   ),
                 ),
-                _buildQuantitySelector(product.id),
+                _buildQuantitySelector(product.id, isVerySmallScreen),
               ],
             ),
           ),
@@ -627,28 +686,33 @@ class MenuScreen extends StatelessWidget {
   }
 
   // بناء عنصر التحكم بالكمية
-  Widget _buildQuantitySelector(String productId) {
+  Widget _buildQuantitySelector(String productId, bool isVerySmallScreen) {
+    final buttonSize = isVerySmallScreen ? 30.0 : 36.0;
+    final iconSize = isVerySmallScreen ? 16.0 : 20.0;
+    final counterWidth = isVerySmallScreen ? 32.0 : 40.0;
+    final fontSize = isVerySmallScreen ? 14.0 : 16.0;
+
     return Obx(() => Row(
           children: [
             InkWell(
               onTap: () => decrementQuantity(productId),
               child: Container(
-                width: 36,
-                height: 36,
+                width: buttonSize,
+                height: buttonSize,
                 decoration: BoxDecoration(
                   color: AppTheme.primaryColor.withOpacity(0.1),
                   borderRadius: BorderRadius.circular(8),
                 ),
-                child: const Icon(
+                child: Icon(
                   Icons.remove,
                   color: AppTheme.primaryColor,
-                  size: 20,
+                  size: iconSize,
                 ),
               ),
             ),
             Container(
-              width: 40,
-              height: 36,
+              width: counterWidth,
+              height: buttonSize,
               alignment: Alignment.center,
               margin: const EdgeInsets.symmetric(horizontal: 8),
               decoration: BoxDecoration(
@@ -657,25 +721,25 @@ class MenuScreen extends StatelessWidget {
               ),
               child: Text(
                 '${getQuantity(productId)}',
-                style: const TextStyle(
+                style: TextStyle(
                   fontWeight: FontWeight.bold,
-                  fontSize: 16,
+                  fontSize: fontSize,
                 ),
               ),
             ),
             InkWell(
               onTap: () => incrementQuantity(productId),
               child: Container(
-                width: 36,
-                height: 36,
+                width: buttonSize,
+                height: buttonSize,
                 decoration: BoxDecoration(
                   color: AppTheme.primaryColor,
                   borderRadius: BorderRadius.circular(8),
                 ),
-                child: const Icon(
+                child: Icon(
                   Icons.add,
                   color: Colors.white,
-                  size: 20,
+                  size: iconSize,
                 ),
               ),
             ),

@@ -30,10 +30,12 @@ import 'package:gpr_coffee_shop/services/notification_service.dart';
 import 'package:gpr_coffee_shop/screens/admin/benefit_pay_qr_management.dart';
 import 'package:gpr_coffee_shop/screens/view_options_screen.dart';
 import 'package:gpr_coffee_shop/utils/hive_reset_util.dart';
+import 'package:gpr_coffee_shop/utils/logger_util.dart';
 import 'package:gpr_coffee_shop/utils/rendering_helper.dart'; // Add this import
 import 'package:hive_flutter/hive_flutter.dart';
 
 import 'dart:io';
+import 'package:flutter/foundation.dart' show kIsWeb;
 
 // Function to register all Hive adapters
 Future<void> _registerHiveAdapters() async {
@@ -69,8 +71,8 @@ Future<void> _registerHiveAdapters() async {
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  // خيارات تحسين الأداء لنظام Windows
-  if (Platform.isWindows) {
+  // خيارات تحسين الأداء لنظام Windows - only apply if not on web
+  if (!kIsWeb && Platform.isWindows) {
     // استخدام الوظائف المعدلة من RenderingHelper بدلاً من الكود المباشر
     RenderingHelper.applyOptimizations();
   }
@@ -107,6 +109,12 @@ void main() async {
   Get.put(SettingsController());
   Get.put(FeedbackController());
   Get.put(ViewOptionsController()); // إضافة ViewOptionsController هنا
+
+  // For web platform, add any web-specific initializations here
+  if (kIsWeb) {
+    // Web-specific setup like analytics, service workers, etc.
+    LoggerUtil.logger.i('تشغيل التطبيق على منصة الويب');
+  }
 
   // تهيئة التطبيق باللغة المحفوظة
   final savedLanguage = Get.find<SharedPreferencesService>().getLanguage();

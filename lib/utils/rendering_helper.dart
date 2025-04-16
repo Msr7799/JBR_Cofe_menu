@@ -2,11 +2,18 @@ import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart'; // Add this import for timeDilation
 import 'package:get/get.dart';
 import 'dart:io';
+import 'package:flutter/foundation.dart' show kIsWeb;
 
 class RenderingHelper {
   /// تطبيق التحسينات المناسبة لجهاز المستخدم
   static void applyOptimizations() {
-    if (Platform.isWindows) {
+    // Skip platform-specific optimizations on web
+    if (kIsWeb) {
+      return;
+    }
+
+    // Apply Windows-specific optimizations only on Windows
+    if (!kIsWeb && Platform.isWindows) {
       // تقليل حجم ذاكرة التخزين المؤقت للصور
       PaintingBinding.instance.imageCache.maximumSize = 50;
       PaintingBinding.instance.imageCache.maximumSizeBytes = 50 << 20; // 50 MB

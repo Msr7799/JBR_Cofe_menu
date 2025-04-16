@@ -32,7 +32,6 @@ class AppTranslations extends Translations {
           'refresh': 'تحديث',
 
           // نصوص إضافية للشاشة الرئيسية
-          'app_description_short': 'إستمتع بتجربة قهوة لا تُنسى',
           'rate': 'التقييمات والاقتراحات',
           'our_location': 'موقعنا',
           'todays_special': 'عرض اليوم',

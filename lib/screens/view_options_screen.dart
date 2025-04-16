@@ -34,13 +34,20 @@ class ViewOptionsScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // نحصل على معلومات حجم الشاشة لتحسين التجربة على الشاشات الصغيرة
+    final screenWidth = MediaQuery.of(context).size.width;
+    final screenHeight = MediaQuery.of(context).size.height;
+    final isSmallScreen = screenWidth < 400;
+
     return Scaffold(
       appBar: AppBar(
         title: const Text('خيارات العرض'),
         backgroundColor: AppTheme.primaryColor,
       ),
+      // استخدام SingleChildScrollView للشاشة بالكامل لضمان التمرير
       body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16),
+        physics: const AlwaysScrollableScrollPhysics(),
+        padding: EdgeInsets.all(isSmallScreen ? 12.0 : 16.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -51,7 +58,12 @@ class ViewOptionsScreen extends StatelessWidget {
             _buildCard(
               child: Column(
                 children: [
-                  _buildViewModeSetting(),
+                  // استخدام SingleChildScrollView لقسم طريقة عرض المنتجات
+                  SingleChildScrollView(
+                    scrollDirection: Axis.vertical,
+                    physics: const AlwaysScrollableScrollPhysics(),
+                    child: _buildViewModeSetting(),
+                  ),
                 ],
               ),
             ),
@@ -66,40 +78,49 @@ class ViewOptionsScreen extends StatelessWidget {
             _buildCard(
               child: Column(
                 children: [
-                  Obx(() => SwitchListTile(
-                        title: const Text('عرض الصور'),
-                        subtitle: const Text('عرض صور المنتجات في القائمة'),
-                        value: showImages.value,
-                        activeColor: AppTheme.primaryColor,
-                        onChanged: (value) {
-                          showImages.value = value;
-                          ViewOptionsHelper.saveShowImages(value);
-                        },
-                      )),
-                  const Divider(height: 1),
-                  Obx(() => SwitchListTile(
-                        title: const Text('استخدام التأثيرات الحركية'),
-                        subtitle: const Text(
-                            'تظهر المنتجات بتأثيرات حركية عند التفاعل معها'),
-                        value: useAnimations.value,
-                        activeColor: AppTheme.primaryColor,
-                        onChanged: (value) {
-                          useAnimations.value = value;
-                          ViewOptionsHelper.saveUseAnimations(value);
-                        },
-                      )),
-                  const Divider(height: 1),
-                  Obx(() => SwitchListTile(
-                        title: const Text('عرض زر الطلب مباشرة'),
-                        subtitle:
-                            const Text('عرض زر الطلب مباشرة على بطاقة المنتج'),
-                        value: showOrderButton.value,
-                        activeColor: AppTheme.primaryColor,
-                        onChanged: (value) {
-                          showOrderButton.value = value;
-                          ViewOptionsHelper.saveShowOrderButton(value);
-                        },
-                      )),
+                  // استخدام SingleChildScrollView للخيارات الإضافية
+                  SingleChildScrollView(
+                    physics: const AlwaysScrollableScrollPhysics(),
+                    child: Column(
+                      children: [
+                        Obx(() => SwitchListTile(
+                              title: const Text('عرض الصور'),
+                              subtitle:
+                                  const Text('عرض صور المنتجات في القائمة'),
+                              value: showImages.value,
+                              activeColor: AppTheme.primaryColor,
+                              onChanged: (value) {
+                                showImages.value = value;
+                                ViewOptionsHelper.saveShowImages(value);
+                              },
+                            )),
+                        const Divider(height: 1),
+                        Obx(() => SwitchListTile(
+                              title: const Text('استخدام التأثيرات الحركية'),
+                              subtitle: const Text(
+                                  'تظهر المنتجات بتأثيرات حركية عند التفاعل معها'),
+                              value: useAnimations.value,
+                              activeColor: AppTheme.primaryColor,
+                              onChanged: (value) {
+                                useAnimations.value = value;
+                                ViewOptionsHelper.saveUseAnimations(value);
+                              },
+                            )),
+                        const Divider(height: 1),
+                        Obx(() => SwitchListTile(
+                              title: const Text('عرض زر الطلب مباشرة'),
+                              subtitle: const Text(
+                                  'عرض زر الطلب مباشرة على بطاقة المنتج'),
+                              value: showOrderButton.value,
+                              activeColor: AppTheme.primaryColor,
+                              onChanged: (value) {
+                                showOrderButton.value = value;
+                                ViewOptionsHelper.saveShowOrderButton(value);
+                              },
+                            )),
+                      ],
+                    ),
+                  ),
                 ],
               ),
             ),
@@ -168,23 +189,31 @@ class ViewOptionsScreen extends StatelessWidget {
                 style: TextStyle(fontWeight: FontWeight.bold),
               ),
               const SizedBox(height: 10),
-              RadioListTile<String>(
-                title: const Text('عرض الفئات والمنتجات'),
-                subtitle: const Text(
-                    'عرض الفئات وعند الضغط تظهر المنتجات الخاصة بها'),
-                value: 'categories',
-                groupValue: displayMode.value,
-                activeColor: AppTheme.primaryColor,
-                onChanged: (value) => displayMode.value = value!,
-              ),
-              RadioListTile<String>(
-                title: const Text('عرض المنتجات مباشرة'),
-                subtitle: const Text(
-                    'عرض جميع المنتجات مع إمكانية التصفية حسب الفئة'),
-                value: 'products',
-                groupValue: displayMode.value,
-                activeColor: AppTheme.primaryColor,
-                onChanged: (value) => displayMode.value = value!,
+              // استخدام SingleChildScrollView لضمان التمرير في هذا القسم
+              SingleChildScrollView(
+                physics: const AlwaysScrollableScrollPhysics(),
+                child: Column(
+                  children: [
+                    RadioListTile<String>(
+                      title: const Text('عرض الفئات والمنتجات'),
+                      subtitle: const Text(
+                          'عرض الفئات وعند الضغط تظهر المنتجات الخاصة بها'),
+                      value: 'categories',
+                      groupValue: displayMode.value,
+                      activeColor: AppTheme.primaryColor,
+                      onChanged: (value) => displayMode.value = value!,
+                    ),
+                    RadioListTile<String>(
+                      title: const Text('عرض المنتجات مباشرة'),
+                      subtitle: const Text(
+                          'عرض جميع المنتجات مع إمكانية التصفية حسب الفئة'),
+                      value: 'products',
+                      groupValue: displayMode.value,
+                      activeColor: AppTheme.primaryColor,
+                      onChanged: (value) => displayMode.value = value!,
+                    ),
+                  ],
+                ),
               ),
             ],
           )),
@@ -202,52 +231,56 @@ class ViewOptionsScreen extends StatelessWidget {
             style: TextStyle(fontWeight: FontWeight.bold),
           ),
           const SizedBox(height: 10),
-          Obx(() => Column(
-                children: [
-                  Slider(
-                    value: cardSize.value,
-                    min: 0.8,
-                    max: 1.5,
-                    divisions: 7,
-                    activeColor: AppTheme.primaryColor,
-                    label: _getCardSizeLabel(cardSize.value),
-                    onChanged: (value) => cardSize.value = value,
-                  ),
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 16),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: const [
-                        Text('صغير', style: TextStyle(color: Colors.grey)),
-                        Text('متوسط', style: TextStyle(color: Colors.grey)),
-                        Text('كبير', style: TextStyle(color: Colors.grey)),
-                      ],
+          Obx(() => SingleChildScrollView(
+                physics: const AlwaysScrollableScrollPhysics(),
+                scrollDirection: Axis.vertical,
+                child: Column(
+                  children: [
+                    Slider(
+                      value: cardSize.value,
+                      min: 0.8,
+                      max: 1.5,
+                      divisions: 7,
+                      activeColor: AppTheme.primaryColor,
+                      label: _getCardSizeLabel(cardSize.value),
+                      onChanged: (value) => cardSize.value = value,
                     ),
-                  ),
-                  const SizedBox(height: 16),
-                  // معاينة لحجم الكارت
-                  AnimatedContainer(
-                    duration: const Duration(milliseconds: 300),
-                    width: 200 * cardSize.value,
-                    height: 120 * cardSize.value,
-                    decoration: BoxDecoration(
-                      color: Colors.grey.shade200,
-                      borderRadius: BorderRadius.circular(12),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black.withOpacity(0.1),
-                          blurRadius: 5,
-                          spreadRadius: 1,
-                        ),
-                      ],
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 16),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: const [
+                          Text('صغير', style: TextStyle(color: Colors.grey)),
+                          Text('متوسط', style: TextStyle(color: Colors.grey)),
+                          Text('كبير', style: TextStyle(color: Colors.grey)),
+                        ],
+                      ),
                     ),
-                    alignment: Alignment.center,
-                    child: const Text(
-                      'معاينة الحجم',
-                      style: TextStyle(fontWeight: FontWeight.bold),
+                    const SizedBox(height: 16),
+                    // معاينة لحجم الكارت
+                    AnimatedContainer(
+                      duration: const Duration(milliseconds: 300),
+                      width: 200 * cardSize.value,
+                      height: 120 * cardSize.value,
+                      decoration: BoxDecoration(
+                        color: Colors.grey.shade200,
+                        borderRadius: BorderRadius.circular(12),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withOpacity(0.1),
+                            blurRadius: 5,
+                            spreadRadius: 1,
+                          ),
+                        ],
+                      ),
+                      alignment: Alignment.center,
+                      child: const Text(
+                        'معاينة الحجم',
+                        style: TextStyle(fontWeight: FontWeight.bold),
+                      ),
                     ),
-                  ),
-                ],
+                  ],
+                ),
               )),
         ],
       ),
@@ -265,21 +298,27 @@ class ViewOptionsScreen extends StatelessWidget {
             style: TextStyle(fontWeight: FontWeight.bold),
           ),
           const SizedBox(height: 10),
-          Obx(() => Wrap(
-                spacing: 10,
-                runSpacing: 10,
-                children: List.generate(
-                  availableColors.length,
-                  (index) => GestureDetector(
-                    onTap: () =>
-                        selectedTextColor.value = availableColors[index].value,
-                    child: CircleAvatar(
-                      radius: 20,
-                      backgroundColor: availableColors[index],
-                      child: selectedTextColor.value ==
-                              availableColors[index].value
-                          ? const Icon(Icons.check, color: Color.fromARGB(255, 253, 243, 243))
-                          : null,
+          // تحسين اختيار الألوان مع إمكانية التمرير
+          Obx(() => SingleChildScrollView(
+                scrollDirection: Axis.horizontal,
+                physics: const AlwaysScrollableScrollPhysics(),
+                child: Wrap(
+                  spacing: 10,
+                  runSpacing: 10,
+                  children: List.generate(
+                    availableColors.length,
+                    (index) => GestureDetector(
+                      onTap: () => selectedTextColor.value =
+                          availableColors[index].value,
+                      child: CircleAvatar(
+                        radius: 20,
+                        backgroundColor: availableColors[index],
+                        child: selectedTextColor.value ==
+                                availableColors[index].value
+                            ? const Icon(Icons.check,
+                                color: Color.fromARGB(255, 253, 243, 243))
+                            : null,
+                      ),
                     ),
                   ),
                 ),
@@ -291,21 +330,26 @@ class ViewOptionsScreen extends StatelessWidget {
             style: TextStyle(fontWeight: FontWeight.bold),
           ),
           const SizedBox(height: 10),
-          Obx(() => Wrap(
-                spacing: 10,
-                runSpacing: 10,
-                children: List.generate(
-                  availableColors.length,
-                  (index) => GestureDetector(
-                    onTap: () =>
-                        selectedPriceColor.value = availableColors[index].value,
-                    child: CircleAvatar(
-                      radius: 20,
-                      backgroundColor: availableColors[index],
-                      child: selectedPriceColor.value ==
-                              availableColors[index].value
-                          ? const Icon(Icons.check, color: Colors.white)
-                          : null,
+          // تحسين اختيار ألوان الأسعار مع إمكانية التمرير
+          Obx(() => SingleChildScrollView(
+                scrollDirection: Axis.horizontal,
+                physics: const AlwaysScrollableScrollPhysics(),
+                child: Wrap(
+                  spacing: 10,
+                  runSpacing: 10,
+                  children: List.generate(
+                    availableColors.length,
+                    (index) => GestureDetector(
+                      onTap: () => selectedPriceColor.value =
+                          availableColors[index].value,
+                      child: CircleAvatar(
+                        radius: 20,
+                        backgroundColor: availableColors[index],
+                        child: selectedPriceColor.value ==
+                                availableColors[index].value
+                            ? const Icon(Icons.check, color: Colors.white)
+                            : null,
+                      ),
                     ),
                   ),
                 ),
@@ -365,38 +409,46 @@ class ViewOptionsScreen extends StatelessWidget {
               style: TextStyle(fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 10),
-            RadioListTile<String>(
-              title: const Text('عرض شبكي (بطاقات)'),
-              subtitle: const Text('عرض المنتجات في شبكة من البطاقات'),
-              value: 'grid',
-              groupValue: viewMode.value,
-              activeColor: AppTheme.primaryColor,
-              onChanged: (value) {
-                viewMode.value = value!;
-                ViewOptionsHelper.saveViewMode(value);
-              },
-            ),
-            RadioListTile<String>(
-              title: const Text('عرض قائمة'),
-              subtitle: const Text('عرض المنتجات في قائمة عمودية'),
-              value: 'list',
-              groupValue: viewMode.value,
-              activeColor: AppTheme.primaryColor,
-              onChanged: (value) {
-                viewMode.value = value!;
-                ViewOptionsHelper.saveViewMode(value);
-              },
-            ),
-            RadioListTile<String>(
-              title: const Text('عرض مدمج'),
-              subtitle: const Text('عرض مدمج للمنتجات في صفوف'),
-              value: 'compact',
-              groupValue: viewMode.value,
-              activeColor: AppTheme.primaryColor,
-              onChanged: (value) {
-                viewMode.value = value!;
-                ViewOptionsHelper.saveViewMode(value);
-              },
+            // تضمين التمرير في اختيارات طرق العرض
+            SingleChildScrollView(
+              physics: const AlwaysScrollableScrollPhysics(),
+              child: Column(
+                children: [
+                  RadioListTile<String>(
+                    title: const Text('عرض شبكي (بطاقات)'),
+                    subtitle: const Text('عرض المنتجات في شبكة من البطاقات'),
+                    value: 'grid',
+                    groupValue: viewMode.value,
+                    activeColor: AppTheme.primaryColor,
+                    onChanged: (value) {
+                      viewMode.value = value!;
+                      ViewOptionsHelper.saveViewMode(value);
+                    },
+                  ),
+                  RadioListTile<String>(
+                    title: const Text('عرض قائمة'),
+                    subtitle: const Text('عرض المنتجات في قائمة عمودية'),
+                    value: 'list',
+                    groupValue: viewMode.value,
+                    activeColor: AppTheme.primaryColor,
+                    onChanged: (value) {
+                      viewMode.value = value!;
+                      ViewOptionsHelper.saveViewMode(value);
+                    },
+                  ),
+                  RadioListTile<String>(
+                    title: const Text('عرض مدمج'),
+                    subtitle: const Text('عرض مدمج للمنتجات في صفوف'),
+                    value: 'compact',
+                    groupValue: viewMode.value,
+                    activeColor: AppTheme.primaryColor,
+                    onChanged: (value) {
+                      viewMode.value = value!;
+                      ViewOptionsHelper.saveViewMode(value);
+                    },
+                  ),
+                ],
+              ),
             ),
           ],
         ));

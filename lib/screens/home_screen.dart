@@ -103,9 +103,9 @@ class _HomeScreenState extends State<HomeScreen>
 
   void _loadViewPreferences() {
     setState(() {
-      _viewMode = _prefsService.getString('view_mode') ?? 'grid';
-      _showImages = _prefsService.getBool('show_images') ?? true;
-      _homeViewMode = _prefsService.getString('home_view_mode') ?? 'grid';
+      _viewMode = _prefsService.getString('view_mode');
+      _showImages = _prefsService.getBool('show_images');
+      _homeViewMode = _prefsService.getString('home_view_mode');
     });
   }
 
@@ -221,40 +221,75 @@ class _HomeScreenState extends State<HomeScreen>
         final backgroundColor = controller.backgroundColor;
         final textColor = controller.textColor;
 
+        // إضافة متغيرات لتحسين التجاوب مع مختلف أحجام الشاشات
+        final Size screenSize = MediaQuery.of(context).size;
+        final bool isSmallScreen = screenSize.width < 360;
+        final bool isVerySmallScreen = screenSize.width < 320;
+        final bool isTablet = screenSize.width >= 600 && screenSize.width < 900;
+        final bool isDesktop = screenSize.width >= 900;
+
         return Scaffold(
           // تطبيق الخلفية بناءً على النوع المختار
           extendBodyBehindAppBar: true,
           appBar: AppBar(
             backgroundColor: Colors.transparent,
             elevation: 0,
-            // تعديل موقع الشعار والعنوان
+            // زيادة ارتفاع الـ toolbar للحصول على مساحة أكبر
+            toolbarHeight: isSmallScreen ? 60 : 70,
+            // إضافة مساحة بين الشعار والساعة في الأعلى
             leading: Padding(
-              padding: const EdgeInsets.only(left: 4.0),
+              padding: EdgeInsets.only(
+                  left: 4.0,
+                  bottom: 8.0,
+                  top: isSmallScreen ? 10.0 : 15.0,
+                  right: 4.0),
               child: _buildDateTimeWidget(context),
             ),
-            leadingWidth: 160, // Reduce width to avoid overflow
-            title: const Text(
-              'JBR Coffee Shop',
-              style: TextStyle(
-                color: AppTheme.textLightColor,
-                fontWeight: FontWeight.bold,
+            leadingWidth: isSmallScreen
+                ? 120
+                : isVerySmallScreen
+                    ? 100
+                    : 160,
+            title: Padding(
+              padding: EdgeInsets.only(top: isSmallScreen ? 10.0 : 15.0),
+              child: Text(
+                'JBR Coffee Shop',
+                style: TextStyle(
+                  color: AppTheme.textLightColor,
+                  fontWeight: FontWeight.bold,
+                  fontSize: isSmallScreen ? 16 : 18,
+                ),
               ),
             ),
             centerTitle: true,
             actions: [
               // Language Switch Toggle
-              _buildLanguageSwitcher(),
-              IconButton(
-                icon: Icon(_homeViewMode == 'grid'
-                    ? Icons.view_list
-                    : Icons.grid_view),
-                tooltip: _homeViewMode == 'grid' ? 'عرض كقائمة' : 'عرض كشبكة',
-                onPressed: _toggleHomeViewMode,
+              Padding(
+                padding: EdgeInsets.only(top: isSmallScreen ? 10.0 : 15.0),
+                child: _buildLanguageSwitcher(),
               ),
-              IconButton(
-                icon: const Icon(Icons.view_list),
-                tooltip: 'خيارات العرض',
-                onPressed: () => Get.to(() => ViewOptionsScreen()),
+              Padding(
+                padding: EdgeInsets.only(top: isSmallScreen ? 10.0 : 15.0),
+                child: IconButton(
+                  icon: Icon(
+                    _homeViewMode == 'grid' ? Icons.view_list : Icons.grid_view,
+                    size: isSmallScreen ? 20 : 24,
+                  ),
+                  tooltip: _homeViewMode == 'grid' ? 'عرض كقائمة' : 'عرض كشبكة',
+                  onPressed: _toggleHomeViewMode,
+                ),
+              ),
+              Padding(
+                padding: EdgeInsets.only(
+                    top: isSmallScreen ? 10.0 : 15.0, right: 8.0),
+                child: IconButton(
+                  icon: Icon(
+                    Icons.view_list,
+                    size: isSmallScreen ? 20 : 24,
+                  ),
+                  tooltip: 'خيارات العرض',
+                  onPressed: () => Get.to(() => ViewOptionsScreen()),
+                ),
               ),
             ],
           ),
@@ -353,7 +388,6 @@ class _HomeScreenState extends State<HomeScreen>
         );
 
       case BackgroundType.default_bg:
-      default:
         return const BoxDecoration(
           gradient: LinearGradient(
             begin: Alignment.topCenter,
@@ -370,236 +404,321 @@ class _HomeScreenState extends State<HomeScreen>
     final padding = MediaQuery.of(context).padding;
     final textColor = settingsController.textColor;
 
+    // تحديد حجم الشاشة لتطبيق التنسيقات المناسبة
+    final bool isSmallScreen = screenWidth < 360;
+    final bool isVerySmallScreen = screenWidth < 320;
+    final bool isLargeScreen = screenWidth >= 600;
+
+    // تعديل أحجام العناصر بناءً على حجم الشاشة
+    final double logoSize = isVerySmallScreen
+        ? screenWidth * 0.28
+        : isSmallScreen
+            ? screenWidth * 0.30
+            : screenWidth * 0.35;
+
+    final double titleFontSize = isVerySmallScreen
+        ? screenWidth * 0.052
+        : isSmallScreen
+            ? screenWidth * 0.055
+            : screenWidth * 0.06;
+
+    final double descriptionFontSize = isVerySmallScreen
+        ? screenWidth * 0.032
+        : isSmallScreen
+            ? screenWidth * 0.035
+            : screenWidth * 0.04;
+
+    // زيادة المسافة بين اللوغو والعنوان والوصف وبين أزرار التنقل
+    final double spacingAfterLogo = isVerySmallScreen
+        ? screenHeight * 0.03
+        : isSmallScreen
+            ? screenHeight * 0.035
+            : screenHeight * 0.04;
+
     return SafeArea(
-      child: SingleChildScrollView(
-        physics: const BouncingScrollPhysics(),
-        child: AnimationLimiter(
-          child: ConstrainedBox(
-            constraints: BoxConstraints(
-              minHeight: screenHeight - padding.vertical,
-            ),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                !_reducedMotion
-                    ? SizedBox(
-                        height: screenHeight * 0.25,
-                        child: AnimationConfiguration.synchronized(
-                          duration: const Duration(milliseconds: 800),
-                          child: SlideAnimation(
-                            verticalOffset: 50.0,
-                            child: FadeInAnimation(
-                              child: Column(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  Container(
-                                    width: screenWidth * 0.35,
-                                    height: screenWidth * 0.35,
-                                    padding: EdgeInsets.all(screenWidth * 0.04),
-                                    decoration: BoxDecoration(
-                                      color: Colors.white.withAlpha(220),
-                                      borderRadius: BorderRadius.circular(
-                                          screenWidth * 0.08),
-                                    ),
-                                    child: GestureDetector(
-                                      onTap: () => _showLogoSelectionDialog(),
-                                      child: ImageHelper.buildImage(
-                                        settingsController.logoPath ??
-                                            'assets/images/logo.png',
-                                        fit: BoxFit.contain,
+      // استخدام ClipRRect لمنع تجاوز العناصر حدود الشاشة
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(0),
+        child: SingleChildScrollView(
+          physics: const BouncingScrollPhysics(),
+          child: AnimationLimiter(
+            child: ConstrainedBox(
+              constraints: BoxConstraints(
+                minHeight: screenHeight - padding.vertical,
+              ),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  // تحسين المسافات تحت اللوغو بشكل متناسب مع حجم الشاشة
+                  !_reducedMotion
+                      ? SizedBox(
+                          height: isSmallScreen
+                              ? screenHeight * 0.20
+                              : screenHeight * 0.22,
+                          child: AnimationConfiguration.synchronized(
+                            duration: const Duration(milliseconds: 800),
+                            child: SlideAnimation(
+                              verticalOffset: 50.0,
+                              child: FadeInAnimation(
+                                child: Column(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    Container(
+                                      width: logoSize,
+                                      height: logoSize,
+                                      padding:
+                                          EdgeInsets.all(screenWidth * 0.035),
+                                      decoration: BoxDecoration(
+                                          color: Colors.white.withAlpha(220),
+                                          borderRadius: BorderRadius.circular(
+                                              logoSize * 0.25),
+                                          boxShadow: [
+                                            BoxShadow(
+                                              color:
+                                                  Colors.black.withOpacity(0.1),
+                                              blurRadius: 5,
+                                              spreadRadius: 1,
+                                            )
+                                          ]),
+                                      child: GestureDetector(
+                                        onTap: () => _showLogoSelectionDialog(),
+                                        child: ImageHelper.buildImage(
+                                          settingsController.logoPath ??
+                                              'assets/images/logo.png',
+                                          fit: BoxFit.contain,
+                                        ),
                                       ),
                                     ),
-                                  ),
-                                  const SizedBox(height: 16),
-                                  Text(
-                                    'app_name'.tr,
-                                    style: TextStyle(
-                                      fontSize: screenWidth * 0.06,
-                                      fontWeight: FontWeight.bold,
-                                      color: _getAdaptiveTextColor(),
-                                      shadows: [
-                                        Shadow(
-                                          offset: const Offset(2, 2),
-                                          blurRadius: 3.0,
-                                          color: Colors.black.withAlpha(76),
-                                        ),
-                                      ],
+                                    // استخدام مسافة متناسبة مع حجم الشاشة
+                                    SizedBox(height: screenHeight * 0.018),
+                                    Text(
+                                      'app_name'.tr,
+                                      style: TextStyle(
+                                        fontSize: titleFontSize,
+                                        fontWeight: FontWeight.bold,
+                                        color: _getAdaptiveTextColor(),
+                                        shadows: [
+                                          Shadow(
+                                            offset: const Offset(1.5, 1.5),
+                                            blurRadius: 3.0,
+                                            color: Colors.black.withAlpha(66),
+                                          ),
+                                        ],
+                                      ),
                                     ),
-                                  ),
-                                  Text(
-                                    'app_description_short'.tr,
-                                    style: TextStyle(
-                                      fontSize: screenWidth * 0.04,
-                                      fontWeight: FontWeight.w500,
-                                      color: _getAdaptiveTextColor(),
+                                    // إضافة مسافة متناسبة فوق العنوان الفرعي
+                                    SizedBox(
+                                        height: isVerySmallScreen
+                                            ? screenHeight * 0.006
+                                            : screenHeight * 0.01),
+                                    Text(
+                                      'app_description_short'.tr,
+                                      textAlign: TextAlign.center,
+                                      style: TextStyle(
+                                        fontSize: descriptionFontSize,
+                                        fontWeight: FontWeight.w500,
+                                        color: textColor,
+                                      ),
                                     ),
-                                  ),
-                                ],
+                                  ],
+                                ),
                               ),
                             ),
                           ),
-                        ),
-                      )
-                    : SizedBox(
-                        height: screenHeight * 0.25,
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Neumorphic(
-                              style: NeumorphicStyle(
-                                depth: 10,
-                                intensity: 0.9,
-                                shape: NeumorphicShape.concave,
-                                boxShape: NeumorphicBoxShape.roundRect(
-                                  BorderRadius.circular(screenWidth * 0.08),
-                                ),
-                                lightSource: LightSource.topLeft,
-                                color: Colors.white.withAlpha(217),
-                              ),
-                              child: Container(
-                                width: screenWidth * 0.35,
-                                height: screenWidth * 0.35,
-                                padding: EdgeInsets.all(screenWidth * 0.04),
-                                child: Image.asset(
-                                  'assets/images/logo.png',
-                                  fit: BoxFit.contain,
-                                ),
-                              ),
-                            ),
-                            const SizedBox(height: 16),
-                            Text(
-                              'app_name'.tr,
-                              style: TextStyle(
-                                fontSize: screenWidth * 0.06,
-                                fontWeight: FontWeight.bold,
-                                color: textColor,
-                                shadows: [
-                                  Shadow(
-                                    offset: const Offset(2, 2),
-                                    blurRadius: 3.0,
-                                    color: Colors.black.withAlpha(76),
+                        )
+                      : SizedBox(
+                          // استخدام ارتفاع متناسب بشكل أفضل
+                          height: isSmallScreen
+                              ? screenHeight * 0.18
+                              : screenHeight * 0.20,
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Neumorphic(
+                                style: NeumorphicStyle(
+                                  depth: 8,
+                                  intensity: 0.8,
+                                  shape: NeumorphicShape.concave,
+                                  boxShape: NeumorphicBoxShape.roundRect(
+                                    BorderRadius.circular(logoSize * 0.25),
                                   ),
-                                ],
+                                  lightSource: LightSource.topLeft,
+                                  color: Colors.white.withAlpha(217),
+                                ),
+                                child: Container(
+                                  width: logoSize,
+                                  height: logoSize,
+                                  padding: EdgeInsets.all(screenWidth * 0.035),
+                                  child: Image.asset(
+                                    'assets/images/logo.png',
+                                    fit: BoxFit.contain,
+                                  ),
+                                ),
                               ),
+                              // استخدام مسافة متناسبة مع حجم الشاشة
+                              SizedBox(height: screenHeight * 0.018),
+                              Text(
+                                'app_name'.tr,
+                                textAlign: TextAlign.center,
+                                style: TextStyle(
+                                  fontSize: titleFontSize,
+                                  fontWeight: FontWeight.bold,
+                                  color: textColor,
+                                  shadows: [
+                                    Shadow(
+                                      offset: const Offset(1.5, 1.5),
+                                      blurRadius: 3.0,
+                                      color: Colors.black.withAlpha(66),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              // إضافة مسافة متناسبة قبل العنوان الفرعي
+                              SizedBox(
+                                  height: isVerySmallScreen
+                                      ? screenHeight * 0.006
+                                      : screenHeight * 0.01),
+                              Text(
+                                'app_description_short'.tr,
+                                textAlign: TextAlign.center,
+                                style: TextStyle(
+                                  fontSize: descriptionFontSize,
+                                  fontWeight: FontWeight.w500,
+                                  color: textColor,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+
+                  // إضافة مسافة إضافية بعد قسم اللوغو والعنوان
+                  SizedBox(height: spacingAfterLogo),
+
+                  Padding(
+                    padding: EdgeInsets.symmetric(
+                      horizontal: screenWidth * 0.05,
+                      // تعديل المسافة العمودية بناءً على حجم الشاشة
+                      vertical: isSmallScreen
+                          ? screenHeight * 0.01
+                          : screenHeight * 0.015,
+                    ),
+                    child: AnimationLimiter(
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        mainAxisSize: MainAxisSize.min,
+                        children: AnimationConfiguration.toStaggeredList(
+                          duration: const Duration(milliseconds: 600),
+                          childAnimationBuilder: (widget) => SlideAnimation(
+                            horizontalOffset: 50.0,
+                            child: FadeInAnimation(
+                              child: widget,
                             ),
-                            Text(
-                              'app_description_short'.tr,
-                              style: TextStyle(
-                                fontSize: screenWidth * 0.04,
-                                fontWeight: FontWeight.w500,
-                                color: textColor,
-                              ),
+                          ),
+                          children: [
+                            _buildNavigationButton(
+                                title: 'menu'.tr,
+                                icon: Icons.coffee,
+                                onTap: () => Get.to(() => MenuScreen()),
+                                color: const Color(0xFF8b0000)),
+                            SizedBox(
+                                height: isSmallScreen
+                                    ? screenHeight * 0.014
+                                    : screenHeight * 0.018),
+                            _buildNavigationButton(
+                              title: 'rate'.tr,
+                              icon: Icons.star_rate,
+                              onTap: () => Get.to(() => const RateScreen()),
+                              color: const Color(0xFF8b0000),
+                            ),
+                            SizedBox(
+                                height: isSmallScreen
+                                    ? screenHeight * 0.014
+                                    : screenHeight * 0.018),
+                            _buildNavigationButton(
+                              title: 'admin_panel'.tr,
+                              icon: Icons.admin_panel_settings,
+                              onTap: () {
+                                if (authController.isAdmin.value) {
+                                  Get.to(() => const AdminDashboard());
+                                } else {
+                                  Get.to(() => LoginScreen());
+                                }
+                              },
+                              color: const Color(0xFF8b0000),
+                            ),
+                            SizedBox(
+                                height: isSmallScreen
+                                    ? screenHeight * 0.014
+                                    : screenHeight * 0.018),
+                            _buildNavigationButton(
+                              title: 'display_options'.tr,
+                              icon: Icons.view_list,
+                              onTap: () => Get.to(() => ViewOptionsScreen()),
+                              color: const Color(0xFF50727B),
+                            ),
+                            SizedBox(
+                                height: isSmallScreen
+                                    ? screenHeight * 0.014
+                                    : screenHeight * 0.018),
+                            _buildNavigationButton(
+                              title: 'settings'.tr,
+                              icon: Icons.settings,
+                              onTap: () => Get.to(() => const SettingsScreen()),
+                              color: const Color(0xFF50727B),
+                            ),
+                            SizedBox(
+                                height: isSmallScreen
+                                    ? screenHeight * 0.014
+                                    : screenHeight * 0.018),
+                            _buildNavigationButton(
+                              title: 'about_app_title'.tr,
+                              icon: Icons.info_outline,
+                              onTap: () => Get.to(() => const AboutScreen()),
+                              color: const Color.fromARGB(255, 0, 0, 0),
                             ),
                           ],
                         ),
                       ),
-                Padding(
-                  padding: EdgeInsets.symmetric(
-                    horizontal: screenWidth * 0.05,
-                    vertical: screenHeight * 0.01,
-                  ),
-                  child: AnimationLimiter(
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      mainAxisSize: MainAxisSize.min,
-                      children: AnimationConfiguration.toStaggeredList(
-                        duration: const Duration(milliseconds: 600),
-                        childAnimationBuilder: (widget) => SlideAnimation(
-                          horizontalOffset: 50.0,
-                          child: FadeInAnimation(
-                            child: widget,
-                          ),
-                        ),
-                        children: [
-                          _buildNavigationButton(
-                            title: 'menu'.tr,
-                            icon: Icons.coffee,
-                            onTap: () => Get.to(() => MenuScreen()),
-                            color: const Color(0xFF8b0000)
-                          ),
-                          SizedBox(height: screenHeight * 0.015),
-                          _buildNavigationButton(
-                            title: 'rate'.tr,
-                            icon: Icons.star_rate,
-                            onTap: () => Get.to(() => const RateScreen()),
-                            color: const Color.fromARGB(255, 244, 130, 77),
-                          ),
-                          SizedBox(height: screenHeight * 0.015),
-                          _buildNavigationButton(
-                            title: 'admin_panel'.tr,
-                            icon: Icons.admin_panel_settings,
-                            onTap: () {
-                              if (authController.isAdmin.value) {
-                                Get.to(() => const AdminDashboard());
-                              } else {
-                                Get.to(() => LoginScreen());
-                              }
-                            },
-                            color: const Color(0xFF8b0000),
-                          ),
-                          SizedBox(height: screenHeight * 0.015),
-                          _buildNavigationButton(
-                            title: 'display_options'.tr,
-                            icon: Icons.view_list,
-                            onTap: () => Get.to(() => ViewOptionsScreen()),
-                            color: const Color(0xFF50727B),
-                          ),
-                          SizedBox(height: screenHeight * 0.015),
-                          _buildNavigationButton(
-                            title: 'settings'.tr,
-                            icon: Icons.settings,
-                            onTap: () => Get.to(() => const SettingsScreen()),
-                            color: const Color.fromARGB(255, 0, 0, 0),
-                          ),
-                          SizedBox(height: screenHeight * 0.015),
-                          _buildNavigationButton(
-                            title: 'about_app_title'.tr,
-                            icon: Icons.info_outline,
-                            onTap: () => Get.to(() => const AboutScreen()),
-                            color: const Color(0xFF795548),
-                          ),
-                        ],
-                      ),
                     ),
                   ),
-                ),
-                _buildBenefitPayQrSection(context, isPortrait: true),
-                _buildFeaturedFeedbacks(context, isPortrait: true),
-                Padding(
-                  padding: EdgeInsets.only(
-                    top: screenHeight * 0.02,
-                    bottom: screenHeight * 0.02,
-                  ),
-                  child: AnimationConfiguration.synchronized(
-                    duration: const Duration(milliseconds: 1000),
-                    child: FadeInAnimation(
-                      child: Column(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Divider(
-                            color: Colors.brown.withAlpha(128),
-                            thickness: 1,
-                            indent: screenWidth * 0.1,
-                            endIndent: screenWidth * 0.1,
-                          ),
-                          SizedBox(height: screenHeight * 0.01),
-                          Text(
-                            'copyright'.tr,
-                            style: TextStyle(
-                              fontSize: 12,
-                              fontWeight: FontWeight.w400,
-                              color: textColor,
+                  _buildBenefitPayQrSection(context, isPortrait: true),
+                  _buildFeaturedFeedbacks(context, isPortrait: true),
+                  Padding(
+                    padding: EdgeInsets.only(
+                      top: screenHeight * 0.015,
+                      bottom: screenHeight * 0.02,
+                    ),
+                    child: AnimationConfiguration.synchronized(
+                      duration: const Duration(milliseconds: 1000),
+                      child: FadeInAnimation(
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Divider(
+                              color: Colors.brown.withAlpha(128),
+                              thickness: 1,
+                              indent: screenWidth * 0.1,
+                              endIndent: screenWidth * 0.1,
                             ),
-                            textAlign: TextAlign.center,
-                          ),
-                        ],
+                            SizedBox(height: screenHeight * 0.01),
+                            Text(
+                              'copyright'.tr,
+                              style: TextStyle(
+                                fontSize: isSmallScreen ? 10 : 12,
+                                fontWeight: FontWeight.w400,
+                                color: textColor,
+                              ),
+                              textAlign: TextAlign.center,
+                            ),
+                          ],
+                        ),
                       ),
                     ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
           ),
         ),
@@ -609,15 +728,37 @@ class _HomeScreenState extends State<HomeScreen>
 
   Widget _buildLandscapeLayout(BuildContext context) {
     final screenHeight = MediaQuery.of(context).size.height;
+    final screenWidth = MediaQuery.of(context).size.width;
     final textColor = settingsController.textColor;
+
+    // تحديد حجم الشاشة لتحسين التجاوب
+    final bool isSmallScreen = screenWidth < 600;
+    final bool isTablet = screenWidth >= 600 && screenWidth < 1024;
+    final bool isDesktop = screenWidth >= 1024;
+
+    // تعديل نسب العرض بناءً على حجم الشاشة
+    final int leftColumnFlex = isSmallScreen ? 1 : 2;
+    final int rightColumnFlex = isSmallScreen ? 2 : 3;
+
+    // تحديد عدد الأعمدة في شبكة الأزرار
+    final int gridCrossAxisCount = isSmallScreen
+        ? 1
+        : isTablet
+            ? 2
+            : 3;
+    final double gridChildAspectRatio = isSmallScreen ? 3.5 : 2.5;
 
     return SafeArea(
       child: Row(
         children: [
+          // العمود الأيسر - الشعار والمعلومات
           Expanded(
-            flex: 2,
+            flex: leftColumnFlex,
             child: SingleChildScrollView(
+              physics: const BouncingScrollPhysics(),
+              padding: EdgeInsets.symmetric(horizontal: screenWidth * 0.02),
               child: Column(
+                mainAxisSize: MainAxisSize.min,
                 children: [
                   AnimationConfiguration.synchronized(
                     duration: const Duration(milliseconds: 1200),
@@ -627,49 +768,76 @@ class _HomeScreenState extends State<HomeScreen>
                         child: Column(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
-                            Neumorphic(
-                              style: NeumorphicStyle(
-                                depth: 10,
-                                intensity: 0.9,
-                                shape: NeumorphicShape.concave,
-                                boxShape: NeumorphicBoxShape.roundRect(
-                                  BorderRadius.circular(24),
+                            // شعار التطبيق
+                            Container(
+                              margin: EdgeInsets.symmetric(
+                                  vertical: screenHeight * 0.02),
+                              child: Neumorphic(
+                                style: NeumorphicStyle(
+                                  depth: 8,
+                                  intensity: 0.8,
+                                  shape: NeumorphicShape.concave,
+                                  boxShape: NeumorphicBoxShape.roundRect(
+                                    BorderRadius.circular(screenHeight * 0.04),
+                                  ),
+                                  lightSource: LightSource.topLeft,
+                                  color: Colors.white.withAlpha(217),
                                 ),
-                                lightSource: LightSource.topLeft,
-                                color: Colors.white.withAlpha(217),
-                              ),
-                              child: Container(
-                                width: screenHeight * 0.25,
-                                height: screenHeight * 0.25,
-                                padding: EdgeInsets.all(screenHeight * 0.03),
-                                child: Image.asset(
-                                  'assets/images/logo.png',
-                                  fit: BoxFit.contain,
+                                child: Container(
+                                  width: isSmallScreen
+                                      ? screenHeight * 0.18
+                                      : screenHeight * 0.25,
+                                  height: isSmallScreen
+                                      ? screenHeight * 0.18
+                                      : screenHeight * 0.25,
+                                  padding: EdgeInsets.all(screenHeight * 0.02),
+                                  child: GestureDetector(
+                                    onTap: () => _showLogoSelectionDialog(),
+                                    child: ImageHelper.buildImage(
+                                      settingsController.logoPath ??
+                                          'assets/images/logo.png',
+                                      fit: BoxFit.contain,
+                                    ),
+                                  ),
                                 ),
                               ),
                             ),
-                            SizedBox(height: screenHeight * 0.02),
+                            SizedBox(height: screenHeight * 0.01),
+                            // اسم التطبيق
                             Text(
                               'app_name'.tr,
+                              textAlign: TextAlign.center,
                               style: TextStyle(
-                                fontSize: screenHeight * 0.04,
+                                fontSize: isSmallScreen
+                                    ? screenHeight * 0.03
+                                    : screenHeight * 0.04,
                                 fontWeight: FontWeight.bold,
                                 color: textColor,
                                 shadows: [
                                   Shadow(
-                                    offset: const Offset(2, 2),
+                                    offset: const Offset(1.5, 1.5),
                                     blurRadius: 3.0,
-                                    color: Colors.black.withAlpha(76),
+                                    color: Colors.black.withAlpha(66),
                                   ),
                                 ],
                               ),
                             ),
-                            Text(
-                              'app_description_short'.tr,
-                              style: TextStyle(
-                                fontSize: screenHeight * 0.025,
-                                fontWeight: FontWeight.w500,
-                                color: textColor,
+                            // وصف التطبيق
+                            Padding(
+                              padding: EdgeInsets.symmetric(
+                                horizontal: screenWidth * 0.02,
+                                vertical: screenHeight * 0.01,
+                              ),
+                              child: Text(
+                                'app_description_short'.tr,
+                                textAlign: TextAlign.center,
+                                style: TextStyle(
+                                  fontSize: isSmallScreen
+                                      ? screenHeight * 0.02
+                                      : screenHeight * 0.025,
+                                  fontWeight: FontWeight.w500,
+                                  color: textColor,
+                                ),
                               ),
                             ),
                           ],
@@ -677,34 +845,39 @@ class _HomeScreenState extends State<HomeScreen>
                       ),
                     ),
                   ),
+                  // قسم BenefitPay QR
                   _buildBenefitPayQrSection(context, isPortrait: false),
+                  // قسم آراء العملاء
                   _buildFeaturedFeedbacks(context, isPortrait: false),
                 ],
               ),
             ),
           ),
+          // خط فاصل
           Container(
             height: screenHeight * 0.7,
             width: 1,
             color: Colors.brown.withAlpha(76),
-            margin: const EdgeInsets.symmetric(horizontal: 10),
+            margin: EdgeInsets.symmetric(horizontal: screenWidth * 0.01),
           ),
+          // العمود الأيمن - أزرار التطبيق
           Expanded(
-            flex: 3,
+            flex: rightColumnFlex,
             child: Padding(
               padding: EdgeInsets.all(screenHeight * 0.02),
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
+                  // شبكة الأزرار
                   Expanded(
                     child: AnimationLimiter(
                       child: GridView.count(
-                        crossAxisCount: 2,
-                        childAspectRatio: 2.5,
-                        crossAxisSpacing: 12,
-                        mainAxisSpacing: 12,
-                        padding: const EdgeInsets.all(8.0),
-                        physics: const NeverScrollableScrollPhysics(),
+                        crossAxisCount: gridCrossAxisCount,
+                        childAspectRatio: gridChildAspectRatio,
+                        crossAxisSpacing: isSmallScreen ? 8 : 12,
+                        mainAxisSpacing: isSmallScreen ? 8 : 12,
+                        padding: EdgeInsets.all(screenWidth * 0.01),
+                        physics: const BouncingScrollPhysics(),
                         children: AnimationConfiguration.toStaggeredList(
                           duration: const Duration(milliseconds: 600),
                           childAnimationBuilder: (widget) => ScaleAnimation(
@@ -731,7 +904,7 @@ class _HomeScreenState extends State<HomeScreen>
                               icon: Icons.admin_panel_settings,
                               onTap: () {
                                 if (authController.isAdmin.value) {
-                                  Get.to(() => AdminDashboard());
+                                  Get.to(() => const AdminDashboard());
                                 } else {
                                   Get.to(() => LoginScreen());
                                 }
@@ -742,13 +915,13 @@ class _HomeScreenState extends State<HomeScreen>
                               title: 'display_options'.tr,
                               icon: Icons.view_list,
                               onTap: () => Get.to(() => ViewOptionsScreen()),
-                              color: const Color(0xFF8b0000),
+                              color: const Color(0xFF50727B),
                             ),
                             _buildLandscapeButton(
                               title: 'settings'.tr,
                               icon: Icons.settings,
-                              onTap: () => Get.to(() => SettingsScreen()),
-                              color: const Color.fromARGB(255, 0, 0, 0),
+                              onTap: () => Get.to(() => const SettingsScreen()),
+                              color: const Color(0xFF50727B),
                             ),
                             _buildLandscapeButton(
                               title: 'about_app_title'.tr,
@@ -761,8 +934,10 @@ class _HomeScreenState extends State<HomeScreen>
                       ),
                     ),
                   ),
+                  // حقوق النشر في الأسفل
                   Padding(
-                    padding: const EdgeInsets.only(bottom: 8.0),
+                    padding:
+                        EdgeInsets.symmetric(vertical: screenHeight * 0.01),
                     child: AnimationConfiguration.synchronized(
                       duration: const Duration(milliseconds: 1000),
                       child: FadeInAnimation(
@@ -773,11 +948,11 @@ class _HomeScreenState extends State<HomeScreen>
                               color: Colors.brown.withAlpha(128),
                               thickness: 1,
                             ),
-                            const SizedBox(height: 4),
+                            SizedBox(height: screenHeight * 0.005),
                             Text(
                               'copyright'.tr,
                               style: TextStyle(
-                                fontSize: 10,
+                                fontSize: isSmallScreen ? 9 : 10,
                                 fontWeight: FontWeight.w400,
                                 color: textColor,
                               ),
@@ -1058,17 +1233,39 @@ class _HomeScreenState extends State<HomeScreen>
     required Color color,
   }) {
     final screenWidth = MediaQuery.of(context).size.width;
-    final buttonHeight = MediaQuery.of(context).size.height * 0.07;
+    final screenHeight = MediaQuery.of(context).size.height;
+    final isSmallScreen = screenWidth < 360;
+    final isVerySmallScreen = screenWidth < 320;
+
+    // تعديل ارتفاع الأزرار بناءً على حجم الشاشة
+    final buttonHeight = isVerySmallScreen
+        ? screenHeight * 0.06
+        : isSmallScreen
+            ? screenHeight * 0.065
+            : screenHeight * 0.07;
+
+    // اختيار حجم الأيقونة المناسب
+    final iconSize =
+        isVerySmallScreen ? buttonHeight * 0.38 : buttonHeight * 0.4;
+
+    // اختيار حجم الخط المناسب
+    final fontSize = isVerySmallScreen
+        ? screenWidth * 0.036
+        : isSmallScreen
+            ? screenWidth * 0.037
+            : screenWidth * 0.038;
+
     final isDarkBackground =
         settingsController.backgroundType == BackgroundType.color &&
             settingsController.backgroundColor.computeLuminance() < 0.5;
+
     final textColor = isDarkBackground ? Colors.white : Colors.brown.shade900;
 
     return GestureDetector(
       onTap: onTap,
       child: Neumorphic(
         style: NeumorphicStyle(
-          depth: 8,
+          depth: isSmallScreen ? 6 : 8,
           intensity: 0.7,
           shape: NeumorphicShape.flat,
           boxShape: NeumorphicBoxShape.roundRect(BorderRadius.circular(12)),
@@ -1080,13 +1277,12 @@ class _HomeScreenState extends State<HomeScreen>
         child: Container(
           width: double.infinity,
           height: buttonHeight,
-          padding: const EdgeInsets.symmetric(
-              horizontal: 12), // Reduced horizontal padding
+          padding: EdgeInsets.symmetric(horizontal: isSmallScreen ? 10 : 12),
           child: Row(
             children: [
               Neumorphic(
                 style: NeumorphicStyle(
-                  depth: 6,
+                  depth: isSmallScreen ? 4 : 6,
                   intensity: 0.7,
                   shape: NeumorphicShape.convex,
                   boxShape: const NeumorphicBoxShape.circle(),
@@ -1096,31 +1292,30 @@ class _HomeScreenState extends State<HomeScreen>
                   shadowLightColor: Colors.transparent,
                 ),
                 child: Container(
-                  padding: const EdgeInsets.all(8),
+                  padding: EdgeInsets.all(isSmallScreen ? 6 : 8),
                   child: Icon(
                     icon,
                     color: Colors.white,
-                    size: buttonHeight * 0.4, // Slightly smaller size
+                    size: iconSize,
                   ),
                 ),
               ),
-              const SizedBox(width: 12), // Reduced spacing
+              SizedBox(width: isSmallScreen ? 10 : 12),
               Expanded(
                 child: Text(
                   title,
                   style: TextStyle(
-                    fontSize: screenWidth * 0.038, // Slightly smaller font
+                    fontSize: fontSize,
                     fontWeight: FontWeight.w600,
                     color: textColor,
                   ),
-                  overflow:
-                      TextOverflow.ellipsis, // Allow text truncation if needed
+                  overflow: TextOverflow.ellipsis,
                 ),
               ),
               Icon(
                 Icons.arrow_forward_ios,
                 color: textColor.withOpacity(0.7),
-                size: 14, // Smaller icon
+                size: isSmallScreen ? 12 : 14,
               ),
             ],
           ),
@@ -1136,32 +1331,42 @@ class _HomeScreenState extends State<HomeScreen>
     required Color color,
   }) {
     final screenHeight = MediaQuery.of(context).size.height;
+    final screenWidth = MediaQuery.of(context).size.width;
+    final isSmallScreen = screenWidth < 600;
     final isDarkBackground =
         settingsController.backgroundType == BackgroundType.color &&
             settingsController.backgroundColor.computeLuminance() < 0.5;
+
+    // تعديل حجم الأيقونة والخط بناءً على حجم الشاشة
+    final iconSize = isSmallScreen ? screenHeight * 0.03 : screenHeight * 0.035;
+    final fontSize =
+        isSmallScreen ? screenHeight * 0.018 : screenHeight * 0.023;
     final textColor = isDarkBackground ? Colors.white : Colors.brown.shade900;
 
     return GestureDetector(
       onTap: onTap,
       child: Neumorphic(
         style: NeumorphicStyle(
-          depth: 6,
+          depth: isSmallScreen ? 4 : 6,
           intensity: 0.7,
           shape: NeumorphicShape.flat,
-          boxShape: NeumorphicBoxShape.roundRect(BorderRadius.circular(12)),
+          boxShape: NeumorphicBoxShape.roundRect(
+              BorderRadius.circular(isSmallScreen ? 9 : 12)),
           color: Colors.white.withAlpha(isDarkBackground ? 150 : 245),
           lightSource: LightSource.topLeft,
           shadowDarkColor: Colors.black45,
           shadowLightColor: Colors.transparent,
         ),
         child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+          padding: EdgeInsets.symmetric(
+              horizontal: isSmallScreen ? 8 : 12,
+              vertical: isSmallScreen ? 6 : 8),
           child: Row(
             mainAxisAlignment: MainAxisAlignment.start,
             children: [
               Neumorphic(
                 style: NeumorphicStyle(
-                  depth: 4,
+                  depth: isSmallScreen ? 3 : 4,
                   intensity: 0.7,
                   shape: NeumorphicShape.convex,
                   boxShape: const NeumorphicBoxShape.circle(),
@@ -1171,20 +1376,20 @@ class _HomeScreenState extends State<HomeScreen>
                   shadowLightColor: Colors.transparent,
                 ),
                 child: Container(
-                  padding: const EdgeInsets.all(6),
+                  padding: EdgeInsets.all(isSmallScreen ? 4 : 6),
                   child: Icon(
                     icon,
                     color: Colors.white,
-                    size: screenHeight * 0.035,
+                    size: iconSize,
                   ),
                 ),
               ),
-              const SizedBox(width: 10),
+              SizedBox(width: isSmallScreen ? 6 : 10),
               Expanded(
                 child: Text(
                   title,
                   style: TextStyle(
-                    fontSize: screenHeight * 0.023,
+                    fontSize: fontSize,
                     fontWeight: FontWeight.w600,
                     color: textColor,
                   ),
@@ -1449,109 +1654,101 @@ class _HomeScreenState extends State<HomeScreen>
   // Widget to display date, time with seconds, day name, and Bahrain flag - Fully responsive
   Widget _buildDateTimeWidget(BuildContext context) {
     final textColor = settingsController.textColor;
-    final isSmallScreen = MediaQuery.of(context).size.width < 360;
-    final isVerySmallScreen = MediaQuery.of(context).size.width < 320;
+    final screenWidth = MediaQuery.of(context).size.width;
+    final isSmallScreen = screenWidth < 360;
+    final isVerySmallScreen = screenWidth < 320;
+    final isLandscape =
+        MediaQuery.of(context).orientation == Orientation.landscape;
 
-    // Format date and time
-    final dateFormat = DateFormat('yyyy/MM/dd');
-    final timeFormat = DateFormat(isSmallScreen ? 'HH:mm' : 'HH:mm:ss');
+    // تعديل تنسيق الوقت بناءً على حجم الشاشة والاتجاه
+    final dateFormat = DateFormat(isVerySmallScreen ? 'MM/dd' : 'yyyy/MM/dd');
+    final timeFormat =
+        DateFormat(isVerySmallScreen || isLandscape ? 'HH:mm' : 'HH:mm:ss');
     final dayName = _getArabicDayName(_currentDateTime.weekday);
 
     return Container(
-      padding: const EdgeInsets.symmetric(vertical: 4, horizontal: 4),
+      padding: EdgeInsets.symmetric(
+          vertical: isVerySmallScreen ? 0 : 2,
+          horizontal: isVerySmallScreen ? 2 : 3),
       decoration: BoxDecoration(
         color: const Color.fromARGB(255, 0, 0, 0).withAlpha(200),
         borderRadius: BorderRadius.circular(8),
         border:
             Border.all(color: AppTheme.primaryColor.withAlpha(120), width: 1),
-      ),
-      // Use constraints to prevent overflow
-      constraints: BoxConstraints(
-          maxWidth: isVerySmallScreen
-              ? 120
-              : isSmallScreen
-                  ? 140
-                  : 160),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          // Top row with flag and day name
-          Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              // Bahrain flag
-              Container(
-                height: 16,
-                width: 20,
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(2),
-                  image: const DecorationImage(
-                    image: AssetImage('assets/images/bahrain_flag.png'),
-                    fit: BoxFit.cover,
-                  ),
-                ),
-              ),
-              const SizedBox(width: 4),
-              Flexible(
-                child: Text(
-                  dayName,
-                  style: TextStyle(
-                    fontSize: isVerySmallScreen ? 8 : 10,
-                    fontWeight: FontWeight.bold,
-                    color: const Color.fromARGB(255, 255, 255, 255),
-                  ),
-                  overflow: TextOverflow.ellipsis,
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 2),
-          // Date and Time
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  const Icon(Icons.calendar_today,
-                      size: 12, color: Color.fromARGB(255, 255, 243, 243)),
-                  const SizedBox(width: 2),
-                  Flexible(
-                    child: Text(
-                      dateFormat.format(_currentDateTime),
-                      style: TextStyle(
-                        fontSize: isVerySmallScreen ? 8 : 9,
-                        fontWeight: FontWeight.bold,
-                        color: textColor,
-                      ),
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                  ),
-                ],
-              ),
-              Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  const Icon(Icons.access_time,
-                      size:12, color: Color.fromARGB(255, 255, 254, 254)),
-                  const SizedBox(width: 2),
-                  Flexible(
-                    child: Text(
-                      timeFormat.format(_currentDateTime),
-                      style: TextStyle(
-                        fontSize: isVerySmallScreen ? 8 : 9,
-                        fontWeight: FontWeight.w500,
-                        color: textColor,
-                      ),
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                  ),
-                ],
-              ),
-            ],
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.1),
+            blurRadius: 4,
+            spreadRadius: 0.5,
           ),
         ],
+      ),
+      // تحديد الحجم الأقصى للمنع من تجاوز المساحة المتاحة
+      constraints: BoxConstraints(
+        maxWidth: isVerySmallScreen
+            ? 100
+            : isSmallScreen
+                ? 140
+                : 160,
+        maxHeight: isVerySmallScreen
+            ? 32
+            : isSmallScreen
+                ? 36
+                : 40,
+      ),
+      child: FittedBox(
+        fit: BoxFit.contain,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            // الصف العلوي مع العلم واسم اليوم
+            Row(
+              mainAxisSize: MainAxisSize.min,
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                // علم البحرين
+                Container(
+                  height: isVerySmallScreen ? 12 : 14,
+                  width: isVerySmallScreen ? 16 : 18,
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(2),
+                    image: const DecorationImage(
+                      image: AssetImage('assets/images/bahrain_flag.png'),
+                      fit: BoxFit.cover,
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 3),
+                Text(
+                  dayName,
+                  style: TextStyle(
+                    color: Colors.amber[200],
+                    fontSize: isVerySmallScreen ? 8 : 10,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ],
+            ),
+            // إظهار الساعة
+            Text(
+              timeFormat.format(_currentDateTime),
+              style: TextStyle(
+                fontSize: isVerySmallScreen ? 10 : 12,
+                fontWeight: FontWeight.bold,
+                color: Colors.white,
+              ),
+            ),
+            // إظهار التاريخ
+            Text(
+              dateFormat.format(_currentDateTime),
+              style: TextStyle(
+                fontSize: isVerySmallScreen ? 8 : 9,
+                fontWeight: FontWeight.w400,
+                color: Colors.grey[300],
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -1585,8 +1782,9 @@ class _HomeScreenState extends State<HomeScreen>
       id: 'language_switcher',
       builder: (translationService) {
         // Get current locale from translation service
-        final isArabic = translationService.currentLocale.value.languageCode == 'ar';
-        
+        final isArabic =
+            translationService.currentLocale.value.languageCode == 'ar';
+
         return Container(
           width: 60,
           height: 36,
@@ -1627,7 +1825,8 @@ class _HomeScreenState extends State<HomeScreen>
                         shape: BoxShape.circle,
                         boxShadow: [
                           BoxShadow(
-                            color: const Color.fromARGB(255, 20, 20, 20).withOpacity(0.15),
+                            color: const Color.fromARGB(255, 20, 20, 20)
+                                .withOpacity(0.15),
                             blurRadius: 4,
                             offset: const Offset(0, 1),
                           ),
@@ -1649,7 +1848,9 @@ class _HomeScreenState extends State<HomeScreen>
                               style: TextStyle(
                                 fontSize: 14,
                                 fontWeight: FontWeight.bold,
-                                color: isArabic ? const Color.fromARGB(255, 0, 0, 0) : const Color.fromARGB(137, 255, 255, 255),
+                                color: isArabic
+                                    ? const Color.fromARGB(255, 0, 0, 0)
+                                    : const Color.fromARGB(137, 255, 255, 255),
                               ),
                             ),
                           ),
@@ -1665,7 +1866,9 @@ class _HomeScreenState extends State<HomeScreen>
                               style: TextStyle(
                                 fontSize: 14,
                                 fontWeight: FontWeight.bold,
-                                color: !isArabic ? const Color.fromARGB(255, 0, 0, 0) : const Color.fromARGB(137, 254, 254, 254),
+                                color: !isArabic
+                                    ? const Color.fromARGB(255, 0, 0, 0)
+                                    : const Color.fromARGB(137, 254, 254, 254),
                               ),
                             ),
                           ),
@@ -1688,22 +1891,25 @@ class _HomeScreenState extends State<HomeScreen>
       // Prevent multiple quick taps that could cause layout issues
       DateTime? lastTap;
       final now = DateTime.now();
-      
+
       // Debounce language switching to prevent multiple rapid changes
-      if (lastTap != null && now.difference(lastTap) < const Duration(seconds: 2)) {
-        LoggerUtil.logger.i('تم تجاهل تغيير اللغة - التغيير الأخير كان منذ وقت قصير');
+      if (lastTap != null &&
+          now.difference(lastTap) < const Duration(seconds: 2)) {
+        LoggerUtil.logger
+            .i('تم تجاهل تغيير اللغة - التغيير الأخير كان منذ وقت قصير');
         return;
       }
       lastTap = now;
-      
+
       // Get the AppTranslationService
       final appTranslationService = Get.find<AppTranslationService>();
-      
+
       // Don't change if already using this language
-      if (appTranslationService.currentLocale.value.languageCode == languageCode) {
+      if (appTranslationService.currentLocale.value.languageCode ==
+          languageCode) {
         return;
       }
-      
+
       // Show loading indicator to prevent user interaction during transition
       Get.dialog(
         const Center(
@@ -1711,26 +1917,25 @@ class _HomeScreenState extends State<HomeScreen>
         ),
         barrierDismissible: false,
       );
-      
+
       // Small delay to ensure loading dialog appears
       await Future.delayed(const Duration(milliseconds: 50));
-      
+
       // Change language
       await appTranslationService.changeLocale(languageCode);
-      
+
       // Close loading dialog
       if (Get.isDialogOpen == true) {
         Get.back();
       }
-      
     } catch (e) {
       // Close loading dialog if open
       if (Get.isDialogOpen == true) {
         Get.back();
       }
-      
+
       LoggerUtil.logger.e('خطأ في تغيير اللغة: $e');
-      
+
       // Show error message
       Get.snackbar(
         'error'.tr,

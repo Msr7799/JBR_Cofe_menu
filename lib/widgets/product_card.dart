@@ -61,6 +61,12 @@ class _ProductCardState extends State<ProductCard>
     // استخدام قيمة cardSize للتحكم في الحجم
     final scaleFactor = widget.cardSize;
 
+    // تحسين التناسق مع الشاشات الصغيرة
+    final screenWidth = MediaQuery.of(context).size.width;
+    final screenHeight = MediaQuery.of(context).size.height;
+    final isSmallScreen = screenWidth < 360;
+    final isVerySmallScreen = screenWidth < 320;
+
     return MouseRegion(
       onEnter: (_) {
         setState(() => _isHovering = true);
@@ -91,7 +97,9 @@ class _ProductCardState extends State<ProductCard>
             ),
             child: LayoutBuilder(builder: (context, constraints) {
               final availableHeight = constraints.maxHeight;
-              final imageHeight = constraints.maxWidth * 0.65;
+              // تعديل نسبة ارتفاع الصورة في الشاشات الصغيرة
+              final imageHeightFactor = isSmallScreen ? 0.60 : 0.65;
+              final imageHeight = constraints.maxWidth * imageHeightFactor;
               final contentHeight = availableHeight - imageHeight;
 
               return Column(
@@ -113,17 +121,18 @@ class _ProductCardState extends State<ProductCard>
                               top: 8,
                               right: 8,
                               child: Container(
-                                padding: const EdgeInsets.symmetric(
-                                    horizontal: 8, vertical: 4),
+                                padding: EdgeInsets.symmetric(
+                                    horizontal: isSmallScreen ? 6 : 8,
+                                    vertical: isSmallScreen ? 3 : 4),
                                 decoration: BoxDecoration(
                                   color: Colors.red,
                                   borderRadius: BorderRadius.circular(8),
                                 ),
-                                child: const Text(
+                                child: Text(
                                   'غير متوفر',
                                   style: TextStyle(
                                     color: Colors.white,
-                                    fontSize: 14,
+                                    fontSize: isSmallScreen ? 12 : 14,
                                     fontWeight: FontWeight.bold,
                                   ),
                                 ),
@@ -136,7 +145,7 @@ class _ProductCardState extends State<ProductCard>
                               opacity: _isHovering ? 1.0 : 0.0,
                               duration: const Duration(milliseconds: 200),
                               child: Container(
-                                padding: const EdgeInsets.all(6),
+                                padding: EdgeInsets.all(isSmallScreen ? 4 : 6),
                                 decoration: BoxDecoration(
                                   color: Colors.black.withAlpha(153),
                                   shape: BoxShape.circle,
@@ -144,7 +153,9 @@ class _ProductCardState extends State<ProductCard>
                                 child: Icon(
                                   Icons.zoom_in,
                                   color: Colors.white,
-                                  size: 20 * scaleFactor,
+                                  size: isSmallScreen
+                                      ? 18 * scaleFactor
+                                      : 20 * scaleFactor,
                                 ),
                               ),
                             ),
@@ -154,7 +165,8 @@ class _ProductCardState extends State<ProductCard>
                     ),
                   Container(
                     height: widget.showImage ? contentHeight : availableHeight,
-                    padding: EdgeInsets.all(8.0 * scaleFactor),
+                    padding: EdgeInsets.all(
+                        isSmallScreen ? 6.0 * scaleFactor : 8.0 * scaleFactor),
                     child: Column(
                       mainAxisSize: MainAxisSize.min,
                       crossAxisAlignment: CrossAxisAlignment.start,
@@ -163,17 +175,24 @@ class _ProductCardState extends State<ProductCard>
                           widget.product.localizedName,
                           style: TextStyle(
                             fontWeight: FontWeight.bold,
-                            fontSize: 16 * scaleFactor,
+                            fontSize: isSmallScreen
+                                ? 14 * scaleFactor
+                                : 16 * scaleFactor,
                             color: widget.textColor,
                           ),
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
                         ),
-                        SizedBox(height: 1 * scaleFactor),
+                        SizedBox(
+                            height: isSmallScreen
+                                ? 0.5 * scaleFactor
+                                : 1 * scaleFactor),
                         Text(
                           widget.product.localizedDescription,
                           style: TextStyle(
-                            fontSize: 12 * scaleFactor,
+                            fontSize: isSmallScreen
+                                ? 10 * scaleFactor
+                                : 12 * scaleFactor,
                             color: Colors.grey[700],
                           ),
                           maxLines: 1,
@@ -188,13 +207,18 @@ class _ProductCardState extends State<ProductCard>
                               style: TextStyle(
                                 color: widget.priceColor,
                                 fontWeight: FontWeight.bold,
-                                fontSize: 15 * scaleFactor,
+                                fontSize: isSmallScreen
+                                    ? 13 * scaleFactor
+                                    : 15 * scaleFactor,
                               ),
                             ),
                             _buildQuantitySelector(),
                           ],
                         ),
-                        SizedBox(height: 4 * scaleFactor),
+                        SizedBox(
+                            height: isSmallScreen
+                                ? 3 * scaleFactor
+                                : 4 * scaleFactor),
                         if (widget.product.isAvailable &&
                             ViewOptionsHelper.getShowOrderButton())
                           _buildOrderButton(scaleFactor),
@@ -247,18 +271,29 @@ class _ProductCardState extends State<ProductCard>
 
   Widget _buildQuantitySelector() {
     final scaleFactor = widget.cardSize;
+    // Detect screen size to adjust sizing
+    final screenWidth =
+        MediaQuery.of(widget.onTap != null ? Get.context! : context).size.width;
+    final isVerySmallScreen = screenWidth < 360;
+
+    // Adjust size based on screen dimensions
+    final buttonSize = isVerySmallScreen ? 20 * scaleFactor : 24 * scaleFactor;
+    final iconSize = isVerySmallScreen ? 12 * scaleFactor : 16 * scaleFactor;
+    final counterWidth =
+        isVerySmallScreen ? 22 * scaleFactor : 28 * scaleFactor;
+
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
         InkWell(
           onTap: () {
             setState(() {
-              if (quantity > 1) quantity--;
+              if (quantity > 0) quantity--;
             });
           },
           child: Container(
-            width: 24 * scaleFactor,
-            height: 24 * scaleFactor,
+            width: buttonSize,
+            height: buttonSize,
             decoration: BoxDecoration(
               color: AppTheme.primaryColor.withOpacity(0.1),
               borderRadius: BorderRadius.circular(4 * scaleFactor),
@@ -266,15 +301,14 @@ class _ProductCardState extends State<ProductCard>
             alignment: Alignment.center,
             child: Icon(
               Icons.remove,
-              size: 16 * scaleFactor,
+              size: iconSize,
               color: AppTheme.primaryColor,
             ),
           ),
         ),
         Container(
-          width: 28 * scaleFactor,
-          height: 24 * scaleFactor,
-          alignment: Alignment.center,
+          width: counterWidth,
+          height: buttonSize,
           margin: EdgeInsets.symmetric(horizontal: 3 * scaleFactor),
           decoration: BoxDecoration(
             border: Border.all(color: Colors.grey.shade300),
@@ -295,8 +329,8 @@ class _ProductCardState extends State<ProductCard>
             });
           },
           child: Container(
-            width: 24 * scaleFactor,
-            height: 24 * scaleFactor,
+            width: buttonSize,
+            height: buttonSize,
             decoration: BoxDecoration(
               color: AppTheme.primaryColor,
               borderRadius: BorderRadius.circular(4 * scaleFactor),
@@ -304,7 +338,7 @@ class _ProductCardState extends State<ProductCard>
             alignment: Alignment.center,
             child: Icon(
               Icons.add,
-              size: 16 * scaleFactor,
+              size: iconSize,
               color: Colors.white,
             ),
           ),

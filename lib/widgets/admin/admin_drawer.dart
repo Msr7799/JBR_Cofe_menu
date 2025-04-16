@@ -66,99 +66,132 @@ class AdminDrawer extends StatelessWidget {
               ],
             ),
           ),
-          // عناصر القائمة
-          const SizedBox(height: 8),
-          ListTile(
-            leading: const Icon(Icons.dashboard),
-            title: Text('dashboard'.tr),
-            onTap: () {
-              Get.offAll(() => const AdminDashboard());
-            },
-          ),
-          ListTile(
-            leading: const Icon(Icons.category),
-            title: Text('category_management'.tr),
-            onTap: () {
-              Get.to(() => CategoryManagement());
-            },
-          ),
-          ListTile(
-            leading: const Icon(Icons.inventory),
-            title: Text('product_management'.tr),
-            onTap: () {
-              Get.to(() => const ProductManagement());
-            },
-          ),
-          ListTile(
-            leading: const Icon(Icons.receipt_long),
-            title: Text('order_history'.tr),
-            onTap: () {
-              // إزالة كلمة const
-              Get.to(() => const OrderHistoryScreen());
-            },
-          ),
-          ListTile(
-            leading: const Icon(Icons.restaurant_menu),
-            title: Text('menu'.tr),
-            onTap: () {
-              // إغلاق الـ Drawer
-              Navigator.of(context).pop();
-
-              // الانتقال إلى شاشة القائمة
-              Get.to(() => MenuScreen());
-            },
-          ),
-          const Divider(),
-          // إضافة زر العودة للصفحة الرئيسية
-          ListTile(
-            leading: const Icon(Icons.home, color: AppTheme.primaryColor),
-            title: Text('home'.tr),
-            onTap: () {
-              // إغلاق القائمة الجانبية
-              Navigator.pop(context);
-
-              // العودة إلى الصفحة الرئيسية
-              Get.offAllNamed('/');
-            },
-          ),
-          const Divider(), // فاصل قبل زر تسجيل الخروج
-          // إصلاح زر تسجيل الخروج
-          ListTile(
-            leading: const Icon(Icons.logout, color: Colors.red),
-            title: Text('logout'.tr, style: const TextStyle(color: Colors.red)),
-            onTap: () {
-              // إغلاق القائمة الجانبية
-              Navigator.pop(context);
-
-              // عرض مربع حوار للتأكيد
-              Get.dialog(
-                AlertDialog(
-                  title: Text('logout'.tr),
-                  content: Text('confirm_logout'.tr),
-                  actions: [
-                    TextButton(
-                      child: Text('cancel'.tr),
-                      onPressed: () => Get.back(),
-                    ),
-                    TextButton(
-                      child: Text('logout'.tr),
-                      onPressed: () async {
-                        final authController = Get.find<AuthController>();
-
-                        // نظرًا لأن الدالة الآن تعيد Future<void>، نحتاج إلى إضافة await
-                        await authController.logout();
-
-                        // إغلاق مربع الحوار
-                        Get.back();
-
-                        // العودة إلى شاشة تسجيل الدخول
-                        Get.offAllNamed('/login');
-                      },
-                    ),
-                  ],
+          // Reemplazar el resto del contenido con un Expanded + ListView para permitir el scroll
+          Expanded(
+            child: ListView(
+              padding: EdgeInsets.zero,
+              physics: const BouncingScrollPhysics(),
+              children: [
+                // عناصر القائمة
+                const SizedBox(height: 8),
+                ListTile(
+                  leading: const Icon(Icons.dashboard),
+                  title: Text('dashboard'.tr),
+                  onTap: () {
+                    Get.offAll(() => const AdminDashboard());
+                  },
                 ),
-              );
-            },
+                ListTile(
+                  leading: const Icon(Icons.category),
+                  title: Text('category_management'.tr),
+                  onTap: () {
+                    Get.to(() => CategoryManagement());
+                  },
+                ),
+                ListTile(
+                  leading: const Icon(Icons.inventory),
+                  title: Text('product_management'.tr),
+                  onTap: () {
+                    Get.to(() => const ProductManagement());
+                  },
+                ),
+                ListTile(
+                  leading: const Icon(Icons.receipt_long),
+                  title: Text('order_history'.tr),
+                  onTap: () {
+                    // إزالة كلمة const
+                    Get.to(() => const OrderHistoryScreen());
+                  },
+                ),
+                ListTile(
+                  leading: const Icon(Icons.restaurant_menu),
+                  title: Text('menu'.tr),
+                  onTap: () {
+                    // إغلاق الـ Drawer
+                    Navigator.of(context).pop();
+
+                    // الانتقال إلى شاشة القائمة
+                    Get.to(() => MenuScreen());
+                  },
+                ),
+                const Divider(),
+                // إضافة زر العودة للصفحة الرئيسية
+                ListTile(
+                  leading: const Icon(Icons.home, color: AppTheme.primaryColor),
+                  title: Text('home'.tr),
+                  onTap: () {
+                    // إغلاق القائمة الجانبية
+                    Navigator.pop(context);
+
+                    // العودة إلى الصفحة الرئيسية
+                    Get.offAllNamed('/');
+                  },
+                ),
+                const Divider(), // فاصل قبل زر تسجيل الخروج
+                // إصلاح زر تسجيل الخروج
+                ListTile(
+                  leading: const Icon(Icons.logout, color: Colors.red),
+                  title: Text('logout'.tr,
+                      style: const TextStyle(color: Colors.red)),
+                  onTap: () {
+                    // إغلاق القائمة الجانبية
+                    Navigator.pop(context);
+
+                    // عرض مربع حوار للتأكيد
+                    Get.dialog(
+                      AlertDialog(
+                        title: Text('logout'.tr),
+                        content: Text('confirm_logout'.tr),
+                        actions: [
+                          TextButton(
+                            child: Text('cancel'.tr),
+                            onPressed: () => Get.back(),
+                          ),
+                          TextButton(
+                            child: Text('logout'.tr),
+                            onPressed: () async {
+                              final authController = Get.find<AuthController>();
+
+                              // نظرًا لأن الدالة الآن تعيد Future<void>، نحتاج إلى إضافة await
+                              await authController.logout();
+
+                              // إغلاق مربع الحوار
+                              Get.back();
+
+                              // العودة إلى شاشة تسجيل الدخول
+                              Get.offAllNamed('/login');
+                            },
+                          ),
+                        ],
+                      ),
+                    );
+                  },
+                ),
+                // Añadir más opciones del menú si es necesario
+                ListTile(
+                  leading: const Icon(Icons.analytics),
+                  title: Text('sales_analysis'.tr),
+                  onTap: () {
+                    Navigator.pop(context);
+                    Get.snackbar(
+                      'coming_soon'.tr,
+                      'feature_coming_soon'.tr,
+                      snackPosition: SnackPosition.BOTTOM,
+                    );
+                  },
+                ),
+                ListTile(
+                  leading: const Icon(Icons.star_rate),
+                  title: Text('feedback_management'.tr),
+                  onTap: () {
+                    Navigator.pop(context);
+                    Get.toNamed('/admin/feedback');
+                  },
+                ),
+                // Espaciado inferior para mejorar la experiencia de desplazamiento
+                const SizedBox(height: 20),
+              ],
+            ),
           ),
         ],
       ),
