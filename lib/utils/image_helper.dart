@@ -2,107 +2,110 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 
 class ImageHelper {
-  // مسار الصورة الافتراضية
-  static const String placeholderImage = 'assets/images/placeholder.png';
-
-  // بناء عنصر الصورة مع مراعاة الأخطاء
+  /// بناء صورة مُحسنة من عنوان URL
   static Widget buildImage(
-    String? imagePath, {
+    String? imageUrl, {
     double? width,
     double? height,
     BoxFit fit = BoxFit.cover,
-    EdgeInsetsGeometry padding = EdgeInsets.zero,
+    Widget? placeholder,
+    Widget? errorWidget,
   }) {
-    // If no image path, use placeholder
-    if (imagePath == null || imagePath.isEmpty) {
-      return _buildFallbackWidget(width, height);
+    if (imageUrl == null || imageUrl.isEmpty) {
+      return _buildErrorPlaceholder(width, height, errorWidget);
     }
 
-    // For asset images
-    if (imagePath.startsWith('assets/')) {
-      return Padding(
-        padding: padding,
-        child: Image.asset(
-          imagePath,
+    try {
+      if (imageUrl.startsWith('assets/')) {
+        // صورة من أصول التطبيق
+        return Image.asset(
+          imageUrl,
           width: width,
           height: height,
           fit: fit,
-          alignment: Alignment.center,
-          errorBuilder: (_, error, __) {
-            print('Error loading asset image: $imagePath, $error');
-            return _buildFallbackWidget(width, height);
+          errorBuilder: (context, error, stackTrace) =>
+              _buildErrorPlaceholder(width, height, errorWidget),
+        );
+      } else if (imageUrl.startsWith('http')) {
+        // صورة من الإنترنت
+        return Image.network(
+          imageUrl,
+          width: width,
+          height: height,
+          fit: fit,
+          loadingBuilder: (context, child, loadingProgress) {
+            if (loadingProgress == null) return child;
+            return _buildPlaceholder(width, height, placeholder);
           },
-        ),
-      );
-    }
-    // إذا كانت الصورة من الإنترنت
-    else if (imagePath.startsWith('http')) {
-      return Image.network(
-        imagePath,
-        width: width,
-        height: height,
-        fit: fit,
-        errorBuilder: (_, __, ___) => _buildFallbackImage(width, height),
-      );
-    }
-    // إذا كانت الصورة من ملف محلي
-    else {
-      try {
-        final file = File(imagePath);
+          errorBuilder: (context, error, stackTrace) =>
+              _buildErrorPlaceholder(width, height, errorWidget),
+        );
+      } else {
+        // صورة محلية من نظام الملفات
+        final file = File(imageUrl);
         if (file.existsSync()) {
           return Image.file(
             file,
             width: width,
             height: height,
             fit: fit,
-            errorBuilder: (_, __, ___) => _buildFallbackImage(width, height),
+            errorBuilder: (context, error, stackTrace) =>
+                _buildErrorPlaceholder(width, height, errorWidget),
           );
+        } else {
+          return _buildErrorPlaceholder(width, height, errorWidget);
         }
-        return _buildFallbackImage(width, height);
-      } catch (e) {
-        return _buildFallbackImage(width, height);
       }
+    } catch (e) {
+      return _buildErrorPlaceholder(width, height, errorWidget);
     }
   }
 
-  // Improved fallback widget
-  static Widget _buildFallbackWidget(double? width, double? height) {
+  /// بناء عنصر التحميل
+  static Widget _buildPlaceholder(
+      double? width, double? height, Widget? customPlaceholder) {
+    if (customPlaceholder != null) {
+      return customPlaceholder;
+    }
     return Container(
       width: width,
       height: height,
-      color: Colors.grey[100],
+      color: Colors.grey[200],
       child: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(
-              Icons.coffee,
-              size: width != null ? width * 0.3 : 50,
-              color: Colors.brown[300],
-            ),
-            const SizedBox(height: 8),
-            Text(
-              "No Image",
-              style: TextStyle(
-                color: Colors.grey[800],
-                fontSize: 12,
-                fontWeight: FontWeight.w500,
-              ),
-            ),
-          ],
+        child: CircularProgressIndicator(
+          strokeWidth: 2.0,
+          color: Colors.grey[400],
         ),
       ),
     );
   }
 
-  // استخدام الصورة الافتراضية
-  static Widget _buildFallbackImage(double? width, double? height) {
-    return Image.asset(
-      placeholderImage,
+  /// بناء عنصر الخطأ
+  static Widget _buildErrorPlaceholder(
+      double? width, double? height, Widget? customErrorWidget) {
+    if (customErrorWidget != null) {
+      return customErrorWidget;
+    }
+    return Container(
       width: width,
       height: height,
-      fit: BoxFit.cover,
-      errorBuilder: (_, __, ___) => _buildFallbackWidget(width, height),
+      color: Colors.grey[200],
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(
+            Icons.image_not_supported,
+            size: 40,
+            color: Colors.grey[400],
+          ),
+          const SizedBox(height: 8),
+          Text(
+            'الصورة غير متوفرة',
+            style: TextStyle(color: Colors.grey[600], fontSize: 12),
+            textAlign: TextAlign.center,
+          ),
+        ],
+      ),
     );
   }
 }

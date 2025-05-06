@@ -7,11 +7,10 @@ import 'package:gpr_coffee_shop/services/product_service.dart'; // Add this impo
 // import 'package:uuid/uuid.dart';
 import 'package:gpr_coffee_shop/utils/logger_util.dart';
 
-
 class ProductController extends GetxController {
   final LocalStorageService _storage;
 
-  // State variables
+  // البنية الأساسية للتحكم في المنتجات
   final products = <Product>[].obs;
   final isLoading = RxBool(false);
   final RxList<Product> allProducts = <Product>[].obs;
@@ -30,7 +29,7 @@ class ProductController extends GetxController {
       isLoading.value = true;
       final success = await loadProducts();
       if (success) {
-        // Sort both lists after loading
+        // حفظ المنتجات بالترتيب حسب الفئة والاسم
         final sortedProducts = List<Product>.from(products)
           ..sort((a, b) {
             int categoryComparison = a.categoryId.compareTo(b.categoryId);
@@ -71,7 +70,7 @@ class ProductController extends GetxController {
         await _addSampleProducts();
       }
 
-      // Sort products by category and name
+      // حفظ المنتجات بالترتيب حسب الفئة والاسم
       products.sort((a, b) {
         int categoryComparison = a.categoryId.compareTo(b.categoryId);
         if (categoryComparison != 0) return categoryComparison;
@@ -318,13 +317,13 @@ class ProductController extends GetxController {
     try {
       isLoading.value = true;
 
-      // Create a ProductService instance to handle the update
+     // إنشاء مثيل ProductService لمعالجة التحديث
       final productService = ProductService(_storage);
 
-      // Call the service method to update products
+      // استدعاء طريقة تحديث المنتجات
       await productService.updateProductsWithNewData();
 
-      // Reload products after update
+      // إعادة تحميل المنتجات بعد التحديث
       await fetchAllProducts();
 
       Get.snackbar(
@@ -346,6 +345,71 @@ class ProductController extends GetxController {
     } finally {
       isLoading.value = false;
     }
+  }
+
+  // أضف هذه الدالة جديدة إلى ProductController
+  Future<bool> deleteMultipleProducts(List<String> productIds) async {
+    try {
+      isLoading(true);
+
+      // تصحيح: استخدام _storage بدلاً من _storageService
+      final result = await _storage.deleteMultipleProducts(productIds);
+
+      if (result) {
+        // حذف المنتجات من القائمة المحلية في الذاكرة مرة واحدة
+        products.removeWhere((product) => productIds.contains(product.id));
+        allProducts.removeWhere((product) => productIds.contains(product.id));
+        products.refresh();
+        allProducts.refresh();
+      }
+
+      return result;
+    } catch (e) {
+      // تصحيح: استخدام LoggerUtil.logger بدلاً من logger
+      LoggerUtil.logger.e('فشل في عملية حذف المنتجات المتعددة: $e');
+      return false;
+    } finally {
+      isLoading(false);
+      update();
+    }
+  }
+
+  /// إعادة ضبط المنتجات إلى القائمة الأساسية
+  Future<void> resetProductsToDefault() async {
+    try {
+      isLoading.value = true;
+
+      // إنشاء مثيل ProductService لمعالجة إعادة الضبط
+      final productService = ProductService(_storage);
+
+      // استدعاء طريقة إعادة ضبط المنتجات
+      await productService.resetProductsToDefault();
+
+      // إعادة تحميل المنتجات بعد إعادة الضبط
+      await fetchAllProducts();
+    } catch (e) {
+      LoggerUtil.logger.e('خطأ أثناء إعادة ضبط قائمة المنتجات: $e');
+    } finally {
+      isLoading.value = false;
+    }
+  }
+
+// تبديل حالة الشعبية للمنتج
+  Future<bool> toggleProductPopularity(String productId) async {
+    try {
+      final product = getProductById(productId);
+      if (product == null) return false;
+
+      final updatedProduct = product.copyWith(isPopular: !product.isPopular);
+      return await saveProduct(updatedProduct);
+    } catch (e) {
+      LoggerUtil.logger.e('Error toggling product popularity: $e');
+      return false;
+    }
+  }
+
+  List<Product> getPopularProducts() {
+    return products.where((product) => product.isPopular).toList();
   }
 }
 

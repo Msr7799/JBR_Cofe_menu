@@ -10,6 +10,7 @@ import 'package:gpr_coffee_shop/controllers/product_controller.dart';
 import 'package:gpr_coffee_shop/controllers/category_controller.dart';
 import 'package:gpr_coffee_shop/models/product.dart';
 import 'package:logger/logger.dart';
+import 'package:gpr_coffee_shop/models/category.dart';
 
 class ProductManagement extends StatefulWidget {
   const ProductManagement({Key? key}) : super(key: key);
@@ -23,12 +24,41 @@ class _ProductManagementState extends State<ProductManagement> {
   final CategoryController categoryController = Get.find<CategoryController>();
   final Logger logger = Logger();
 
+  // إضافة متغيرات لوضع التحديد المتعدد
+  bool _isMultiSelectMode = false;
+  final RxList<String> _selectedProductIds = <String>[].obs;
+
+  // المتغيرات الأصلية
   String? _selectedImage;
   String? _originalImage;
   final ImagePicker _picker = ImagePicker();
   String _searchQuery = '';
-  String _selectedCategoryFilter = '';
+  Set<String> _selectedCategoryFilters = {};
   bool _processingImage = false;
+
+  // متغيرات جديدة للفرز والفلترة المتقدمة
+  String _sortBy = 'name'; // الفرز الافتراضي حسب الاسم
+  bool _sortAscending = true; // ترتيب تصاعدي افتراضياً
+  double _priceFilterMin = 0; // الحد الأدنى للسعر
+  double _priceFilterMax = 100; // الحد الأقصى للسعر
+  bool _showOnlyAvailable = false; // عرض المنتجات المتاحة فقط
+
+  @override
+  void initState() {
+    super.initState();
+
+    // استخدام PostFrameCallback لضمان اكتمال البناء قبل أي عملية قد تؤثر على التخطيط
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) {
+        // أي تهيئة إضافية تحتاج لها بعد اكتمال البناء
+        _loadInitialData();
+      }
+    });
+  }
+
+  void _loadInitialData() {
+    // استدعاء أي بيانات ضرورية هنا (إذا كنت بحاجة للتحميل المبدئي)
+  }
 
   @override
   void dispose() {
@@ -102,8 +132,11 @@ class _ProductManagementState extends State<ProductManagement> {
         final appDir = await getApplicationDocumentsDirectory();
         final fileName =
             '${DateTime.now().millisecondsSinceEpoch}_${path.basename(pickedFile.path)}';
-        final savedImagePath =
-            path.join(appDir.path, 'product_images', fileName);
+        final savedImagePath = path.join(
+          appDir.path,
+          'product_images',
+          fileName,
+        );
 
         final imageDir = Directory(path.join(appDir.path, 'product_images'));
         if (!await imageDir.exists()) {
@@ -208,9 +241,7 @@ class _ProductManagementState extends State<ProductManagement> {
           decoration: InputDecoration(
             hintText: 'اكتب اسم المنتج أو الوصف',
             prefixIcon: const Icon(Icons.search),
-            border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(8),
-            ),
+            border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
           ),
           autofocus: true,
           onSubmitted: (value) {
@@ -219,17 +250,15 @@ class _ProductManagementState extends State<ProductManagement> {
           },
         ),
         actions: [
-          TextButton(
-            onPressed: () => Get.back(),
-            child: const Text('إلغاء'),
-          ),
+          TextButton(onPressed: () => Get.back(), child: const Text('إلغاء')),
           ElevatedButton(
             onPressed: () {
               setState(() => _searchQuery = searchController.text);
               Get.back();
             },
             style: ElevatedButton.styleFrom(
-                backgroundColor: AppTheme.primaryColor),
+              backgroundColor: AppTheme.primaryColor,
+            ),
             child: const Text('بحث'),
           ),
         ],
@@ -238,73 +267,132 @@ class _ProductManagementState extends State<ProductManagement> {
   }
 
   void _showFilterDialog() {
-    String tempFilter = _selectedCategoryFilter;
+    // نسخ الفئات المختارة إلى متغير مؤقت للتعديل
+    Set<String> tempFilters = Set.from(_selectedCategoryFilters);
 
     Get.dialog(
-      AlertDialog(
-        title: const Text('تصفية حسب الفئة'),
-        content: SizedBox(
-          width: MediaQuery.of(Get.context!).size.width * 0.7,
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              RadioListTile<String>(
-                title: const Text('جميع الفئات'),
-                value: '',
-                groupValue: tempFilter,
-                onChanged: (value) => tempFilter = value!,
+      StatefulBuilder(
+        builder: (context, setDialogState) {
+          return AlertDialog(
+            title: const Text('تصفية حسب الفئة'),
+            content: SizedBox(
+              width: MediaQuery.of(context).size.width * 0.7,
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  // إضافة زر لعرض جميع المنتجات
+                  ListTile(
+                    leading: IconButton(
+                      icon: Icon(
+                        tempFilters.isEmpty
+                            ? Icons.check_circle
+                            : Icons.circle_outlined,
+                        color: tempFilters.isEmpty
+                            ? AppTheme.primaryColor
+                            : const Color.fromARGB(255, 22, 21, 21),
+                      ),
+                      onPressed: () {
+                        // إلغاء جميع الفئات المحددة
+                        setDialogState(() {
+                          tempFilters.clear();
+                        });
+                      },
+                    ),
+                    title: const Text(
+                      'عرض جميع المنتجات',
+                      style: TextStyle(fontWeight: FontWeight.bold),
+                    ),
+                    onTap: () {
+                      // إلغاء جميع الفئات المحددة
+                      setDialogState(() {
+                        tempFilters.clear();
+                      });
+                    },
+                  ),
+                  const Divider(),
+                  ConstrainedBox(
+                    constraints: BoxConstraints(
+                      maxHeight: MediaQuery.of(context).size.height * 0.4,
+                    ),
+                    child: SingleChildScrollView(
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: categoryController.categories.map((category) {
+                          final isSelected = tempFilters.contains(category.id);
+                          return CheckboxListTile(
+                            title: Text(category.name),
+                            subtitle: Text(
+                              '${_countProductsInCategory(category.id)} منتج',
+                              style: TextStyle(
+                                  fontSize: 12, color: Colors.grey[600]),
+                            ),
+                            value: isSelected,
+                            activeColor: AppTheme.primaryColor,
+                            onChanged: (bool? value) {
+                              setDialogState(() {
+                                if (value == true) {
+                                  tempFilters.add(category.id);
+                                } else {
+                                  tempFilters.remove(category.id);
+                                }
+                              });
+                            },
+                            controlAffinity: ListTileControlAffinity.leading,
+                          );
+                        }).toList(),
+                      ),
+                    ),
+                  ),
+                ],
               ),
-              const Divider(),
-              SizedBox(
-                height: 200,
-                child: ListView.builder(
-                  shrinkWrap: true,
-                  itemCount: categoryController.categories.length,
-                  itemBuilder: (context, index) {
-                    final category = categoryController.categories[index];
-                    return RadioListTile<String>(
-                      title: Text(category.name),
-                      value: category.id,
-                      groupValue: tempFilter,
-                      onChanged: (value) => tempFilter = value!,
-                    );
-                  },
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Get.back(),
+                child: const Text('إلغاء'),
+              ),
+              ElevatedButton(
+                onPressed: () {
+                  setState(() => _selectedCategoryFilters = tempFilters);
+                  Get.back();
+                },
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppTheme.primaryColor,
                 ),
+                child: const Text('تطبيق'),
               ),
             ],
-          ),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Get.back(),
-            child: const Text('إلغاء'),
-          ),
-          ElevatedButton(
-            onPressed: () {
-              setState(() => _selectedCategoryFilter = tempFilter);
-              Get.back();
-            },
-            style: ElevatedButton.styleFrom(
-                backgroundColor: AppTheme.primaryColor),
-            child: const Text('تطبيق'),
-          ),
-        ],
+          );
+        },
       ),
     );
   }
 
-  Future<void> _showAddEditProductDialog(BuildContext context,
-      [Product? product]) async {
+  // دالة لحساب عدد المنتجات في كل فئة
+  int _countProductsInCategory(String categoryId) {
+    return productController.products
+        .where((product) => product.categoryId == categoryId)
+        .length;
+  }
+
+  Future<void> _showAddEditProductDialog(
+    BuildContext context, [
+    Product? product,
+  ]) async {
     final isEditing = product != null;
 
-    final nameController =
-        TextEditingController(text: isEditing ? product.name : '');
-    final descriptionController =
-        TextEditingController(text: isEditing ? product.description : '');
-    final priceController =
-        TextEditingController(text: isEditing ? product.price.toString() : '');
-    final costController =
-        TextEditingController(text: isEditing ? product.cost.toString() : '');
+    final nameController = TextEditingController(
+      text: isEditing ? product.name : '',
+    );
+    final descriptionController = TextEditingController(
+      text: isEditing ? product.description : '',
+    );
+    final priceController = TextEditingController(
+      text: isEditing ? product.price.toString() : '',
+    );
+    final costController = TextEditingController(
+      text: isEditing ? product.cost.toString() : '',
+    );
 
     final formKey = GlobalKey<FormState>();
     bool isAvailable = isEditing ? product.isAvailable : true;
@@ -322,9 +410,7 @@ class _ProductManagementState extends State<ProductManagement> {
 
     await Get.dialog(
       Dialog(
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(16),
-        ),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
         child: Directionality(
           textDirection: TextDirection.rtl,
           child: Container(
@@ -363,8 +449,11 @@ class _ProductManagementState extends State<ProductManagement> {
                             : const Column(
                                 mainAxisAlignment: MainAxisAlignment.center,
                                 children: [
-                                  Icon(Icons.add_photo_alternate,
-                                      size: 40, color: Colors.grey),
+                                  Icon(
+                                    Icons.add_photo_alternate,
+                                    size: 40,
+                                    color: Colors.grey,
+                                  ),
                                   SizedBox(height: 8),
                                   Text(
                                     'إضافة صورة',
@@ -404,7 +493,8 @@ class _ProductManagementState extends State<ProductManagement> {
                           child: TextFormField(
                             controller: priceController,
                             keyboardType: const TextInputType.numberWithOptions(
-                                decimal: true),
+                              decimal: true,
+                            ),
                             decoration: const InputDecoration(
                               labelText: 'السعر (د.ب) *',
                               border: OutlineInputBorder(),
@@ -426,7 +516,8 @@ class _ProductManagementState extends State<ProductManagement> {
                           child: TextFormField(
                             controller: costController,
                             keyboardType: const TextInputType.numberWithOptions(
-                                decimal: true),
+                              decimal: true,
+                            ),
                             decoration: const InputDecoration(
                               labelText: 'التكلفة (د.ب)',
                               border: OutlineInputBorder(),
@@ -561,13 +652,91 @@ class _ProductManagementState extends State<ProductManagement> {
     );
   }
 
-  void _showUpdateConfirmDialog(BuildContext context) {
+  // استبدل دالة _deleteSelectedProducts الحالية بهذه النسخة المحسنة
+  Future<void> _deleteSelectedProducts() async {
+    if (_selectedProductIds.isEmpty) return;
+
+    final int count = _selectedProductIds.length;
+
+    Get.dialog(
+      AlertDialog(
+        title: const Text('حذف المنتجات المحددة'),
+        content: Text(
+            'هل أنت متأكد من حذف $count منتج${count > 1 ? 'ات' : ''} محدد${count > 1 ? 'ة' : ''}؟'),
+        actions: [
+          TextButton(
+            onPressed: () => Get.back(),
+            child: const Text('إلغاء'),
+          ),
+          ElevatedButton(
+            onPressed: () async {
+              Get.back();
+
+              // عرض مؤشر التحميل
+              Get.dialog(
+                const Center(child: CircularProgressIndicator()),
+                barrierDismissible: false,
+              );
+
+              // استخدام الدالة الجديدة لحذف متعدد للمنتجات
+              // نسخ القائمة لتجنب أي تعديلات أثناء العملية
+              final List<String> selectedIds =
+                  List<String>.from(_selectedProductIds);
+              final result =
+                  await productController.deleteMultipleProducts(selectedIds);
+
+              // إغلاق مؤشر التحميل
+              Get.back();
+
+              // عرض إشعار واحد فقط بعد الانتهاء
+              if (result) {
+                Get.snackbar(
+                  'تمت العملية بنجاح',
+                  'تم حذف ${selectedIds.length} منتج${selectedIds.length > 1 ? 'ات' : ''} بنجاح',
+                  snackPosition: SnackPosition.BOTTOM,
+                  backgroundColor: Colors.green,
+                  colorText: Colors.white,
+                  duration: const Duration(seconds: 3),
+                  borderRadius: 10,
+                  margin: const EdgeInsets.all(10),
+                );
+              } else {
+                Get.snackbar(
+                  'فشلت العملية',
+                  'حدث خطأ أثناء حذف المنتجات',
+                  snackPosition: SnackPosition.BOTTOM,
+                  backgroundColor: Colors.red,
+                  colorText: Colors.white,
+                  duration: const Duration(seconds: 3),
+                  borderRadius: 10,
+                  margin: const EdgeInsets.all(10),
+                );
+              }
+
+              // إلغاء وضع التحديد المتعدد
+              setState(() {
+                _isMultiSelectMode = false;
+                _selectedProductIds.clear();
+              });
+            },
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.red,
+            ),
+            child: const Text('حذف'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showResetConfirmDialog(BuildContext context) {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('تحديث قائمة المنتجات'),
+        title: const Text('إعادة ضبط قائمة المنتجات'),
         content: const Text(
-            'هل تريد تحديث المنتجات بالمنتجات الجديدة؟ سيتم حذف المنتجات القديمة واستبدالها بالمنتجات الجديدة.'),
+          'هل تريد إعادة ضبط قائمة المنتجات إلى القائمة الأساسية؟ سيؤدي ذلك إلى إضافة المنتجات الأساسية وحذف المنتجات غير الأساسية.',
+        ),
         actions: [
           TextButton(
             child: const Text('إلغاء'),
@@ -578,29 +747,29 @@ class _ProductManagementState extends State<ProductManagement> {
               backgroundColor: AppTheme.primaryColor,
               foregroundColor: Colors.white,
             ),
-            child: const Text('تحديث القائمة'),
+            child: const Text('إعادة الضبط'),
             onPressed: () async {
               Navigator.pop(context);
-              // Show loading indicator
+              // إظهار مؤشر التحميل
               Get.dialog(
-                const Center(
-                  child: CircularProgressIndicator(),
-                ),
+                const Center(child: CircularProgressIndicator()),
                 barrierDismissible: false,
               );
 
-              await productController.updateProductsWithNewData();
+              await productController.resetProductsToDefault();
 
-              // Close loading indicator
+              // إغلاق مؤشر التحميل
               Get.back();
 
               Get.snackbar(
-                'تم التحديث',
-                'تم تحديث قائمة المنتجات بنجاح',
+                'تمت العملية بنجاح',
+                'تم إعادة ضبط قائمة المنتجات إلى القائمة الأساسية',
                 snackPosition: SnackPosition.BOTTOM,
                 backgroundColor: Colors.green,
                 colorText: Colors.white,
                 duration: const Duration(seconds: 3),
+                borderRadius: 10,
+                margin: const EdgeInsets.all(10),
               );
             },
           ),
@@ -613,110 +782,904 @@ class _ProductManagementState extends State<ProductManagement> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('إدارة المنتجات'),
+        title: _isMultiSelectMode
+            ? Text(
+                'تم تحديد ${_selectedProductIds.length} منتج${_selectedProductIds.length > 1 ? 'ات' : ''}')
+            : const Text('إدارة المنتجات'),
         backgroundColor: AppTheme.primaryColor,
         elevation: 0,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
-          onPressed: () => Get.back(),
+          onPressed: () {
+            if (_isMultiSelectMode) {
+              _toggleMultiSelectMode();
+            } else {
+              Get.back();
+            }
+          },
         ),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.search),
-            onPressed: () => _showSearchDialog(),
-          ),
-          IconButton(
-            icon: const Icon(Icons.filter_list),
-            onPressed: () => _showFilterDialog(),
-          ),
-          IconButton(
-            icon: const Icon(Icons.add),
-            onPressed: () => _showAddEditProductDialog(context),
-          ),
-          IconButton(
-            icon: const Icon(Icons.update),
-            tooltip: 'تحديث المنتجات الجديدة',
-            onPressed: () {
-              _showUpdateConfirmDialog(context);
-            },
-          ),
-        ],
+        actions: _isMultiSelectMode
+            ? [
+                // أزرار وضع التحديد المتعدد
+                IconButton(
+                  icon: const Icon(Icons.delete),
+                  tooltip: 'حذف المحدد',
+                  onPressed: _selectedProductIds.isNotEmpty
+                      ? _deleteSelectedProducts
+                      : null,
+                ),
+                IconButton(
+                  icon: const Icon(Icons.close),
+                  tooltip: 'إلغاء',
+                  onPressed: _toggleMultiSelectMode,
+                ),
+              ]
+            : [
+                // أزرار الوضع العادي
+                IconButton(
+                  icon: const Icon(Icons.sort),
+                  tooltip: 'خيارات الترتيب',
+                  onPressed: _showSortOptionsDialog,
+                ),
+                IconButton(
+                  icon: const Icon(Icons.filter_alt),
+                  tooltip: 'فلترة متقدمة',
+                  onPressed: _showAdvancedFilterDialog,
+                ),
+                IconButton(
+                  icon: const Icon(Icons.search),
+                  tooltip: 'بحث',
+                  onPressed: () => _showSearchDialog(),
+                ),
+                IconButton(
+                  icon: const Icon(Icons.add),
+                  tooltip: 'إضافة منتج',
+                  onPressed: () => _showAddEditProductDialog(context),
+                ),
+                IconButton(
+                  icon: const Icon(Icons.select_all),
+                  tooltip: 'تحديد متعدد',
+                  onPressed: _toggleMultiSelectMode,
+                ),
+              ],
       ),
       body: Obx(
         () => productController.isLoading.value
             ? const Center(child: CircularProgressIndicator())
-            : ListView.builder(
-                padding: const EdgeInsets.all(16),
-                itemCount: productController.products.length,
-                itemBuilder: (context, index) {
-                  final product = productController.products[index];
-                  return Padding(
-                    padding: const EdgeInsets.only(bottom: 16),
-                    child: ListTile(
-                      leading: SizedBox(
-                        width: 60,
-                        height: 60,
-                        child: ClipRRect(
-                          borderRadius: BorderRadius.circular(8),
-                          child: _buildProductImage(product.imageUrl ?? ''),
-                        ),
-                      ),
-                      title: Text(product.name),
-                      subtitle: Text(product.description),
-                      trailing: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          IconButton(
-                            icon: const Icon(Icons.edit, color: Colors.blue),
-                            onPressed: () =>
-                                _showAddEditProductDialog(context, product),
+            : Column(
+                children: [
+                  // عرض الفلاتر النشطة
+                  _buildActiveFilters(),
+
+                  // شريط المعلومات
+                  Padding(
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                    child: Row(
+                      children: [
+                        // عدد المنتجات المعروضة
+                        Text(
+                          'عرض ${_getFilteredProducts().length} من ${productController.products.length} منتج',
+                          style: TextStyle(
+                            fontSize: 14,
+                            color: Colors.grey[700],
                           ),
-                          IconButton(
-                            icon: const Icon(Icons.delete, color: Colors.red),
-                            onPressed: () => Get.dialog(
-                              AlertDialog(
-                                title: const Text('حذف المنتج'),
-                                content: Text(
-                                    'هل أنت متأكد من حذف "${product.name}"؟'),
-                                actions: [
-                                  TextButton(
-                                    onPressed: () => Get.back(),
-                                    child: const Text('إلغاء'),
-                                  ),
-                                  ElevatedButton(
-                                    onPressed: () async {
-                                      if (await productController
-                                          .deleteProduct(product.id)) {
-                                        Get.back();
-                                        Get.snackbar(
-                                          'نجاح',
-                                          'تم حذف المنتج بنجاح',
-                                          snackPosition: SnackPosition.BOTTOM,
-                                          backgroundColor: Colors.green,
-                                          colorText: Colors.white,
-                                        );
-                                      }
-                                    },
-                                    style: ElevatedButton.styleFrom(
-                                      backgroundColor: Colors.red,
-                                    ),
-                                    child: const Text('حذف'),
-                                  ),
-                                ],
+                        ),
+                      ],
+                    ),
+                  ),
+
+                  // مربع تحديد الكل (في وضع التحديد المتعدد)
+                  if (_isMultiSelectMode)
+                    Container(
+                      color: Colors.grey[100],
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 16, vertical: 8),
+                      child: Row(
+                        children: [
+                          Checkbox(
+                            value: _selectedProductIds.length ==
+                                    _getFilteredProducts().length &&
+                                _getFilteredProducts().isNotEmpty,
+                            activeColor: AppTheme.primaryColor,
+                            onChanged: (bool? value) {
+                              setState(() {
+                                if (value == true) {
+                                  _selectedProductIds.clear();
+                                  for (final product
+                                      in _getFilteredProducts()) {
+                                    _selectedProductIds.add(product.id);
+                                  }
+                                } else {
+                                  _selectedProductIds.clear();
+                                }
+                              });
+                            },
+                          ),
+                          const Text('تحديد الكل'),
+                          const Spacer(),
+                          if (_selectedProductIds.isNotEmpty)
+                            TextButton.icon(
+                              icon: const Icon(Icons.delete, color: Colors.red),
+                              label: const Text(
+                                'حذف المحدد',
+                                style: TextStyle(color: Colors.red),
                               ),
+                              onPressed: _deleteSelectedProducts,
+                            ),
+                        ],
+                      ),
+                    ),
+
+                  // قائمة المنتجات
+                  Expanded(
+                    child: _getFilteredProducts().isEmpty
+                        ? Center(
+                            child: Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Icon(
+                                  Icons.search_off,
+                                  size: 80,
+                                  color: Colors.grey[400],
+                                ),
+                                const SizedBox(height: 16),
+                                Text(
+                                  'لا توجد منتجات تطابق معايير البحث',
+                                  style: TextStyle(
+                                    fontSize: 16,
+                                    color: Colors.grey[600],
+                                  ),
+                                ),
+                                const SizedBox(height: 24),
+                                ElevatedButton.icon(
+                                  icon: const Icon(Icons.refresh),
+                                  label: const Text('إعادة تعيين الفلاتر'),
+                                  style: ElevatedButton.styleFrom(
+                                    backgroundColor: AppTheme.primaryColor,
+                                  ),
+                                  onPressed: () {
+                                    setState(() {
+                                      _selectedCategoryFilters.clear();
+                                      _searchQuery = '';
+                                      _priceFilterMin = 0;
+                                      _priceFilterMax = 100;
+                                      _showOnlyAvailable = false;
+                                    });
+                                  },
+                                ),
+                              ],
+                            ),
+                          )
+                        : ListView.builder(
+                            padding: const EdgeInsets.all(16),
+                            itemCount: _getFilteredProducts().length,
+                            itemBuilder: (context, index) {
+                              final product = _getFilteredProducts()[index];
+                              final bool isSelected =
+                                  _selectedProductIds.contains(product.id);
+
+                              return _buildProductCard(product, isSelected);
+                            },
+                          ),
+                  ),
+                ],
+              ),
+      ),
+      floatingActionButton: _isMultiSelectMode
+          ? null
+          : FloatingActionButton(
+              backgroundColor: AppTheme.primaryColor,
+              child: const Icon(Icons.add),
+              onPressed: () => _showAddEditProductDialog(context),
+            ),
+    );
+  }
+
+  void _toggleMultiSelectMode() {
+    if (!mounted) return;
+
+    setState(() {
+      _isMultiSelectMode = !_isMultiSelectMode;
+      if (!_isMultiSelectMode) {
+        _selectedProductIds.clear();
+      }
+    });
+  }
+
+  void _toggleProductSelection(String productId) {
+    if (!mounted) return;
+
+    setState(() {
+      if (_selectedProductIds.contains(productId)) {
+        _selectedProductIds.remove(productId);
+      } else {
+        _selectedProductIds.add(productId);
+      }
+    });
+  }
+
+  void _showDeleteConfirmationDialog(Product product) {
+    Get.dialog(
+      AlertDialog(
+        title: const Text('حذف منتج'),
+        content: Text('هل أنت متأكد من حذف "${product.name}"؟'),
+        actions: [
+          TextButton(
+            onPressed: () => Get.back(),
+            child: const Text('إلغاء'),
+          ),
+          ElevatedButton(
+            onPressed: () async {
+              Get.back();
+
+              // عرض مؤشر التحميل
+              Get.dialog(
+                const Center(child: CircularProgressIndicator()),
+                barrierDismissible: false,
+              );
+
+              final result = await productController.deleteProduct(product.id);
+
+              // إغلاق مؤشر التحميل
+              Get.back();
+
+              if (result) {
+                Get.snackbar(
+                  'تم الحذف',
+                  'تم حذف المنتج بنجاح',
+                  snackPosition: SnackPosition.BOTTOM,
+                  backgroundColor: Colors.green,
+                  colorText: Colors.white,
+                  duration: const Duration(seconds: 2),
+                );
+              } else {
+                Get.snackbar(
+                  'خطأ',
+                  'فشل حذف المنتج',
+                  snackPosition: SnackPosition.BOTTOM,
+                  backgroundColor: Colors.red,
+                  colorText: Colors.white,
+                  duration: const Duration(seconds: 2),
+                );
+              }
+            },
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.red,
+            ),
+            child: const Text('حذف'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // تعديل دالة _getFilteredProducts لدعم الترتيب
+  List<Product> _getFilteredProducts() {
+    List<Product> filtered = List.from(productController.products);
+
+    // تطبيق فلتر الفئة
+    if (_selectedCategoryFilters.isNotEmpty) {
+      filtered = filtered
+          .where((p) => _selectedCategoryFilters.contains(p.categoryId))
+          .toList();
+    }
+
+    // تطبيق فلتر البحث
+    if (_searchQuery.isNotEmpty) {
+      filtered = filtered
+          .where((p) =>
+              p.name.toLowerCase().contains(_searchQuery.toLowerCase()) ||
+              p.description.toLowerCase().contains(_searchQuery.toLowerCase()))
+          .toList();
+    }
+
+    // تطبيق فلتر نطاق السعر
+    filtered = filtered
+        .where((p) => p.price >= _priceFilterMin && p.price <= _priceFilterMax)
+        .toList();
+
+    // تطبيق فلتر التوفر
+    if (_showOnlyAvailable) {
+      filtered = filtered.where((p) => p.isAvailable).toList();
+    }
+
+    // تطبيق الفرز
+    filtered.sort((a, b) {
+      int result;
+      switch (_sortBy) {
+        case 'name':
+          result = a.name.compareTo(b.name);
+          break;
+        case 'price':
+          result = a.price.compareTo(b.price);
+          break;
+        case 'availability':
+          result =
+              a.isAvailable == b.isAvailable ? 0 : (a.isAvailable ? -1 : 1);
+          break;
+        default:
+          result = a.name.compareTo(b.name);
+      }
+
+      return _sortAscending ? result : -result;
+    });
+
+    return filtered;
+  }
+
+  // دالة للحصول على اسم الفئة من معرفها
+  String _getCategoryName(String categoryId) {
+    final category = categoryController.categories.firstWhere(
+      (c) => c.id == categoryId,
+      orElse: () => Category(
+          id: '',
+          name: 'غير معروف',
+          nameEn: 'Unknown',
+          description: '',
+          descriptionEn: '',
+          iconPath: '',
+          order: 0),
+    );
+
+    return category.name;
+  }
+
+  Widget _buildSelectedFiltersBar() {
+    if (_selectedCategoryFilters.isEmpty) {
+      return Container();
+    }
+
+    return Container(
+      color: Colors.grey[50],
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Text(
+            'الفئات المحددة:',
+            style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
+          ),
+          const SizedBox(height: 8),
+          Wrap(
+            spacing: 8,
+            runSpacing: 8,
+            children: _selectedCategoryFilters.map((categoryId) {
+              return Chip(
+                label: Text(_getCategoryName(categoryId)),
+                deleteIcon: const Icon(Icons.close, size: 16),
+                onDeleted: () {
+                  setState(() {
+                    _selectedCategoryFilters.remove(categoryId);
+                  });
+                },
+                backgroundColor: AppTheme.primaryColor.withOpacity(0.1),
+                deleteIconColor: AppTheme.primaryColor,
+                labelStyle: const TextStyle(fontSize: 12),
+              );
+            }).toList(),
+          ),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.end,
+            children: [
+              TextButton.icon(
+                icon: const Icon(Icons.clear_all, size: 16),
+                label: const Text('مسح الكل'),
+                onPressed: () {
+                  setState(() {
+                    _selectedCategoryFilters.clear();
+                  });
+                },
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showAdvancedFilterDialog() {
+    // إنشاء نسخة مؤقتة من متغيرات الفلترة
+    double tempMinPrice = _priceFilterMin;
+    double tempMaxPrice = _priceFilterMax;
+    bool tempShowOnlyAvailable = _showOnlyAvailable;
+    Set<String> tempCategoryFilters = Set.from(_selectedCategoryFilters);
+
+    Get.dialog(
+      StatefulBuilder(
+        builder: (context, setDialogState) {
+          return AlertDialog(
+            title: const Text('فلترة متقدمة'),
+            content: SizedBox(
+              width: MediaQuery.of(context).size.width * 0.8,
+              height: MediaQuery.of(context).size.height * 0.6,
+              child: SingleChildScrollView(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // قسم فلترة الفئات
+                    const Text(
+                      'تصفية حسب الفئة:',
+                      style: TextStyle(fontWeight: FontWeight.bold),
+                    ),
+                    const SizedBox(height: 10),
+                    Container(
+                      height: 200,
+                      decoration: BoxDecoration(
+                        border: Border.all(color: Colors.grey.shade300),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: ListView.builder(
+                        itemCount: categoryController.categories.length,
+                        itemBuilder: (context, index) {
+                          final category = categoryController.categories[index];
+                          return CheckboxListTile(
+                            title: Text(category.name),
+                            subtitle: Text(
+                              '${_countProductsInCategory(category.id)} منتج',
+                              style: TextStyle(
+                                  fontSize: 12, color: Colors.grey[600]),
+                            ),
+                            value: tempCategoryFilters.contains(category.id),
+                            activeColor: AppTheme.primaryColor,
+                            onChanged: (bool? value) {
+                              setDialogState(() {
+                                if (value == true) {
+                                  tempCategoryFilters.add(category.id);
+                                } else {
+                                  tempCategoryFilters.remove(category.id);
+                                }
+                              });
+                            },
+                          );
+                        },
+                      ),
+                    ),
+
+                    const SizedBox(height: 20),
+                    // قسم فلترة نطاق السعر
+                    const Text(
+                      'تصفية حسب نطاق السعر:',
+                      style: TextStyle(fontWeight: FontWeight.bold),
+                    ),
+                    const SizedBox(height: 10),
+                    RangeSlider(
+                      values: RangeValues(tempMinPrice, tempMaxPrice),
+                      min: 0,
+                      max: 100,
+                      divisions: 100,
+                      labels: RangeLabels(
+                        '${tempMinPrice.toStringAsFixed(1)}',
+                        '${tempMaxPrice.toStringAsFixed(1)}',
+                      ),
+                      onChanged: (RangeValues values) {
+                        setDialogState(() {
+                          tempMinPrice = values.start;
+                          tempMaxPrice = values.end;
+                        });
+                      },
+                      activeColor: AppTheme.primaryColor,
+                    ),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text('${tempMinPrice.toStringAsFixed(1)} د.ب'),
+                        Text('${tempMaxPrice.toStringAsFixed(1)} د.ب'),
+                      ],
+                    ),
+
+                    const SizedBox(height: 20),
+                    // قسم فلترة التوفر
+                    SwitchListTile(
+                      title: const Text('عرض المنتجات المتاحة فقط'),
+                      value: tempShowOnlyAvailable,
+                      activeColor: AppTheme.primaryColor,
+                      onChanged: (bool value) {
+                        setDialogState(() {
+                          tempShowOnlyAvailable = value;
+                        });
+                      },
+                    ),
+                  ],
+                ),
+              ),
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Get.back(),
+                child: const Text('إلغاء'),
+              ),
+              TextButton(
+                onPressed: () {
+                  setDialogState(() {
+                    tempCategoryFilters.clear();
+                    tempMinPrice = 0;
+                    tempMaxPrice = 100;
+                    tempShowOnlyAvailable = false;
+                  });
+                },
+                child: const Text('إعادة تعيين'),
+              ),
+              ElevatedButton(
+                onPressed: () {
+                  setState(() {
+                    _selectedCategoryFilters = tempCategoryFilters;
+                    _priceFilterMin = tempMinPrice;
+                    _priceFilterMax = tempMaxPrice;
+                    _showOnlyAvailable = tempShowOnlyAvailable;
+                  });
+                  Get.back();
+                },
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppTheme.primaryColor,
+                ),
+                child: const Text('تطبيق'),
+              ),
+            ],
+          );
+        },
+      ),
+    );
+  }
+
+  Widget _buildActiveFilters() {
+    final List<Widget> filters = [];
+
+    // إضافة شرائح الفلاتر النشطة
+    if (_selectedCategoryFilters.isNotEmpty) {
+      filters.add(Chip(
+        label: Text('${_selectedCategoryFilters.length} فئة محددة'),
+        deleteIcon: const Icon(Icons.close, size: 16),
+        onDeleted: () {
+          setState(() => _selectedCategoryFilters.clear());
+        },
+      ));
+    }
+
+    if (_searchQuery.isNotEmpty) {
+      filters.add(Chip(
+        label: Text('بحث: $_searchQuery'),
+        deleteIcon: const Icon(Icons.close, size: 16),
+        onDeleted: () {
+          setState(() => _searchQuery = '');
+        },
+      ));
+    }
+
+    if (_priceFilterMin > 0 || _priceFilterMax < 100) {
+      filters.add(Chip(
+        label: Text(
+            'السعر: ${_priceFilterMin.toStringAsFixed(1)}-${_priceFilterMax.toStringAsFixed(1)} د.ب'),
+        deleteIcon: const Icon(Icons.close, size: 16),
+        onDeleted: () {
+          setState(() {
+            _priceFilterMin = 0;
+            _priceFilterMax = 100;
+          });
+        },
+      ));
+    }
+
+    if (_showOnlyAvailable) {
+      filters.add(Chip(
+        label: const Text('المنتجات المتاحة فقط'),
+        deleteIcon: const Icon(Icons.close, size: 16),
+        onDeleted: () {
+          setState(() => _showOnlyAvailable = false);
+        },
+      ));
+    }
+
+    // إذا لم تكن هناك فلاتر نشطة، لا نعرض أي شيء
+    if (filters.isEmpty) {
+      return Container();
+    }
+
+    // عرض الفلاتر النشطة
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Text(
+            'الفلاتر النشطة:',
+            style: TextStyle(fontWeight: FontWeight.bold),
+          ),
+          const SizedBox(height: 8),
+          Wrap(
+            spacing: 8,
+            runSpacing: 8,
+            children: filters,
+          ),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.end,
+            children: [
+              TextButton.icon(
+                icon: const Icon(Icons.refresh, size: 16),
+                label: const Text('إعادة تعيين الجميع'),
+                onPressed: () {
+                  setState(() {
+                    _selectedCategoryFilters.clear();
+                    _searchQuery = '';
+                    _priceFilterMin = 0;
+                    _priceFilterMax = 100;
+                    _showOnlyAvailable = false;
+                    _sortBy = 'name';
+                    _sortAscending = true;
+                  });
+                },
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildProductCard(Product product, bool isSelected) {
+    final category = _getCategoryName(product.categoryId);
+
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 12),
+      child: Card(
+        elevation: 2,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(10),
+          side: isSelected
+              ? BorderSide(color: AppTheme.primaryColor, width: 2)
+              : BorderSide.none,
+        ),
+        child: InkWell(
+          borderRadius: BorderRadius.circular(10),
+          onTap: () {
+            if (_isMultiSelectMode) {
+              _toggleProductSelection(product.id);
+            } else {
+              _showAddEditProductDialog(context, product);
+            }
+          },
+          onLongPress: () {
+            if (!_isMultiSelectMode) {
+              _toggleMultiSelectMode();
+              _toggleProductSelection(product.id);
+            }
+          },
+          child: Padding(
+            padding: const EdgeInsets.all(12.0),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // صورة المنتج
+                ClipRRect(
+                  borderRadius: BorderRadius.circular(8),
+                  child: SizedBox(
+                    width: 80,
+                    height: 80,
+                    child: _buildProductImage(product.imageUrl ?? ''),
+                  ),
+                ),
+                const SizedBox(width: 12),
+
+                // محتوى المنتج
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        children: [
+                          if (_isMultiSelectMode)
+                            Checkbox(
+                              value: _selectedProductIds.contains(product.id),
+                              activeColor: AppTheme.primaryColor,
+                              onChanged: (bool? value) {
+                                _toggleProductSelection(product.id);
+                              },
+                            ),
+                          Expanded(
+                            child: Text(
+                              product.name,
+                              style: const TextStyle(
+                                fontWeight: FontWeight.bold,
+                                fontSize: 16,
+                              ),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
                             ),
                           ),
                         ],
                       ),
-                    ),
-                  );
-                },
-              ),
+
+                      if (product.description.isNotEmpty)
+                        Padding(
+                          padding: const EdgeInsets.only(top: 4),
+                          child: Text(
+                            product.description,
+                            maxLines: 2,
+                            overflow: TextOverflow.ellipsis,
+                            style: TextStyle(
+                              color: Colors.grey[600],
+                              fontSize: 14,
+                            ),
+                          ),
+                        ),
+
+                      const SizedBox(height: 8),
+
+                      // عرض معلومات الفئة والسعر
+                      Row(
+                        children: [
+                          // بطاقة الفئة
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 8, vertical: 2),
+                            decoration: BoxDecoration(
+                              color: AppTheme.primaryColor.withOpacity(0.1),
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            child: Text(
+                              category,
+                              style: TextStyle(
+                                color: AppTheme.primaryColor,
+                                fontSize: 12,
+                                fontWeight: FontWeight.w500,
+                              ),
+                            ),
+                          ),
+
+                          const SizedBox(width: 8),
+
+                          // مؤشر التوفر
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 8, vertical: 2),
+                            decoration: BoxDecoration(
+                              color: product.isAvailable
+                                  ? Colors.green.withOpacity(0.1)
+                                  : Colors.red.withOpacity(0.1),
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Icon(
+                                  product.isAvailable
+                                      ? Icons.check_circle
+                                      : Icons.cancel,
+                                  size: 12,
+                                  color: product.isAvailable
+                                      ? Colors.green
+                                      : Colors.red,
+                                ),
+                                const SizedBox(width: 4),
+                                Text(
+                                  product.isAvailable ? 'متاح' : 'غير متاح',
+                                  style: TextStyle(
+                                    fontSize: 12,
+                                    color: product.isAvailable
+                                        ? Colors.green
+                                        : Colors.red,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+
+                          const Spacer(),
+
+                          // السعر
+                          Text(
+                            '${product.price.toStringAsFixed(3)} د.ب',
+                            style: TextStyle(
+                              color: AppTheme.primaryColor,
+                              fontWeight: FontWeight.bold,
+                              fontSize: 14,
+                            ),
+                          ),
+                        ],
+                      ),
+
+                      if (!_isMultiSelectMode)
+                        Padding(
+                          padding: const EdgeInsets.only(top: 8),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.end,
+                            children: [
+                              IconButton(
+                                icon: const Icon(Icons.edit, size: 20),
+                                color: Colors.blue,
+                                onPressed: () =>
+                                    _showAddEditProductDialog(context, product),
+                                padding: EdgeInsets.zero,
+                                constraints: const BoxConstraints(),
+                              ),
+                              const SizedBox(width: 16),
+                              IconButton(
+                                icon: const Icon(Icons.delete, size: 20),
+                                color: Colors.red,
+                                onPressed: () =>
+                                    _showDeleteConfirmationDialog(product),
+                                padding: EdgeInsets.zero,
+                                constraints: const BoxConstraints(),
+                              ),
+                            ],
+                          ),
+                        ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
       ),
-      floatingActionButton: FloatingActionButton(
-        backgroundColor: AppTheme.primaryColor,
-        child: const Icon(Icons.add),
-        onPressed: () => _showAddEditProductDialog(context),
+    );
+  }
+
+  void _showSortOptionsDialog() {
+    Get.dialog(
+      StatefulBuilder(
+        builder: (context, setDialogState) {
+          return AlertDialog(
+            title: const Text('خيارات الترتيب'),
+            content: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                RadioListTile<String>(
+                  title: const Text('الاسم'),
+                  value: 'name',
+                  groupValue: _sortBy,
+                  onChanged: (value) {
+                    setDialogState(() => _sortBy = value!);
+                  },
+                  activeColor: AppTheme.primaryColor,
+                ),
+                RadioListTile<String>(
+                  title: const Text('السعر'),
+                  value: 'price',
+                  groupValue: _sortBy,
+                  onChanged: (value) {
+                    setDialogState(() => _sortBy = value!);
+                  },
+                  activeColor: AppTheme.primaryColor,
+                ),
+                RadioListTile<String>(
+                  title: const Text('التوفر'),
+                  value: 'availability',
+                  groupValue: _sortBy,
+                  onChanged: (value) {
+                    setDialogState(() => _sortBy = value!);
+                  },
+                  activeColor: AppTheme.primaryColor,
+                ),
+                const Divider(),
+                SwitchListTile(
+                  title: const Text('ترتيب تصاعدي'),
+                  value: _sortAscending,
+                  onChanged: (value) {
+                    setDialogState(() => _sortAscending = value);
+                  },
+                  activeColor: AppTheme.primaryColor,
+                ),
+              ],
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Get.back(),
+                child: const Text('إلغاء'),
+              ),
+              ElevatedButton(
+                onPressed: () {
+                  Get.back();
+                  setState(() {}); // تحديث الواجهة بعد تغيير الترتيب
+                },
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppTheme.primaryColor,
+                ),
+                child: const Text('تطبيق'),
+              ),
+            ],
+          );
+        },
       ),
     );
   }

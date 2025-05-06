@@ -1,5 +1,7 @@
 import 'package:hive/hive.dart';
 import 'package:json_annotation/json_annotation.dart';
+import 'package:flutter/material.dart';
+import 'package:uuid/uuid.dart';
 
 part 'order.g.dart';
 
@@ -44,12 +46,13 @@ class Order extends HiveObject {
 
   double get total => items.fold(
         0.0,
-        (sum, item) => sum + (item.price * item.quantity),
+        (sum, item) => sum + (item.price * item.quantity.toDouble()),
       );
 
   double get profit => items.fold(
         0.0,
-        (sum, item) => sum + ((item.price - item.cost) * item.quantity),
+        (sum, item) =>
+            sum + ((item.price - item.cost) * item.quantity.toDouble()),
       );
 
   factory Order.fromJson(Map<String, dynamic> json) => _$OrderFromJson(json);
@@ -74,6 +77,18 @@ class Order extends HiveObject {
       customerName: customerName ?? this.customerName,
       paymentType: paymentType ?? this.paymentType,
       notes: notes ?? this.notes,
+    );
+  }
+
+  /// إنشاء طلب جديد فارغ
+  factory Order.empty() {
+    return Order(
+      id: const Uuid().v4(),
+      items: [],
+      status: OrderStatus.pending,
+      createdAt: DateTime.now(),
+      customerId: 'walk-in',
+      paymentType: PaymentType.cash,
     );
   }
 }
@@ -111,6 +126,25 @@ class OrderItem extends HiveObject {
   factory OrderItem.fromJson(Map<String, dynamic> json) =>
       _$OrderItemFromJson(json);
   Map<String, dynamic> toJson() => _$OrderItemToJson(this);
+
+  /// إنشاء نسخة جديدة من عنصر الطلب مع تغييرات
+  OrderItem copyWith({
+    String? productId,
+    String? name,
+    double? price,
+    double? cost,
+    int? quantity,
+    String? notes,
+  }) {
+    return OrderItem(
+      productId: productId ?? this.productId,
+      name: name ?? this.name,
+      price: price ?? this.price,
+      cost: cost ?? this.cost,
+      quantity: quantity ?? this.quantity,
+      notes: notes ?? this.notes,
+    );
+  }
 }
 
 @HiveType(typeId: 5)

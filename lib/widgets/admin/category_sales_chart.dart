@@ -5,6 +5,7 @@ import 'package:gpr_coffee_shop/constants/theme.dart';
 import 'package:gpr_coffee_shop/controllers/category_controller.dart';
 import 'package:gpr_coffee_shop/controllers/order_controller.dart';
 import 'package:gpr_coffee_shop/models/category.dart';
+import 'package:gpr_coffee_shop/models/order.dart';
 
 class CategorySalesChart extends StatefulWidget {
   final DateTime startDate;
@@ -23,12 +24,41 @@ class CategorySalesChart extends StatefulWidget {
 class _CategorySalesChartState extends State<CategorySalesChart> {
   final categoryController = Get.find<CategoryController>();
   final orderController = Get.find<OrderController>();
+  Worker? _ordersWorker;
+
+  // Cache for bar groups to avoid recursive calls
+  List<BarChartGroupData>? _cachedBarGroups;
+  double? _cachedMaxY;
 
   @override
   void initState() {
     super.initState();
-    // إضافة مراقب لتحديث الرسم البياني عند تغير الطلبات
-    ever(orderController.orders, (_) => setState(() {}));
+    // Use worker instead of direct ever to avoid state issues
+    _ordersWorker = ever(orderController.orders, (_) {
+      if (mounted) {
+        // Clear cache when orders change
+        _cachedBarGroups = null;
+        _cachedMaxY = null;
+        setState(() {});
+      }
+    });
+  }
+
+  @override
+  void didUpdateWidget(CategorySalesChart oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    // Clear cache when date range changes
+    if (oldWidget.startDate != widget.startDate ||
+        oldWidget.endDate != widget.endDate) {
+      _cachedBarGroups = null;
+      _cachedMaxY = null;
+    }
+  }
+
+  @override
+  void dispose() {
+    _ordersWorker?.dispose();
+    super.dispose();
   }
 
   @override
@@ -38,29 +68,150 @@ class _CategorySalesChartState extends State<CategorySalesChart> {
         padding: const EdgeInsets.all(16.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisSize: MainAxisSize.min,
           children: [
             Text(
               'المبيعات حسب الفئة',
               style: Theme.of(context).textTheme.titleLarge,
             ),
-            const SizedBox(height: 24),
-            AspectRatio(
-              aspectRatio: 1.7,
-              child: BarChart(
-                BarChartData(
-                  barTouchData: barTouchData,
-                  titlesData: titlesData,
-                  borderData: borderData,
-                  barGroups: _createBarGroups(),
-                  gridData: const FlGridData(show: false),
-                  alignment: BarChartAlignment.spaceAround,
-                ),
+            const SizedBox(height: 16),
+            SizedBox(
+              height: 200,
+              child: GetX<CategoryController>(
+                builder: (controller) {
+                  final categories = controller.categories;
+                  if (categories.isEmpty) {
+                    return const Center(child: Text('لا توجد بيانات للعرض'));
+                  }
+
+                  // Clear cache when categories change
+                  if (_cachedBarGroups == null) {
+                    _createBarGroupsSafely();
+                  }
+
+                  return BarChart(
+                    BarChartData(
+                      barTouchData: barTouchData,
+                      titlesData: titlesData,
+                      borderData: borderData,
+                      barGroups: _cachedBarGroups ?? [],
+                      gridData: const FlGridData(show: false),
+                      alignment: BarChartAlignment.spaceAround,
+                      maxY: _cachedMaxY ?? 100,
+                    ),
+                  );
+                },
               ),
             ),
           ],
         ),
       ),
     );
+  }
+
+  // Safe version that doesn't cause recursion
+  void _createBarGroupsSafely() {
+    final categories = categoryController.categories;
+    final orders = orderController.orders;
+
+    // Prevent work if no data
+    if (categories.isEmpty) {
+      _cachedBarGroups = [];
+      _cachedMaxY = 100.0;
+      return;
+    }
+
+    // Calculate sales for each category - Step 1
+    Map<String, double> categorySales = {};
+    for (var category in categories) {
+      categorySales[category.id] = 0;
+    }
+
+    // Aggregate sales - Step 2
+    for (var order in orders) {
+      // Apply date filter
+      if (order.createdAt.isAfter(widget.startDate) &&
+          order.createdAt
+               .isBefore(widget.endDate.add(const Duration(days: 1))) &&
+          order.status == OrderStatus.completed) {
+        for (var item in order.items) {
+          final product = orderController.findProductById(item.productId);
+          if (product != null) {
+            final categoryId = product.categoryId;
+            if (categorySales.containsKey(categoryId)) {
+              categorySales[categoryId] = (categorySales[categoryId] ?? 0) +
+                  (item.price * item.quantity);
+            }
+          }
+        }
+      }
+    }
+
+    // Build bar groups with the calculated data - Step 3
+    List<BarChartGroupData> barGroups = [];
+    double maxY = 0.0;
+
+    for (int i = 0; i < categories.length; i++) {
+      final category = categories[i];
+      final sales = categorySales[category.id] ?? 0;
+
+      // Track max value for Y axis
+      if (sales > maxY) {
+        maxY = sales;
+      }
+
+      barGroups.add(
+        BarChartGroupData(
+          x: i,
+          barRods: [
+            BarChartRodData(
+              toY: sales,
+              color: _getBarColor(i),
+              width: 20,
+              borderRadius: BorderRadius.circular(2),
+              backDrawRodData: BackgroundBarChartRodData(
+                show: true,
+                toY: 100, // Temporary value, will be replaced
+                color: Colors.grey.shade200,
+              ),
+            ),
+          ],
+        ),
+      );
+    }
+
+    // Set the maxY with padding and ensure it's never 0
+    _cachedMaxY = maxY > 0 ? maxY * 1.2 : 100;
+
+    // Now update the groups with new rods that have correct background values
+    for (int i = 0; i < barGroups.length; i++) {
+      final group = barGroups[i];
+      final List<BarChartRodData> newRods = [];
+
+      for (var rod in group.barRods) {
+        // Create a new rod with updated backDrawRodData
+        newRods.add(BarChartRodData(
+          toY: rod.toY,
+          color: rod.color,
+          width: rod.width,
+          borderRadius: rod.borderRadius,
+          backDrawRodData: BackgroundBarChartRodData(
+            show: true,
+            toY: _cachedMaxY!,
+            color: Colors.grey.shade200,
+          ),
+        ));
+      }
+
+      // Replace with new group containing updated rods
+      barGroups[i] = BarChartGroupData(
+        x: group.x,
+        barRods: newRods,
+      );
+    }
+
+    // Cache the result
+    _cachedBarGroups = barGroups;
   }
 
   BarTouchData get barTouchData => BarTouchData(
@@ -75,10 +226,14 @@ class _CategorySalesChartState extends State<CategorySalesChart> {
             BarChartRodData rod,
             int rodIndex,
           ) {
+            final categories = categoryController.categories;
+            if (groupIndex >= categories.length) return null;
+
             Category? category = categoryController.findById(
-              categoryController.categories[group.x].id,
+              categories[groupIndex].id,
             );
             if (category == null) return null;
+
             return BarTooltipItem(
               '${category.name}\n',
               const TextStyle(
@@ -119,6 +274,14 @@ class _CategorySalesChartState extends State<CategorySalesChart> {
         ),
       );
 
+  FlBorderData get borderData => FlBorderData(
+        show: true,
+        border: Border(
+          bottom: BorderSide(color: Colors.grey.shade300, width: 1),
+          left: BorderSide(color: Colors.grey.shade300, width: 1),
+        ),
+      );
+
   Widget getTitles(double value, TitleMeta meta) {
     final categories = categoryController.categories;
     final index = value.toInt();
@@ -142,46 +305,19 @@ class _CategorySalesChartState extends State<CategorySalesChart> {
     return const SizedBox();
   }
 
-  FlBorderData get borderData => FlBorderData(
-        show: false,
-      );
+  Color _getBarColor(int index) {
+    const colors = [
+      AppTheme.primaryColor,
+      Colors.blue,
+      Colors.green,
+      Colors.amber,
+      Colors.purple,
+      Colors.teal,
+      Colors.orange,
+      Colors.indigo,
+      Colors.pink,
+    ];
 
-  List<BarChartGroupData> _createBarGroups() {
-    final categories = categoryController.categories;
-    final orders =
-        orderController.getOrdersByDateRange(widget.startDate, widget.endDate);
-
-    return categories.asMap().entries.map((entry) {
-      final categoryId = entry.value.id;
-      double totalRevenue = 0;
-
-      for (final order in orders) {
-        for (final item in order.items) {
-          final product = categoryController.findById(categoryId);
-          if (product != null) {
-            totalRevenue += item.price * item.quantity;
-          }
-        }
-      }
-
-      return BarChartGroupData(
-        x: entry.key,
-        barRods: [
-          BarChartRodData(
-            toY: totalRevenue,
-            gradient: LinearGradient(
-              colors: [
-                AppTheme.primaryColor.withOpacity(0.7),
-                AppTheme.primaryColor,
-              ],
-              begin: Alignment.bottomCenter,
-              end: Alignment.topCenter,
-            ),
-            borderRadius: BorderRadius.circular(4),
-          ),
-        ],
-        showingTooltipIndicators: [0],
-      );
-    }).toList();
+    return colors[index % colors.length];
   }
 }

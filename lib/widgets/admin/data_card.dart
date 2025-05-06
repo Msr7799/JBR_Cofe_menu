@@ -42,6 +42,11 @@ class DataCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isLandscape =
+        MediaQuery.of(context).orientation == Orientation.landscape;
+    final screenWidth = MediaQuery.of(context).size.width;
+    final isMobile = screenWidth < 600;
+
     return GestureDetector(
       onTap: onTap,
       child: Neumorphic(
@@ -53,7 +58,9 @@ class DataCard extends StatelessWidget {
         child: Container(
           height: height,
           padding: const EdgeInsets.all(16),
-          child: isLoading ? _buildLoadingState() : _buildContent(),
+          child: isLoading
+              ? _buildLoadingState()
+              : _buildContent(isMobile, isLandscape),
         ),
       ),
     );
@@ -95,19 +102,23 @@ class DataCard extends StatelessWidget {
     );
   }
 
-  Widget _buildContent() {
-    return Row(
+  Widget _buildContent(bool isMobile, bool isLandscape) {
+    // تعديل الواجهة للتكيف مع الشاشات المختلفة
+    final contentWidget = Row(
       children: [
         // أيقونة البطاقة
         Container(
-          padding: const EdgeInsets.all(12),
+          padding: EdgeInsets.all(isMobile && !isLandscape ? 8 : 12),
           decoration: BoxDecoration(
-            color: backgroundColor ?? (customColor ?? AppColors.accent).withOpacity(0.1),
+            color: backgroundColor ??
+                (customColor ?? AppColors.accent).withOpacity(0.1),
             borderRadius: BorderRadius.circular(12),
           ),
-          child: Icon(icon, color: customColor ?? AppColors.accent, size: 24),
+          child: Icon(icon,
+              color: customColor ?? AppColors.accent,
+              size: isMobile && !isLandscape ? 20 : 24),
         ),
-        const SizedBox(width: 16),
+        SizedBox(width: isMobile && !isLandscape ? 8 : 16),
 
         // محتوى البطاقة
         Expanded(
@@ -118,25 +129,31 @@ class DataCard extends StatelessWidget {
               Text(
                 title,
                 style: TextStyle(
-                  fontSize: 14,
+                  fontSize: isMobile && !isLandscape ? 12 : 14,
                   fontWeight: FontWeight.normal,
                   color: Colors.grey[600],
                 ),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
               ),
-              const SizedBox(height: 4),
+              SizedBox(height: isMobile && !isLandscape ? 2 : 4),
               Text(
                 value,
                 style: TextStyle(
-                  fontSize: 20,
+                  fontSize: isMobile && !isLandscape ? 16 : 20,
                   fontWeight: FontWeight.bold,
                   color: Colors.grey[800],
                 ),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
               ),
               if (subtitle != null) ...[
                 const SizedBox(height: 2),
                 Text(
                   subtitle!,
                   style: TextStyle(fontSize: 12, color: Colors.grey[600]),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
                 ),
               ],
             ],
@@ -145,9 +162,13 @@ class DataCard extends StatelessWidget {
 
         // سهم (اختياري)
         if (onTap != null && showArrow)
-          Icon(Icons.chevron_right, color: Colors.grey[400], size: 20),
+          Icon(Icons.chevron_right,
+              color: Colors.grey[400],
+              size: isMobile && !isLandscape ? 16 : 20),
       ],
     );
+
+    return contentWidget;
   }
 }
 
@@ -214,10 +235,12 @@ class PercentageDataCard extends StatelessWidget {
                         Container(
                           padding: const EdgeInsets.all(8),
                           decoration: BoxDecoration(
-                            color: (customColor ?? AppColors.accent).withOpacity(0.1),
+                            color: (customColor ?? AppColors.accent)
+                                .withOpacity(0.1),
                             borderRadius: BorderRadius.circular(8),
                           ),
-                          child: Icon(icon, color: customColor ?? AppColors.accent, size: 20),
+                          child: Icon(icon,
+                              color: customColor ?? AppColors.accent, size: 20),
                         ),
                         const SizedBox(width: 12),
 
@@ -397,8 +420,11 @@ class PercentageDataCard extends StatelessWidget {
             width: (percentage / 100) *
                 (300 - 32), // تقدير لعرض البطاقة بدون الهوامش
             decoration: BoxDecoration(
-                gradient: LinearGradient(
-                colors: [customColor ?? AppColors.accent, (customColor ?? AppColors.accent).withOpacity(0.7)],
+              gradient: LinearGradient(
+                colors: [
+                  customColor ?? AppColors.accent,
+                  (customColor ?? AppColors.accent).withOpacity(0.7)
+                ],
                 begin: Alignment.centerRight,
                 end: Alignment.centerLeft,
               ),
@@ -410,3 +436,4 @@ class PercentageDataCard extends StatelessWidget {
     );
   }
 }
+

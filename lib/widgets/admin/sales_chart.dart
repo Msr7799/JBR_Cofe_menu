@@ -6,10 +6,12 @@ import 'package:gpr_coffee_shop/controllers/order_controller.dart';
 
 class SalesChart extends StatefulWidget {
   final List<SaleData> data;
+  final bool showLegend;
 
   const SalesChart({
     Key? key,
     required this.data,
+    this.showLegend = false,
   }) : super(key: key);
 
   @override

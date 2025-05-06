@@ -21,7 +21,7 @@ class OrderHistoryScreenState extends State<OrderHistoryScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('سجل الطلبات'),
+        title: Text('order_history'.tr),
         centerTitle: true,
         backgroundColor: AppTheme.primaryColor,
         leading: IconButton(
@@ -52,8 +52,8 @@ class OrderHistoryScreenState extends State<OrderHistoryScreen> {
       child: Column(
         children: [
           TextField(
-            decoration: const InputDecoration(
-              labelText: 'بحث',
+            decoration: InputDecoration(
+              labelText: 'search'.tr,
               prefixIcon: Icon(Icons.search),
               border: OutlineInputBorder(),
             ),
@@ -68,11 +68,14 @@ class OrderHistoryScreenState extends State<OrderHistoryScreen> {
             scrollDirection: Axis.horizontal,
             child: Row(
               children: [
-                _buildStatusFilter('الكل', null),
-                _buildStatusFilter('معلق', OrderStatus.pending),
-                _buildStatusFilter('قيد التحضير', OrderStatus.processing),
-                _buildStatusFilter('مكتمل', OrderStatus.completed),
-                _buildStatusFilter('ملغي', OrderStatus.cancelled),
+                _buildStatusFilter('all'.tr, null),
+                _buildStatusFilter('status_pending'.tr, OrderStatus.pending),
+                _buildStatusFilter(
+                    'status_processing'.tr, OrderStatus.processing),
+                _buildStatusFilter(
+                    'status_completed'.tr, OrderStatus.completed),
+                _buildStatusFilter(
+                    'status_cancelled'.tr, OrderStatus.cancelled),
               ],
             ),
           ),
@@ -133,9 +136,10 @@ class OrderHistoryScreenState extends State<OrderHistoryScreen> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 if (order.customerName != null)
-                  Text('العميل: ${order.customerName}'),
-                Text('التاريخ: ${_formatDate(order.createdAt)}'),
-                Text('الإجمالي: ${order.total.toStringAsFixed(3)} د.ب'),
+                  Text('${'customer'.tr}: ${order.customerName}'),
+                Text('${'order_date'.tr}: ${_formatDate(order.createdAt)}'),
+                Text(
+                    '${'total'.tr}: ${order.total.toStringAsFixed(3)} ${'currency'.tr}'),
                 const SizedBox(height: 8),
                 _buildItemsList(order.items),
               ],
@@ -156,15 +160,120 @@ class OrderHistoryScreenState extends State<OrderHistoryScreen> {
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
-        children: items.map((item) {
-          return Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text('${item.name} x ${item.quantity}'),
-              Text('${(item.price * item.quantity).toStringAsFixed(3)} د.ب'),
-            ],
-          );
-        }).toList(),
+        children: [
+          // إضافة رأس للجدول
+          Padding(
+            padding: const EdgeInsets.only(bottom: 8.0),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Expanded(
+                  flex: 3,
+                  child: Text(
+                    'product'.tr,
+                    style: TextStyle(
+                      fontSize: 12,
+                      color: Colors.grey[700],
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
+                Expanded(
+                  flex: 1,
+                  child: Text(
+                    'quantity'.tr,
+                    style: TextStyle(
+                      fontSize: 12,
+                      color: Colors.grey[700],
+                      fontWeight: FontWeight.bold,
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
+                ),
+                Expanded(
+                  flex: 2,
+                  child: Text(
+                    'price'.tr,
+                    style: TextStyle(
+                      fontSize: 12,
+                      color: Colors.grey[700],
+                      fontWeight: FontWeight.bold,
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
+                ),
+                Expanded(
+                  flex: 2,
+                  child: Text(
+                    'total'.tr,
+                    style: TextStyle(
+                      fontSize: 12,
+                      color: Colors.grey[700],
+                      fontWeight: FontWeight.bold,
+                    ),
+                    textAlign: TextAlign.end,
+                  ),
+                ),
+              ],
+            ),
+          ),
+
+          // التحقق من وجود عناصر في الطلب
+          if (items.isEmpty)
+            Padding(
+              padding: const EdgeInsets.all(8.0),
+              child: Text(
+                'no_order_items'.tr,
+                style: TextStyle(
+                  color: Colors.grey[600],
+                  fontStyle: FontStyle.italic,
+                ),
+                textAlign: TextAlign.center,
+              ),
+            )
+          else
+            // عناصر الطلب
+            ...items.map((item) {
+              return Padding(
+                padding: const EdgeInsets.symmetric(vertical: 4),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Expanded(
+                      flex: 3,
+                      child: Text(
+                        item.name.isNotEmpty ? item.name : 'unknown_product'.tr,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                    Expanded(
+                      flex: 1,
+                      child: Text(
+                        '${item.quantity}×',
+                        textAlign: TextAlign.center,
+                      ),
+                    ),
+                    Expanded(
+                      flex: 2,
+                      child: Text(
+                        '${item.price.toStringAsFixed(3)} د.ب',
+                        textAlign: TextAlign.center,
+                      ),
+                    ),
+                    Expanded(
+                      flex: 2,
+                      child: Text(
+                        '${(item.price * item.quantity).toStringAsFixed(3)} د.ب',
+                        textAlign: TextAlign.end,
+                        style: const TextStyle(fontWeight: FontWeight.w500),
+                      ),
+                    ),
+                  ],
+                ),
+              );
+            }).toList(),
+        ],
       ),
     );
   }
@@ -173,24 +282,25 @@ class OrderHistoryScreenState extends State<OrderHistoryScreen> {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: Text('تفاصيل الطلب #${order.id.substring(0, 8)}'),
+        title: Text('${'order_details'.tr} #${order.id.substring(0, 8)}'),
         content: SingleChildScrollView(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             mainAxisSize: MainAxisSize.min,
             children: [
-              Text('العميل: ${order.customerName ?? "غير محدد"}'),
-              Text('التاريخ: ${_formatDate(order.createdAt)}'),
-              Text('طريقة الدفع: ${_getPaymentTypeText(order.paymentType)}'),
+              Text('${'customer'.tr}: ${order.customerName ?? 'unknown'.tr}'),
+              Text('${'order_date'.tr}: ${_formatDate(order.createdAt)}'),
+              Text(
+                  '${'payment_method'.tr}: ${_getPaymentTypeText(order.paymentType)}'),
               if (order.notes != null && order.notes!.isNotEmpty)
-                Text('ملاحظات: ${order.notes}'),
+                Text('${'notes'.tr}: ${order.notes}'),
               const SizedBox(height: 16),
               const Text('المنتجات:',
                   style: TextStyle(fontWeight: FontWeight.bold)),
               _buildItemsList(order.items),
               const Divider(),
               Text(
-                'الإجمالي: ${order.total.toStringAsFixed(3)} د.ب',
+                '${'total'.tr}: ${order.total.toStringAsFixed(3)} ${'currency'.tr}',
                 style: const TextStyle(fontWeight: FontWeight.bold),
               ),
             ],
@@ -198,7 +308,7 @@ class OrderHistoryScreenState extends State<OrderHistoryScreen> {
         ),
         actions: [
           TextButton(
-            child: const Text('إغلاق'),
+            child: Text('close'.tr),
             onPressed: () => Navigator.of(context).pop(),
           ),
         ],
@@ -213,19 +323,19 @@ class OrderHistoryScreenState extends State<OrderHistoryScreen> {
     switch (status) {
       case OrderStatus.pending:
         color = Colors.orange;
-        label = 'معلق';
+        label = 'status_pending'.tr;
         break;
       case OrderStatus.processing:
         color = Colors.blue;
-        label = 'قيد التحضير';
+        label = 'status_processing'.tr;
         break;
       case OrderStatus.completed:
         color = Colors.green;
-        label = 'مكتمل';
+        label = 'status_completed'.tr;
         break;
       case OrderStatus.cancelled:
         color = Colors.red;
-        label = 'ملغي';
+        label = 'status_cancelled'.tr;
         break;
     }
 
@@ -245,13 +355,13 @@ class OrderHistoryScreenState extends State<OrderHistoryScreen> {
   String _getPaymentTypeText(PaymentType type) {
     switch (type) {
       case PaymentType.cash:
-        return 'نقدي';
+        return 'cash'.tr;
       case PaymentType.card:
-        return 'بطاقة';
+        return 'credit_card'.tr;
       case PaymentType.benefit:
-        return 'بنفت باي';
+        return 'benefitpay'.tr;
       case PaymentType.other:
-        return 'أخرى';
+        return 'other'.tr;
     }
   }
 }

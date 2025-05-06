@@ -21,10 +21,10 @@ android {
 
     defaultConfig {
         // TODO: Specify your own unique Application ID (https://developer.android.com/studio/build/application-id.html).
-        applicationId = "com.example.gpr_coffee_shop"
+        applicationId = "com.jbr.coffee_menu"  // تغيير اسم الحزمة ليكون أكثر تخصيصًا
         // You can update the following values to match your application needs.
         // For more information, see: https://flutter.dev/to/review-gradle-config.
-        minSdk = flutter.minSdkVersion
+        minSdk = 21  // تعيين الحد الأدنى للإصدار المدعوم
         targetSdk = flutter.targetSdkVersion
         versionCode = flutter.versionCode
         versionName = flutter.versionName
@@ -35,6 +35,24 @@ android {
             // TODO: Add your own signing config for the release build.
             // Signing with the debug keys for now, so `flutter run --release` works.
             signingConfig = signingConfigs.getByName("debug")
+            isMinifyEnabled = true
+            proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
+        }
+        debug {
+            // تكوين الإصدار التجريبي
+            applicationIdSuffix = ".debug"
+            isDebuggable = true
+        }
+    }
+    
+    // إضافة تكوين لمخرجات APK
+    applicationVariants.all {
+        val variant = this
+        variant.outputs.all {
+            // تعديل اسم ملف APK
+            val outputImpl = this as com.android.build.gradle.internal.api.BaseVariantOutputImpl
+            val outputFileName = "JBR_Coffee_Menu_${variant.versionName}_${variant.buildType.name}.apk"
+            outputImpl.outputFileName = outputFileName
         }
     }
 }

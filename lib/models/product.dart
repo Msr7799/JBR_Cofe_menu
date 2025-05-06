@@ -41,6 +41,9 @@ class Product {
   @HiveField(11) // Added field for English description
   final String descriptionEn;
 
+  @HiveField(12) // Added field for popular products
+  final bool isPopular;
+
   Product({
     required this.id,
     required this.name,
@@ -54,6 +57,7 @@ class Product {
     this.order = 0,
     this.nameEn = '', // Default value
     this.descriptionEn = '', // Default value
+    this.isPopular = false, // Default value for popular flag
   });
 
   String get localizedName => Get.locale?.languageCode == 'en' ? nameEn : name;
@@ -74,6 +78,7 @@ class Product {
       order: json['order'] ?? 0,
       nameEn: json['nameEn'] ?? '', // Add English name
       descriptionEn: json['descriptionEn'] ?? '', // Add English description
+      isPopular: json['isPopular'] ?? false, // Add popular flag
     );
   }
 
@@ -91,6 +96,7 @@ class Product {
       'order': order,
       'nameEn': nameEn, // Add English name
       'descriptionEn': descriptionEn, // Add English description
+      'isPopular': isPopular, // Add popular flag
     };
   }
 
@@ -107,6 +113,7 @@ class Product {
     int? order,
     String? nameEn,
     String? descriptionEn,
+    bool? isPopular,
   }) {
     return Product(
       id: id ?? this.id,
@@ -121,6 +128,7 @@ class Product {
       order: order ?? this.order,
       nameEn: nameEn ?? this.nameEn,
       descriptionEn: descriptionEn ?? this.descriptionEn,
+      isPopular: isPopular ?? this.isPopular,
     );
   }
 }

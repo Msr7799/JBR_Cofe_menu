@@ -1,137 +1,240 @@
 import 'package:get/get.dart';
-import 'package:shared_preferences/shared_preferences.dart';
-import 'package:gpr_coffee_shop/services/shared_preferences_service.dart';
-import 'package:flutter/material.dart';
+import 'package:get_storage/get_storage.dart';
+import 'package:flutter/material.dart'; // Add Flutter material import for Color
 
-/// مساعد لإدارة خيارات العرض في التطبيق
 class ViewOptionsHelper {
-  // مفاتيح التخزين
-  static const String _viewModeKey = 'menu_view_mode';
-  static const String _showImagesKey = 'show_images';
-  static const String _useAnimationsKey = 'use_animations';
-  static const String _showOrderButtonKey = 'show_order_button';
-  static const String _cardSizeKey = 'card_size';
-  static const String _textColorKey = 'text_color';
-  static const String _priceColorKey = 'price_color';
-  static const String _displayModeKey = 'display_mode';
+  static final GetStorage _box = GetStorage();
 
-  // القيم الافتراضية
+  // قيم افتراضية
   static const String _defaultViewMode = 'grid';
+  static const String _defaultDisplayMode = 'categorized';
   static const bool _defaultShowImages = true;
   static const bool _defaultUseAnimations = true;
   static const bool _defaultShowOrderButton = true;
   static const double _defaultCardSize = 1.0;
   static const int _defaultTextColor = 0xFF000000; // أسود
-  static const int _defaultPriceColor = 0xFF800000; // اللون الأساسي
-  static const String _defaultDisplayMode = 'products';
+  static const int _defaultPriceColor = 0xFF4CAF50; // أخضر
 
-  // الحصول على خدمة التفضيلات المشتركة
-  static SharedPreferencesService _getPrefs() {
-    return Get.find<SharedPreferencesService>();
-  }
+  // قيم افتراضية للإضافات الجديدة
+  static const double _defaultProductTitleFontSize = 16.0;
+  static const double _defaultProductPriceFontSize = 14.0;
+  static const double _defaultProductButtonFontSize = 14.0;
+  static const double _defaultProductCardWidth = 200.0;
+  static const double _defaultProductCardHeight = 250.0;
+  static const double _defaultProductImageHeight = 120.0;
+  // قيمة افتراضية للاستمرار في التكرار
+  static const bool _defaultContinueToIterate = true;
 
-  /// الحصول على وضع العرض الحالي (شبكي، قائمة، مدمج)
+  // إضافة الثوابت الافتراضية للشاشات الكبيرة والصغيرة
+  // قيم الشاشات الكبيرة
+  static const double _defaultLargeScreenCardWidth = 260.0;
+  static const double _defaultLargeScreenCardHeight = 310.0;
+  static const double _defaultLargeScreenImageHeight = 150.0;
+
+  // قيم الشاشات الصغيرة
+  static const double _defaultSmallScreenCardWidth = 220.0;
+  static const double _defaultSmallScreenCardHeight = 240.0;
+  static const double _defaultSmallScreenImageHeight = 120.0;
+
+  // مفاتيح التخزين
+  static const String _viewModeKey = 'viewMode';
+  static const String _displayModeKey = 'displayMode';
+  static const String _showImagesKey = 'showImages';
+  static const String _useAnimationsKey = 'useAnimations';
+  static const String _showOrderButtonKey = 'showOrderButton';
+  static const String _cardSizeKey = 'cardSize';
+  static const String _textColorKey = 'textColor';
+  static const String _priceColorKey = 'priceColor';
+
+  // مفاتيح التخزين للإضافات الجديدة
+  static const String _productTitleFontSizeKey = 'productTitleFontSize';
+  static const String _productPriceFontSizeKey = 'productPriceFontSize';
+  static const String _productButtonFontSizeKey = 'productButtonFontSize';
+  static const String _productCardWidthKey = 'productCardWidth';
+  static const String _productCardHeightKey = 'productCardHeight';
+  static const String _productImageHeightKey = 'productImageHeight';
+  // مفتاح التخزين للاستمرار في التكرار
+  static const String _continueToIterateKey = 'continueToIterate';
+
+  // دوال الحصول على القيم
   static String getViewMode() {
-    return _getPrefs().getString(_viewModeKey, defaultVal: _defaultViewMode);
+    return _box.read(_viewModeKey) ?? _defaultViewMode;
   }
 
-  /// حفظ وضع العرض
-  static Future<void> saveViewMode(String mode) async {
-    await _getPrefs().setString(_viewModeKey, mode);
-  }
-
-  /// الحصول على طريقة عرض القائمة (فئات، منتجات)
   static String getDisplayMode() {
-    return _getPrefs()
-        .getString(_displayModeKey, defaultVal: _defaultDisplayMode);
+    return _box.read(_displayModeKey) ?? _defaultDisplayMode;
   }
 
-  /// حفظ طريقة عرض القائمة
-  static Future<void> saveDisplayMode(String mode) async {
-    await _getPrefs().setString(_displayModeKey, mode);
-  }
-
-  /// التحقق مما إذا كان يجب عرض الصور
   static bool getShowImages() {
-    return _getPrefs().getBool(_showImagesKey, defaultVal: _defaultShowImages);
+    return _box.read(_showImagesKey) ?? _defaultShowImages;
   }
 
-  /// حفظ إعداد عرض الصور
-  static Future<void> saveShowImages(bool show) async {
-    await _getPrefs().setBool(_showImagesKey, show);
-  }
-
-  /// التحقق مما إذا كان يجب استخدام التأثيرات الحركية
   static bool getUseAnimations() {
-    return _getPrefs()
-        .getBool(_useAnimationsKey, defaultVal: _defaultUseAnimations);
+    return _box.read(_useAnimationsKey) ?? _defaultUseAnimations;
   }
 
-  /// حفظ إعداد استخدام التأثيرات الحركية
-  static Future<void> saveUseAnimations(bool use) async {
-    await _getPrefs().setBool(_useAnimationsKey, use);
-  }
-
-  /// التحقق مما إذا كان يجب عرض زر الطلب
   static bool getShowOrderButton() {
-    return _getPrefs()
-        .getBool(_showOrderButtonKey, defaultVal: _defaultShowOrderButton);
+    return _box.read(_showOrderButtonKey) ?? _defaultShowOrderButton;
   }
 
-  /// حفظ إعداد عرض زر الطلب
-  static Future<void> saveShowOrderButton(bool show) async {
-    await _getPrefs().setBool(_showOrderButtonKey, show);
-  }
-
-  /// الحصول على حجم بطاقة المنتج
   static double getCardSize() {
-    return _getPrefs().getDouble(_cardSizeKey, defaultVal: _defaultCardSize);
+    return _box.read(_cardSizeKey) ?? _defaultCardSize;
   }
 
-  /// حفظ حجم بطاقة المنتج
-  static Future<void> saveCardSize(double size) async {
-    await _getPrefs().setDouble(_cardSizeKey, size);
-  }
-
-  /// الحصول على لون نص عنوان المنتج
   static int getTextColor() {
-    return _getPrefs().getInt(_textColorKey, defaultVal: _defaultTextColor);
+    return _box.read(_textColorKey) ?? _defaultTextColor;
   }
 
-  /// حفظ لون نص عنوان المنتج
-  static Future<void> saveTextColor(int colorValue) async {
-    await _getPrefs().setInt(_textColorKey, colorValue);
-  }
-
-  /// الحصول على لون السعر
   static int getPriceColor() {
-    return _getPrefs().getInt(_priceColorKey, defaultVal: _defaultPriceColor);
+    return _box.read(_priceColorKey) ?? _defaultPriceColor;
   }
 
-  /// حفظ لون السعر
-  static Future<void> savePriceColor(int colorValue) async {
-    await _getPrefs().setInt(_priceColorKey, colorValue);
+  // دوال الحصول على القيم للإضافات الجديدة
+  static double getProductTitleFontSize() {
+    return _box.read(_productTitleFontSizeKey) ?? _defaultProductTitleFontSize;
   }
 
-  /// الحصول على كائن Color من لون النص المحفوظ
+  static double getProductPriceFontSize() {
+    return _box.read(_productPriceFontSizeKey) ?? _defaultProductPriceFontSize;
+  }
+
+  static double getProductButtonFontSize() {
+    return _box.read(_productButtonFontSizeKey) ??
+        _defaultProductButtonFontSize;
+  }
+
+  static double getProductCardWidth() {
+    final isLargeScreen = getIsLargeScreen();
+    final defaultWidth = isLargeScreen
+        ? _defaultLargeScreenCardWidth
+        : _defaultSmallScreenCardWidth;
+    return _box.read(_productCardWidthKey) ?? defaultWidth;
+  }
+
+  static double getProductCardHeight() {
+    final isLargeScreen = getIsLargeScreen();
+    final defaultHeight = isLargeScreen
+        ? _defaultLargeScreenCardHeight
+        : _defaultSmallScreenCardHeight;
+    return _box.read(_productCardHeightKey) ?? defaultHeight;
+  }
+
+  static double getProductImageHeight() {
+    final isLargeScreen = getIsLargeScreen();
+    final defaultImageHeight = isLargeScreen
+        ? _defaultLargeScreenImageHeight
+        : _defaultSmallScreenImageHeight;
+    return _box.read(_productImageHeightKey) ?? defaultImageHeight;
+  }
+
+  // إضافة دالة للحصول على قيمة الاستمرار في التكرار
+  static bool getContinueToIterate() {
+    return _box.read(_continueToIterateKey) ?? _defaultContinueToIterate;
+  }
+
+  // إضافة دالة تخزين واسترجاع نوع الشاشة (كبيرة أو صغيرة)
+  static bool getIsLargeScreen() {
+    return _box.read('is_large_screen') ?? true; // الافتراضي للشاشات الكبيرة
+  }
+
+  static void saveIsLargeScreen(bool isLargeScreen) {
+    _box.write('is_large_screen', isLargeScreen);
+  }
+
+  // دوال حفظ القيم
+  static void saveViewMode(String viewMode) {
+    _box.write(_viewModeKey, viewMode);
+  }
+
+  static void saveDisplayMode(String displayMode) {
+    _box.write(_displayModeKey, displayMode);
+  }
+
+  static void saveShowImages(bool showImages) {
+    _box.write(_showImagesKey, showImages);
+  }
+
+  static void saveUseAnimations(bool useAnimations) {
+    _box.write(_useAnimationsKey, useAnimations);
+  }
+
+  static void saveShowOrderButton(bool showOrderButton) {
+    _box.write(_showOrderButtonKey, showOrderButton);
+  }
+
+  static void saveCardSize(double cardSize) {
+    _box.write(_cardSizeKey, cardSize);
+  }
+
+  static void saveTextColor(int textColor) {
+    _box.write(_textColorKey, textColor);
+  }
+
+  static void savePriceColor(int priceColor) {
+    _box.write(_priceColorKey, priceColor);
+  }
+
+  // دوال حفظ القيم للإضافات الجديدة
+  static void saveProductTitleFontSize(double size) {
+    _box.write(_productTitleFontSizeKey, size);
+  }
+
+  static void saveProductPriceFontSize(double size) {
+    _box.write(_productPriceFontSizeKey, size);
+  }
+
+  static void saveProductButtonFontSize(double size) {
+    _box.write(_productButtonFontSizeKey, size);
+  }
+
+  static void saveProductCardWidth(double width) {
+    _box.write(_productCardWidthKey, width);
+  }
+
+  static void saveProductCardHeight(double height) {
+    _box.write(_productCardHeightKey, height);
+  }
+
+  static void saveProductImageHeight(double height) {
+    _box.write(_productImageHeightKey, height);
+  }
+
+  // إضافة دالة لحفظ قيمة الاستمرار في التكرار
+  static void saveContinueToIterate(bool continueToIterate) {
+    _box.write(_continueToIterateKey, continueToIterate);
+  }
+
+  // دوال حفظ الإعدادات حسب حجم الشاشة
+  static void saveScreenSizePreset(bool isLargeScreen) {
+    saveIsLargeScreen(isLargeScreen);
+
+    if (isLargeScreen) {
+      saveProductCardWidth(_defaultLargeScreenCardWidth);
+      saveProductCardHeight(_defaultLargeScreenCardHeight);
+      saveProductImageHeight(_defaultLargeScreenImageHeight);
+    } else {
+      saveProductCardWidth(_defaultSmallScreenCardWidth);
+      saveProductCardHeight(_defaultSmallScreenCardHeight);
+      saveProductImageHeight(_defaultSmallScreenImageHeight);
+    }
+
+    // تعيين حجم الخط إلى متوسط
+    saveProductTitleFontSize(16.0);
+    saveProductPriceFontSize(14.0);
+    saveProductButtonFontSize(14.0);
+
+    // تعيين حجم البطاقة إلى متوسط
+    saveCardSize(1.0);
+  }
+
+  // Method to convert integer text color to Flutter Color
   static Color getTextColorAsColor() {
     return Color(getTextColor());
   }
 
-  /// الحصول على كائن Color من لون السعر المحفوظ
+  // Method to convert integer price color to Flutter Color
   static Color getPriceColorAsColor() {
     return Color(getPriceColor());
   }
-
-  /// إعادة ضبط جميع الإعدادات إلى القيم الافتراضية
-  static Future<void> resetAllSettings() async {
-    await saveViewMode(_defaultViewMode);
-    await saveShowImages(_defaultShowImages);
-    await saveUseAnimations(_defaultUseAnimations);
-    await saveShowOrderButton(_defaultShowOrderButton);
-    await saveCardSize(_defaultCardSize);
-    await saveTextColor(_defaultTextColor);
-    await savePriceColor(_defaultPriceColor);
-    await saveDisplayMode(_defaultDisplayMode);
-  }
 }
+

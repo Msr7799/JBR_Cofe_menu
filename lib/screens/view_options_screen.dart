@@ -16,6 +16,23 @@ class ViewOptionsScreen extends StatelessWidget {
   final RxInt selectedTextColor = ViewOptionsHelper.getTextColor().obs;
   final RxInt selectedPriceColor = ViewOptionsHelper.getPriceColor().obs;
   final RxString displayMode = ViewOptionsHelper.getDisplayMode().obs;
+  // إضافة متغير للتحكم في خيار "المواصلة بعد إضافة منتج"
+  final RxBool continueToIterate = ViewOptionsHelper.getContinueToIterate().obs;
+
+  // إضافة متغيرات جديدة لحجم الخط
+  final RxDouble productTitleFontSize =
+      ViewOptionsHelper.getProductTitleFontSize().obs;
+  final RxDouble productPriceFontSize =
+      ViewOptionsHelper.getProductPriceFontSize().obs;
+  final RxDouble productButtonFontSize =
+      ViewOptionsHelper.getProductButtonFontSize().obs;
+
+  // إضافة متغيرات جديدة لأبعاد بطاقات المنتجات
+  final RxDouble productCardWidth = ViewOptionsHelper.getProductCardWidth().obs;
+  final RxDouble productCardHeight =
+      ViewOptionsHelper.getProductCardHeight().obs;
+  final RxDouble productImageHeight =
+      ViewOptionsHelper.getProductImageHeight().obs;
 
   // قائمة الألوان المتاحة للاختيار
   final List<Color> availableColors = [
@@ -30,13 +47,15 @@ class ViewOptionsScreen extends StatelessWidget {
     const Color.fromARGB(233, 255, 255, 255),
   ];
 
+  // إضافة متغير RxBool للتحكم في حجم الشاشة
+  final RxBool isLargeScreen = ViewOptionsHelper.getIsLargeScreen().obs;
+
   ViewOptionsScreen({Key? key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
     // نحصل على معلومات حجم الشاشة لتحسين التجربة على الشاشات الصغيرة
     final screenWidth = MediaQuery.of(context).size.width;
-    final screenHeight = MediaQuery.of(context).size.height;
     final isSmallScreen = screenWidth < 400;
 
     return Scaffold(
@@ -71,6 +90,20 @@ class ViewOptionsScreen extends StatelessWidget {
             _buildSectionHeader('حجم بطاقات المنتجات'),
             _buildCardSizeSlider(),
             const SizedBox(height: 20),
+
+            // إضافة قسم جديد لتخصيص أبعاد بطاقات المنتجات
+            _buildSectionHeader('اختيار حجم الشاشة المستهدفة'),
+            _buildScreenSizeSelector(),
+            const SizedBox(height: 20),
+            _buildSectionHeader('أبعاد بطاقات المنتجات'),
+            _buildCardDimensionsSettings(),
+            const SizedBox(height: 20),
+
+            // إضافة قسم جديد لتخصيص حجم الخط
+            _buildSectionHeader('حجم الخط'),
+            _buildFontSizeSettings(),
+            const SizedBox(height: 20),
+
             _buildSectionHeader('ألوان النصوص'),
             _buildTextColorSelector(),
             const SizedBox(height: 20),
@@ -124,6 +157,25 @@ class ViewOptionsScreen extends StatelessWidget {
                 ],
               ),
             ),
+            const SizedBox(height: 20),
+            _buildSectionHeader('هل ترغب في المواصلة؟'),
+            _buildCard(
+              child: Column(
+                children: [
+                  Obx(() => SwitchListTile(
+                        title: const Text('طلب المواصلة بعد إضافة منتج'),
+                        subtitle: const Text(
+                            'عرض شاشة تأكيد بعد إضافة منتج للسلة تسأل إذا كنت ترغب في المواصلة أو الانتقال للدفع'),
+                        value: continueToIterate.value,
+                        activeColor: AppTheme.primaryColor,
+                        onChanged: (value) {
+                          continueToIterate.value = value;
+                          ViewOptionsHelper.saveContinueToIterate(value);
+                        },
+                      )),
+                ],
+              ),
+            ),
             const SizedBox(height: 30),
             Center(
               child: ElevatedButton.icon(
@@ -147,14 +199,27 @@ class ViewOptionsScreen extends StatelessWidget {
     );
   }
 
-  // دالة لحفظ جميع الإعدادات
+  // دالة لحفظ جميع الإعدادات دفعة واحدة
   void _saveAllSettings() {
-    // حفظ جميع الإعدادات مرة واحدة للتأكد من تطبيقها
+    // إضافة حفظ إعدادات حجم الشاشة
+    ViewOptionsHelper.saveIsLargeScreen(isLargeScreen.value);
+
+    // حفظ إعدادات الخط
+    ViewOptionsHelper.saveProductTitleFontSize(productTitleFontSize.value);
+    ViewOptionsHelper.saveProductPriceFontSize(productPriceFontSize.value);
+    ViewOptionsHelper.saveProductButtonFontSize(productButtonFontSize.value);
+
+    // حفظ إعدادات أبعاد البطاقات
+    ViewOptionsHelper.saveProductCardWidth(productCardWidth.value);
+    ViewOptionsHelper.saveProductCardHeight(productCardHeight.value);
+    ViewOptionsHelper.saveProductImageHeight(productImageHeight.value);
+
+    // حفظ وضع العرض والخيارات الأخرى
     ViewOptionsHelper.saveViewMode(viewMode.value);
-    ViewOptionsHelper.saveDisplayMode(displayMode.value);
     ViewOptionsHelper.saveShowImages(showImages.value);
     ViewOptionsHelper.saveUseAnimations(useAnimations.value);
     ViewOptionsHelper.saveShowOrderButton(showOrderButton.value);
+    ViewOptionsHelper.saveDisplayMode(displayMode.value);
     ViewOptionsHelper.saveCardSize(cardSize.value);
     ViewOptionsHelper.saveTextColor(selectedTextColor.value);
     ViewOptionsHelper.savePriceColor(selectedPriceColor.value);
@@ -162,20 +227,336 @@ class ViewOptionsScreen extends StatelessWidget {
     // عرض رسالة تأكيد
     Get.snackbar(
       'تم الحفظ',
-      'تم حفظ إعدادات العرض وتطبيق التغييرات بنجاح',
+      'تم حفظ إعدادات العرض بنجاح',
       snackPosition: SnackPosition.BOTTOM,
       backgroundColor: Colors.green.withOpacity(0.7),
       colorText: Colors.white,
       duration: const Duration(seconds: 2),
     );
+  }
 
-    // تحديث كافة أجزاء التطبيق
-    Get.forceAppUpdate();
+  // إضافة ويدجت جديد لإعدادات حجم الخط
+  Widget _buildFontSizeSettings() {
+    return _buildCard(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Text(
+            'تخصيص حجم النصوص:',
+            style: TextStyle(fontWeight: FontWeight.bold),
+          ),
+          const SizedBox(height: 16),
 
-    // العودة للشاشة السابقة بعد الحفظ
-    Future.delayed(const Duration(milliseconds: 800), () {
-      Get.back();
-    });
+          // حجم خط عنوان المنتج
+          const Text('حجم خط عنوان المنتج:'),
+          Obx(() => Column(
+                children: [
+                  Slider(
+                    value: productTitleFontSize.value,
+                    min: 12.0,
+                    max: 24.0,
+                    divisions: 12,
+                    activeColor: AppTheme.primaryColor,
+                    label: '${productTitleFontSize.value.toStringAsFixed(1)}',
+                    onChanged: (value) => productTitleFontSize.value = value,
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 16),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: const [
+                        Text('صغير', style: TextStyle(color: Colors.grey)),
+                        Text('متوسط', style: TextStyle(color: Colors.grey)),
+                        Text('كبير', style: TextStyle(color: Colors.grey)),
+                      ],
+                    ),
+                  ),
+                  // معاينة لحجم خط العنوان
+                  Container(
+                    margin: const EdgeInsets.symmetric(vertical: 8),
+                    padding: const EdgeInsets.all(8),
+                    decoration: BoxDecoration(
+                      color: Colors.grey.shade200,
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    alignment: Alignment.center,
+                    child: Text(
+                      'معاينة حجم خط العنوان',
+                      style: TextStyle(
+                        fontSize: productTitleFontSize.value,
+                        fontWeight: FontWeight.bold,
+                        color: Color(selectedTextColor.value),
+                      ),
+                    ),
+                  ),
+                ],
+              )),
+
+          const SizedBox(height: 20),
+
+          // حجم خط سعر المنتج
+          const Text('حجم خط سعر المنتج:'),
+          Obx(() => Column(
+                children: [
+                  Slider(
+                    value: productPriceFontSize.value,
+                    min: 10.0,
+                    max: 22.0,
+                    divisions: 12,
+                    activeColor: AppTheme.primaryColor,
+                    label: '${productPriceFontSize.value.toStringAsFixed(1)}',
+                    onChanged: (value) => productPriceFontSize.value = value,
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 16),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: const [
+                        Text('صغير', style: TextStyle(color: Colors.grey)),
+                        Text('متوسط', style: TextStyle(color: Colors.grey)),
+                        Text('كبير', style: TextStyle(color: Colors.grey)),
+                      ],
+                    ),
+                  ),
+                  // معاينة لحجم خط السعر
+                  Container(
+                    margin: const EdgeInsets.symmetric(vertical: 8),
+                    padding: const EdgeInsets.all(8),
+                    decoration: BoxDecoration(
+                      color: Colors.grey.shade200,
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    alignment: Alignment.center,
+                    child: Text(
+                      '${(15.5).toStringAsFixed(3)} د.ب',
+                      style: TextStyle(
+                        fontSize: productPriceFontSize.value,
+                        fontWeight: FontWeight.bold,
+                        color: Color(selectedPriceColor.value),
+                      ),
+                    ),
+                  ),
+                ],
+              )),
+
+          const SizedBox(height: 20),
+
+          // حجم خط زر الطلب
+          const Text('حجم خط زر الطلب:'),
+          Obx(() => Column(
+                children: [
+                  Slider(
+                    value: productButtonFontSize.value,
+                    min: 10.0,
+                    max: 20.0,
+                    divisions: 10,
+                    activeColor: AppTheme.primaryColor,
+                    label: '${productButtonFontSize.value.toStringAsFixed(1)}',
+                    onChanged: (value) => productButtonFontSize.value = value,
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 16),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: const [
+                        Text('صغير', style: TextStyle(color: Colors.grey)),
+                        Text('متوسط', style: TextStyle(color: Colors.grey)),
+                        Text('كبير', style: TextStyle(color: Colors.grey)),
+                      ],
+                    ),
+                  ),
+                  // معاينة لزر الطلب
+                  Container(
+                    margin: const EdgeInsets.symmetric(vertical: 8),
+                    child: ElevatedButton(
+                      onPressed: null,
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: AppTheme.primaryColor,
+                        disabledBackgroundColor: AppTheme.primaryColor,
+                        foregroundColor: Colors.white,
+                      ),
+                      child: Text(
+                        'إضافة للطلب',
+                        style: TextStyle(
+                          fontSize: productButtonFontSize.value,
+                          color: Colors.white,
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              )),
+        ],
+      ),
+    );
+  }
+
+  // إضافة ويدجت جديد لإعدادات أبعاد بطاقات المنتجات
+  Widget _buildCardDimensionsSettings() {
+    return _buildCard(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Text(
+            'تخصيص أبعاد بطاقات المنتجات:',
+            style: TextStyle(fontWeight: FontWeight.bold),
+          ),
+          const SizedBox(height: 16),
+
+          // عرض بطاقة المنتج
+          const Text('عرض بطاقة المنتج:'),
+          Obx(() => Column(
+                children: [
+                  Slider(
+                    value: productCardWidth.value,
+                    min: 150.0,
+                    max: 300.0,
+                    divisions: 15,
+                    activeColor: AppTheme.primaryColor,
+                    label: '${productCardWidth.value.toInt()} بكسل',
+                    onChanged: (value) => productCardWidth.value = value,
+                  ),
+                  Text('العرض الحالي: ${productCardWidth.value.toInt()} بكسل',
+                      style: const TextStyle(color: Colors.grey)),
+                ],
+              )),
+
+          const SizedBox(height: 20),
+
+          // ارتفاع بطاقة المنتج
+          const Text('ارتفاع بطاقة المنتج:'),
+          Obx(() => Column(
+                children: [
+                  Slider(
+                    value: productCardHeight.value,
+                    min: 180.0,
+                    max: 350.0,
+                    divisions: 17,
+                    activeColor: AppTheme.primaryColor,
+                    label: '${productCardHeight.value.toInt()} بكسل',
+                    onChanged: (value) => productCardHeight.value = value,
+                  ),
+                  Text(
+                      'الارتفاع الحالي: ${productCardHeight.value.toInt()} بكسل',
+                      style: const TextStyle(color: Colors.grey)),
+                ],
+              )),
+
+          const SizedBox(height: 20),
+
+          // ارتفاع صورة المنتج
+          const Text('ارتفاع صورة المنتج:'),
+          Obx(() => Column(
+                children: [
+                  Slider(
+                    value: productImageHeight.value,
+                    min: 80.0,
+                    max: 200.0,
+                    divisions: 12,
+                    activeColor: AppTheme.primaryColor,
+                    label: '${productImageHeight.value.toInt()} بكسل',
+                    onChanged: (value) => productImageHeight.value = value,
+                  ),
+                  Text(
+                      'ارتفاع الصورة الحالي: ${productImageHeight.value.toInt()} بكسل',
+                      style: const TextStyle(color: Colors.grey)),
+                ],
+              )),
+
+          const SizedBox(height: 16),
+
+          // معاينة لبطاقة المنتج بالأبعاد الجديدة
+          Obx(() => Container(
+                margin: const EdgeInsets.only(top: 20),
+                alignment: Alignment.center,
+                child: Container(
+                  width: productCardWidth.value * 0.8, // تصغير للمعاينة
+                  height: productCardHeight.value * 0.8, // تصغير للمعاينة
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(12),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withOpacity(0.1),
+                        blurRadius: 5,
+                        spreadRadius: 1,
+                      ),
+                    ],
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: [
+                      Container(
+                        height:
+                            productImageHeight.value * 0.8, // تصغير للمعاينة
+                        decoration: BoxDecoration(
+                          color: Colors.grey.shade300,
+                          borderRadius: const BorderRadius.only(
+                            topLeft: Radius.circular(12),
+                            topRight: Radius.circular(12),
+                          ),
+                        ),
+                        alignment: Alignment.center,
+                        child: const Icon(Icons.image,
+                            size: 40, color: Colors.grey),
+                      ),
+                      Padding(
+                        padding: const EdgeInsets.all(8.0),
+                        child: Text(
+                          'معاينة بطاقة المنتج',
+                          style: TextStyle(
+                            fontSize: productTitleFontSize.value *
+                                0.8, // تصغير للمعاينة
+                            fontWeight: FontWeight.bold,
+                            color: Color(selectedTextColor.value),
+                          ),
+                          textAlign: TextAlign.center,
+                        ),
+                      ),
+                      Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 8.0),
+                        child: Text(
+                          '${(15.5).toStringAsFixed(3)} د.ب',
+                          style: TextStyle(
+                            fontSize: productPriceFontSize.value *
+                                0.8, // تصغير للمعاينة
+                            fontWeight: FontWeight.bold,
+                            color: Color(selectedPriceColor.value),
+                          ),
+                        ),
+                      ),
+                      const Spacer(),
+                      Padding(
+                        padding: const EdgeInsets.all(8.0),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Container(
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: 12, vertical: 6),
+                              decoration: BoxDecoration(
+                                color: AppTheme.primaryColor,
+                                borderRadius: BorderRadius.circular(20),
+                              ),
+                              child: Text(
+                                'إضافة للطلب',
+                                style: TextStyle(
+                                  fontSize: productButtonFontSize.value *
+                                      0.7, // تصغير للمعاينة
+                                  color: Colors.white,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              )),
+        ],
+      ),
+    );
   }
 
   // إضافة طريقة عرض القائمة (فئات/منتجات)
@@ -201,7 +582,10 @@ class ViewOptionsScreen extends StatelessWidget {
                       value: 'categories',
                       groupValue: displayMode.value,
                       activeColor: AppTheme.primaryColor,
-                      onChanged: (value) => displayMode.value = value!,
+                      onChanged: (value) {
+                        displayMode.value = value!;
+                        ViewOptionsHelper.saveDisplayMode(value);
+                      },
                     ),
                     RadioListTile<String>(
                       title: const Text('عرض المنتجات مباشرة'),
@@ -210,7 +594,10 @@ class ViewOptionsScreen extends StatelessWidget {
                       value: 'products',
                       groupValue: displayMode.value,
                       activeColor: AppTheme.primaryColor,
-                      onChanged: (value) => displayMode.value = value!,
+                      onChanged: (value) {
+                        displayMode.value = value!;
+                        ViewOptionsHelper.saveDisplayMode(value);
+                      },
                     ),
                   ],
                 ),
@@ -477,6 +864,100 @@ class ViewOptionsScreen extends StatelessWidget {
       child: Padding(
         padding: const EdgeInsets.all(16),
         child: child,
+      ),
+    );
+  }
+
+  // ثم إضافة قسم جديد قبل قسم أبعاد بطاقات المنتجات
+  // بعد _buildSectionHeader('أبعاد بطاقات المنتجات')
+  Widget _buildScreenSizeSelector() {
+    return _buildCard(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Text(
+            'اختر حجم الشاشة المستهدفة:',
+            style: TextStyle(fontWeight: FontWeight.bold),
+          ),
+          const SizedBox(height: 16),
+          Obx(() => Column(
+                children: [
+                  RadioListTile<bool>(
+                    title: const Text('شاشات كبيرة'),
+                    subtitle: const Text(
+                      'أبعاد مناسبة للشاشات الكبيرة (عرض: 260، ارتفاع: 310، صورة: 150)',
+                      style: TextStyle(fontSize: 12),
+                    ),
+                    value: true,
+                    groupValue: isLargeScreen.value,
+                    activeColor: AppTheme.primaryColor,
+                    onChanged: (value) {
+                      isLargeScreen.value = true;
+                      // تطبيق إعدادات الشاشات الكبيرة
+                      productCardWidth.value = 260.0;
+                      productCardHeight.value = 310.0;
+                      productImageHeight.value = 150.0;
+                    },
+                  ),
+                  RadioListTile<bool>(
+                    title: const Text('شاشات صغيرة'),
+                    subtitle: const Text(
+                      'أبعاد مناسبة للشاشات الصغيرة (عرض: 220، ارتفاع: 240، صورة: 120)',
+                      style: TextStyle(fontSize: 12),
+                    ),
+                    value: false,
+                    groupValue: isLargeScreen.value,
+                    activeColor: AppTheme.primaryColor,
+                    onChanged: (value) {
+                      isLargeScreen.value = false;
+                      // تطبيق إعدادات الشاشات الصغيرة
+                      productCardWidth.value = 220.0;
+                      productCardHeight.value = 240.0;
+                      productImageHeight.value = 120.0;
+                    },
+                  ),
+                  const SizedBox(height: 10),
+                  const Divider(),
+                  const SizedBox(height: 10),
+                  ElevatedButton.icon(
+                    icon: const Icon(Icons.check),
+                    label: const Text('تطبيق الإعدادات المقترحة'),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: AppTheme.primaryColor,
+                      foregroundColor: Colors.white,
+                    ),
+                    onPressed: () {
+                      // تطبيق الإعدادات مع تعيين حجم الخط وحجم البطاقة المتوسط
+                      ViewOptionsHelper.saveScreenSizePreset(
+                          isLargeScreen.value);
+
+                      // تحديث قيم RX
+                      productCardWidth.value =
+                          ViewOptionsHelper.getProductCardWidth();
+                      productCardHeight.value =
+                          ViewOptionsHelper.getProductCardHeight();
+                      productImageHeight.value =
+                          ViewOptionsHelper.getProductImageHeight();
+                      productTitleFontSize.value =
+                          ViewOptionsHelper.getProductTitleFontSize();
+                      productPriceFontSize.value =
+                          ViewOptionsHelper.getProductPriceFontSize();
+                      productButtonFontSize.value =
+                          ViewOptionsHelper.getProductButtonFontSize();
+                      cardSize.value = ViewOptionsHelper.getCardSize();
+
+                      Get.snackbar(
+                        'تم التطبيق',
+                        'تم تطبيق إعدادات ${isLargeScreen.value ? 'الشاشات الكبيرة' : 'الشاشات الصغيرة'} مع حجم خط وبطاقة متوسط',
+                        snackPosition: SnackPosition.BOTTOM,
+                        backgroundColor: Colors.green.withOpacity(0.7),
+                        colorText: Colors.white,
+                      );
+                    },
+                  ),
+                ],
+              )),
+        ],
       ),
     );
   }

@@ -1,7 +1,7 @@
 name: gpr_coffee_shop
 description: A new Flutter project.
 publish_to: 'none'
-version: 1.0.1+2  # زيادة الإصدار من 1.0.0+1 إلى 1.0.1+2
+version: 0.0.1+1 # زيادة الإصدار من 1.0.0+1 إلى 1.0.1+2
 
 environment:
   sdk: '>=3.0.0 <4.0.0'
@@ -11,6 +11,7 @@ dependencies:
     sdk: flutter
   cupertino_icons: ^1.0.6
   get: ^4.6.5
+  get_storage: ^2.1.1 # Added get_storage dependency
   hive: ^2.2.3
   hive_flutter: ^1.1.0
   uuid: ^3.0.7
@@ -31,7 +32,9 @@ dependencies:
   shared_preferences: ^2.2.0
   share_plus: ^7.2.1
   logger: ^2.0.2
-  intl: ^0.18.1  # Add this line for date/time formatting
+  intl: ^0.18.1 # Add this line for date/time formatting
+  cached_network_image: ^3.3.0 # إضافة مكتبة تخزين الصور مؤقتاً من الإنترنت
+  transparent_image: ^2.0.1 # إضافة مكتبة صور شفافة للتحميل المتدرج
 
 dev_dependencies:
   flutter_test:
@@ -43,10 +46,33 @@ dev_dependencies:
 
 flutter:
   uses-material-design: true
-
   assets:
     - assets/images/
     - assets/images/bahrain_flag.png
+    - assets/images/JBR.png
+    - assets/images/JBR1.png
+    - assets/images/JBR2.png
+    - assets/images/JBR3.png
+    - assets/images/JBRB3.png
+    - assets/images/JBRbg.png
+    - assets/images/JBRbg1.png
+    - assets/images/JBRbg2.png
+    - assets/images/JBRC1.png
+    - assets/images/JBRC2.png
+    - assets/images/JBRC3.png
+    - assets/images/JBRD1.png
+    - assets/images/JBRD2.png
+    - assets/images/JBRD4.png
+    - assets/images/JBRH1.png
+    - assets/images/JBRH2.png
+    - assets/images/JBRH3.png
+    - assets/images/JBRTbg.png
+    - assets/images/JBRV1.mp4
+    - assets/images/JBRV2.mp4
+    - assets/images/Logo.gif
+    - assets/images/logo.png
+    - assets/images/placeholder.png
+    - assets/images/placeholder.svg
     # أضف مسارات إضافية للصور حسب الحاجة
     # - assets/other_images/
 

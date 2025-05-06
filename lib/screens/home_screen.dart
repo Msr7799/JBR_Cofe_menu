@@ -2,6 +2,7 @@ import 'dart:io';
 import 'dart:ui';
 import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:gpr_coffee_shop/screens/admin/order_management_screen.dart';
 import 'package:gpr_coffee_shop/services/app_translation_service.dart';
 import 'package:gpr_coffee_shop/utils/logger_util.dart';
 import 'package:intl/intl.dart';
@@ -22,6 +23,8 @@ import 'package:gpr_coffee_shop/services/shared_preferences_service.dart';
 import 'package:gpr_coffee_shop/screens/view_options_screen.dart';
 import 'package:gpr_coffee_shop/screens/about_screen.dart';
 import '../utils/image_helper.dart';
+import 'package:gpr_coffee_shop/controllers/order_controller.dart';
+import 'package:gpr_coffee_shop/models/order.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({Key? key}) : super(key: key);
@@ -39,6 +42,8 @@ class _HomeScreenState extends State<HomeScreen>
 
   final AuthController authController = Get.find<AuthController>();
   final SettingsController settingsController = Get.find<SettingsController>();
+  final OrderController orderController =
+      Get.find<OrderController>(); // Add this line
   late final FeedbackController feedbackController =
       Get.find<FeedbackController>();
   late AnimationController _animationController;
@@ -263,7 +268,56 @@ class _HomeScreenState extends State<HomeScreen>
             ),
             centerTitle: true,
             actions: [
-              // Language Switch Toggle
+              // زر الجرس للطلبات (يظهر فقط للمسؤولين)
+              if (authController.isAdmin.value)
+                Obx(() {
+                  final pendingOrdersCount =
+                      orderController.getProcessingOrders().length;
+                  return Padding(
+                    padding: EdgeInsets.only(top: isSmallScreen ? 10.0 : 15.0),
+                    child: Stack(
+                      children: [
+                        IconButton(
+                          icon: Icon(
+                            Icons.notifications,
+                            color: Colors.white,
+                            size: isSmallScreen ? 22 : 24,
+                          ),
+                          tooltip: 'الطلبات الجديدة',
+                          onPressed: () {
+                            _showOrdersPopup(context);
+                          },
+                        ),
+                        if (pendingOrdersCount > 0)
+                          Positioned(
+                            right: 6,
+                            top: 6,
+                            child: Container(
+                              padding: const EdgeInsets.all(2),
+                              decoration: BoxDecoration(
+                                color: Colors.red,
+                                borderRadius: BorderRadius.circular(10),
+                              ),
+                              constraints: const BoxConstraints(
+                                minWidth: 16,
+                                minHeight: 16,
+                              ),
+                              child: Text(
+                                '$pendingOrdersCount',
+                                style: const TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 10,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                                textAlign: TextAlign.center,
+                              ),
+                            ),
+                          ),
+                      ],
+                    ),
+                  );
+                }),
+              // Language Switch Toggle - تصميم محدث
               Padding(
                 padding: EdgeInsets.only(top: isSmallScreen ? 10.0 : 15.0),
                 child: _buildLanguageSwitcher(),
@@ -279,18 +333,20 @@ class _HomeScreenState extends State<HomeScreen>
                   onPressed: _toggleHomeViewMode,
                 ),
               ),
-              Padding(
-                padding: EdgeInsets.only(
-                    top: isSmallScreen ? 10.0 : 15.0, right: 8.0),
-                child: IconButton(
-                  icon: Icon(
-                    Icons.view_list,
-                    size: isSmallScreen ? 20 : 24,
+              // زر إدارة الطلبات (يظهر فقط للمسؤولين)
+              if (authController.isAdmin.value)
+                Padding(
+                  padding: EdgeInsets.only(
+                    top: isSmallScreen ? 10.0 : 15.0,
+                    right: 8.0,
                   ),
-                  tooltip: 'خيارات العرض',
-                  onPressed: () => Get.to(() => ViewOptionsScreen()),
+                  child: IconButton(
+                    icon: const Icon(Icons.receipt_long),
+                    tooltip: 'إدارة الطلبات',
+                    onPressed: () =>
+                        Get.to(() => const OrderManagementScreen()),
+                  ),
                 ),
-              ),
             ],
           ),
           // تطبيق الخلفية مباشرة على الـ Scaffold
@@ -652,6 +708,18 @@ class _HomeScreenState extends State<HomeScreen>
                                 height: isSmallScreen
                                     ? screenHeight * 0.014
                                     : screenHeight * 0.018),
+                            // order managment screen
+                            _buildNavigationButton(
+                              title: 'order_management'.tr,
+                              icon: Icons.chevron_right,
+                              onTap: () =>
+                                  Get.to(() => const OrderManagementScreen()),
+                              color: const Color.fromARGB(255, 202, 215, 65),
+                            ),
+                            SizedBox(
+                                height: isSmallScreen
+                                    ? screenHeight * 0.014
+                                    : screenHeight * 0.018),
                             _buildNavigationButton(
                               title: 'display_options'.tr,
                               icon: Icons.view_list,
@@ -662,6 +730,7 @@ class _HomeScreenState extends State<HomeScreen>
                                 height: isSmallScreen
                                     ? screenHeight * 0.014
                                     : screenHeight * 0.018),
+
                             _buildNavigationButton(
                               title: 'settings'.tr,
                               icon: Icons.settings,
@@ -910,6 +979,13 @@ class _HomeScreenState extends State<HomeScreen>
                                 }
                               },
                               color: const Color(0xFF8b0000),
+                            ),
+                            _buildLandscapeButton(
+                              title: 'ordar_managment'.tr,
+                              icon: Icons.chevron_right,
+                              onTap: () =>
+                                  Get.to(() => const OrderManagementScreen()),
+                              color: const Color.fromARGB(255, 218, 223, 76),
                             ),
                             _buildLandscapeButton(
                               title: 'display_options'.tr,
@@ -1821,7 +1897,7 @@ class _HomeScreenState extends State<HomeScreen>
                       width: 28,
                       height: 28,
                       decoration: BoxDecoration(
-                        color: const Color(0xFF8b0000),
+                        color: const Color.fromARGB(255, 125, 122, 160),
                         shape: BoxShape.circle,
                         boxShadow: [
                           BoxShadow(
@@ -1844,7 +1920,7 @@ class _HomeScreenState extends State<HomeScreen>
                           onTap: () => _changeLanguageSafely('ar'),
                           child: Center(
                             child: Text(
-                              'عر',
+                              'AR',
                               style: TextStyle(
                                 fontSize: 14,
                                 fontWeight: FontWeight.bold,
@@ -1945,6 +2021,191 @@ class _HomeScreenState extends State<HomeScreen>
         colorText: Colors.white,
       );
     }
+  }
+
+  // إضافة هذه الدالة إلى كلاس _HomeScreenState
+  void _showOrdersPopup(BuildContext context) {
+    final processingOrders = orderController.getProcessingOrders();
+
+    // لا تعرض الشاشة المنبثقة إذا لم تكن هناك طلبات قيد المعالجة
+    if (processingOrders.isEmpty) {
+      Get.snackbar(
+        'لا توجد طلبات',
+        'لا توجد طلبات قيد المعالجة حاليًا',
+        snackPosition: SnackPosition.BOTTOM,
+        backgroundColor: Colors.orange.withAlpha(200),
+        colorText: Colors.white,
+        duration: const Duration(seconds: 2),
+      );
+      return;
+    }
+
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Row(
+            children: [
+              const Icon(Icons.notifications_active,
+                  color: AppTheme.primaryColor),
+              const SizedBox(width: 10),
+              Text('الطلبات الجديدة (${processingOrders.length})'),
+            ],
+          ),
+          content: Container(
+            width: double.maxFinite,
+            constraints: BoxConstraints(
+              maxHeight: MediaQuery.of(context).size.height * 0.6,
+            ),
+            child: ListView.builder(
+              shrinkWrap: true,
+              itemCount: processingOrders.length,
+              itemBuilder: (context, index) {
+                final order = processingOrders[index];
+                final totalItems =
+                    order.items.fold(0, (sum, item) => sum + item.quantity);
+
+                return Card(
+                  margin: const EdgeInsets.only(bottom: 10),
+                  child: ListTile(
+                    contentPadding:
+                        const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                    title: Text(
+                      'طلب #${order.id.substring(0, 6)}',
+                      style: const TextStyle(fontWeight: FontWeight.bold),
+                    ),
+                    subtitle: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                            '$totalItems منتجات • ${order.total.toStringAsFixed(3)} د.ب'),
+                        Text(
+                          DateFormat('yyyy-MM-dd HH:mm')
+                              .format(order.createdAt),
+                          style:
+                              const TextStyle(fontSize: 12, color: Colors.grey),
+                        ),
+                        const SizedBox(height: 5),
+                        Row(
+                          children: [
+                            Expanded(
+                              child: ElevatedButton.icon(
+                                icon: const Icon(Icons.check_circle, size: 16),
+                                label: const Text('إكمال'),
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: Colors.green,
+                                  foregroundColor: Colors.white,
+                                  padding:
+                                      const EdgeInsets.symmetric(vertical: 8),
+                                ),
+                                onPressed: () {
+                                  _completeOrder(order);
+                                  Navigator.pop(context);
+                                },
+                              ),
+                            ),
+                            const SizedBox(width: 8),
+                            Expanded(
+                              child: ElevatedButton.icon(
+                                icon: const Icon(Icons.cancel, size: 16),
+                                label: const Text('إلغاء'),
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: Colors.red,
+                                  foregroundColor: Colors.white,
+                                  padding:
+                                      const EdgeInsets.symmetric(vertical: 8),
+                                ),
+                                onPressed: () {
+                                  _cancelOrder(order);
+                                  Navigator.pop(context);
+                                },
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                    leading: Container(
+                      width: 40,
+                      height: 40,
+                      decoration: BoxDecoration(
+                        color: AppTheme.primaryColor,
+                        shape: BoxShape.circle,
+                      ),
+                      child: Center(
+                        child: Text(
+                          '${index + 1}',
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
+                    ),
+                    trailing: IconButton(
+                      icon: const Icon(Icons.chevron_right),
+                      onPressed: () {
+                        Navigator.pop(context);
+                        Get.to(() => const OrderManagementScreen());
+                      },
+                    ),
+                  ),
+                );
+              },
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+              child: const Text('إغلاق'),
+            ),
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+                Get.to(() => const OrderManagementScreen());
+              },
+              child: const Text('إدارة جميع الطلبات'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  // دالة لإكمال الطلب
+  void _completeOrder(Order order) {
+    orderController
+        .updateOrderStatus(order.id, OrderStatus.completed)
+        .then((success) {
+      if (success) {
+        Get.snackbar(
+          'تم بنجاح',
+          'تم إكمال الطلب بنجاح',
+          snackPosition: SnackPosition.BOTTOM,
+          backgroundColor: Colors.green.withAlpha(200),
+          colorText: Colors.white,
+        );
+      }
+    });
+  }
+
+  // دالة لإلغاء الطلب
+  void _cancelOrder(Order order) {
+    orderController
+        .updateOrderStatus(order.id, OrderStatus.cancelled)
+        .then((success) {
+      if (success) {
+        Get.snackbar(
+          'تم بنجاح',
+          'تم إلغاء الطلب',
+          snackPosition: SnackPosition.BOTTOM,
+          backgroundColor: Colors.red.withAlpha(200),
+          colorText: Colors.white,
+        );
+      }
+    });
   }
 }
 

@@ -35,7 +35,7 @@ import 'package:gpr_coffee_shop/utils/rendering_helper.dart'; // Add this import
 import 'package:hive_flutter/hive_flutter.dart';
 
 import 'dart:io';
-import 'package:flutter/foundation.dart' show kIsWeb;
+import 'package:flutter/foundation.dart' show kDebugMode, kIsWeb;
 
 // Function to register all Hive adapters
 Future<void> _registerHiveAdapters() async {
@@ -61,7 +61,16 @@ Future<void> _registerHiveAdapters() async {
     Hive.registerAdapter(OrderStatusAdapter());
     Hive.registerAdapter(PaymentTypeAdapter());
 
-    print("✅ All Hive adapters registered successfully");
+    if (kDebugMode) {
+
+
+
+
+
+
+
+      print("✅ All Hive adapters registered successfully");
+    }
   } catch (e) {
     print("⚠️ Error registering Hive adapters: $e");
     // Continue execution as some adapters might already be registered

@@ -8,6 +8,7 @@ import 'package:gpr_coffee_shop/screens/admin/product_management.dart';
 // استيراد شاشة سجل الطلبات (تأكد من المسار الصحيح)
 import 'package:gpr_coffee_shop/screens/admin/order_history.dart';
 import 'package:gpr_coffee_shop/screens/customer/menu_screen.dart';
+import 'package:gpr_coffee_shop/screens/admin/sales_report_screen.dart'; // Importar la pantalla de informes
 
 class AdminDrawer extends StatelessWidget {
   // تهيئة متغير المتحكم عند البناء بدلاً من إعلانه كقيمة ثابتة
@@ -103,6 +104,14 @@ class AdminDrawer extends StatelessWidget {
                     Get.to(() => const OrderHistoryScreen());
                   },
                 ),
+                // Nueva opción para informes de ventas
+                ListTile(
+                  leading: const Icon(Icons.insert_chart),
+                  title: Text('reports'.tr),
+                  onTap: () {
+                    Get.to(() => const SalesReportScreen());
+                  },
+                ),
                 ListTile(
                   leading: const Icon(Icons.restaurant_menu),
                   title: Text('menu'.tr),
@@ -167,21 +176,9 @@ class AdminDrawer extends StatelessWidget {
                     );
                   },
                 ),
-                // Añadir más opciones del menú si es necesario
+                // Reemplazar opción analytics con la nueva de informes
                 ListTile(
-                  leading: const Icon(Icons.analytics),
-                  title: Text('sales_analysis'.tr),
-                  onTap: () {
-                    Navigator.pop(context);
-                    Get.snackbar(
-                      'coming_soon'.tr,
-                      'feature_coming_soon'.tr,
-                      snackPosition: SnackPosition.BOTTOM,
-                    );
-                  },
-                ),
-                ListTile(
-                  leading: const Icon(Icons.star_rate),
+                  leading: const Icon(Icons.feedback),
                   title: Text('feedback_management'.tr),
                   onTap: () {
                     Navigator.pop(context);

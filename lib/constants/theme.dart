@@ -3,7 +3,7 @@ import 'package:google_fonts/google_fonts.dart';
 
 class AppTheme {
   // Modern and trendy color palette
-  static const primaryColor = Color(0xFF6366F1); // Modern indigo
+  static const primaryColor = Color(0xFF9E9E9E); // رصاصي فاتح بدلاً من النيلي
   static const secondaryColor = Color(0xFF22D3EE); // Vibrant cyan
   static const accentColor = Color(0xFFF43F5E); // Hot pink
   static const backgroundColor = Color(0xFFF9FAFB); // Cool gray background
@@ -73,10 +73,10 @@ class AppTheme {
   );
 
   static final lightTheme = ThemeData(
-    primaryColor: primaryColor,
+    primaryColor: const Color.fromARGB(255, 134, 134, 164),
     scaffoldBackgroundColor: backgroundColor,
     colorScheme: const ColorScheme.light(
-      primary: primaryColor,
+      primary: Color.fromARGB(255, 174, 174, 200),
       secondary: secondaryColor,
       tertiary: accentColor,
       surface: backgroundColor,
@@ -89,7 +89,7 @@ class AppTheme {
     textTheme: _baseTextTheme,
     // شكل AppBar موحد
     appBarTheme: const AppBarTheme(
-      backgroundColor: primaryColor,
+      backgroundColor: Color.fromARGB(255, 157, 158, 175),
       foregroundColor: textLightColor,
       elevation: 2,
       centerTitle: true,
@@ -102,7 +102,7 @@ class AppTheme {
     // أزرار محسنة
     elevatedButtonTheme: ElevatedButtonThemeData(
       style: ElevatedButton.styleFrom(
-        backgroundColor: primaryColor,
+        backgroundColor: const Color.fromARGB(255, 152, 152, 178),
         foregroundColor: textLightColor,
         padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
         shape: RoundedRectangleBorder(
@@ -114,7 +114,7 @@ class AppTheme {
     // أزرار نصية
     textButtonTheme: TextButtonThemeData(
       style: TextButton.styleFrom(
-        foregroundColor: primaryColor,
+        foregroundColor: const Color.fromARGB(255, 111, 112, 138),
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
         textStyle: const TextStyle(fontWeight: FontWeight.w600),
       ),
@@ -122,8 +122,8 @@ class AppTheme {
     // أزرار مسطحة
     outlinedButtonTheme: OutlinedButtonThemeData(
       style: OutlinedButton.styleFrom(
-        foregroundColor: primaryColor,
-        side: const BorderSide(color: primaryColor, width: 1.5),
+        foregroundColor: const Color.fromARGB(255, 98, 99, 118),
+        side: const BorderSide(color: Color.fromARGB(255, 125, 126, 150), width: 1.5),
         padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(12),
@@ -137,7 +137,7 @@ class AppTheme {
       shadowColor: Colors.black.withOpacity(0.15),
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(16),
-        side: BorderSide(color: primaryColor.withOpacity(0.05), width: 0.7),
+        side: BorderSide(color: const Color.fromARGB(255, 85, 86, 121).withOpacity(0.05), width: 0.7),
       ),
       margin: const EdgeInsets.all(8),
     ),

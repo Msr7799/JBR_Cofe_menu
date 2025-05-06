@@ -1,6 +1,6 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
     <application
-        android:label="gpr_coffee_shop"
+        android:label="JBR Coffee Menu"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher">
         <activity

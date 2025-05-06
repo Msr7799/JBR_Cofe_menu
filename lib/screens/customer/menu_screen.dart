@@ -7,12 +7,14 @@ import 'package:gpr_coffee_shop/controllers/category_controller.dart';
 import 'package:gpr_coffee_shop/controllers/settings_controller.dart';
 import 'package:gpr_coffee_shop/models/product.dart';
 import 'package:gpr_coffee_shop/models/category.dart';
-import 'package:gpr_coffee_shop/widgets/product_card.dart';
+import 'package:gpr_coffee_shop/widgets/enhanced_product_card.dart';
 import 'package:gpr_coffee_shop/screens/home_screen.dart';
 import 'package:gpr_coffee_shop/utils/view_options_helper.dart';
 import 'package:gpr_coffee_shop/utils/image_helper.dart';
 import 'package:gpr_coffee_shop/widgets/category_card.dart';
 import 'package:flutter_staggered_animations/flutter_staggered_animations.dart';
+import 'package:gpr_coffee_shop/controllers/order_controller.dart';
+import 'package:gpr_coffee_shop/models/order.dart';
 
 class MenuScreen extends StatelessWidget {
   final ProductController productController = Get.find<ProductController>();
@@ -37,6 +39,12 @@ class MenuScreen extends StatelessWidget {
   final RxBool showCategoryView = RxBool(false);
   // الفئة المحددة للعرض
   final Rx<Category?> selectedCategory = Rx<Category?>(null);
+
+  // داخل كلاس MenuScreen، مع باقي المتغيرات
+  final RxSet<String> selectedCategoryFilters = <String>{}.obs;
+  final RxDouble priceFilterMin = 0.0.obs;
+  final RxDouble priceFilterMax = 100.0.obs;
+  final RxBool showOnlyAvailable = false.obs;
 
   MenuScreen({Key? key}) : super(key: key) {
     // تحديد طريقة العرض الأولية بناءً على إعدادات المستخدم
@@ -86,6 +94,10 @@ class MenuScreen extends StatelessWidget {
           IconButton(
             icon: const Icon(Icons.search),
             onPressed: () => _showSearchDialog(context),
+          ),
+          IconButton(
+            icon: const Icon(Icons.filter_alt),
+            onPressed: () => _showAdvancedFilterDialog(context),
           ),
           IconButton(
             icon: const Icon(Icons.view_list),
@@ -366,27 +378,8 @@ class MenuScreen extends StatelessWidget {
   Widget _buildProductsSection(
       String viewMode, bool isSmallScreen, bool isVerySmallScreen) {
     return Obx(() {
-      // فلترة المنتجات حسب الفئة المحددة
-      List<Product> filteredProducts =
-          productController.products.where((product) {
-        if (categoryController.selectedCategoryId.value.isNotEmpty) {
-          return product.categoryId ==
-              categoryController.selectedCategoryId.value;
-        }
-        return true;
-      }).toList();
-
-      // فلترة المنتجات حسب البحث
-      if (searchQuery.value.isNotEmpty) {
-        filteredProducts = filteredProducts.where((product) {
-          return product.name
-                  .toLowerCase()
-                  .contains(searchQuery.value.toLowerCase()) ||
-              product.description
-                  .toLowerCase()
-                  .contains(searchQuery.value.toLowerCase());
-        }).toList();
-      }
+      // استخدام الفلترة المتقدمة
+      List<Product> filteredProducts = _getFilteredProducts();
 
       if (filteredProducts.isEmpty) {
         return Center(
@@ -400,7 +393,6 @@ class MenuScreen extends StatelessWidget {
                 style: TextStyle(fontSize: 18, color: Colors.grey),
               ),
               const SizedBox(height: 12),
-              // إضافة زر للعودة إلى الفئات إذا كنا في طريقة عرض الفئات
               if (displayMode == 'categories')
                 ElevatedButton.icon(
                   icon: const Icon(Icons.category),
@@ -434,12 +426,17 @@ class MenuScreen extends StatelessWidget {
   // عرض المنتجات كشبكة
   Widget _buildGridView(List<Product> products, bool showImages,
       bool isSmallScreen, bool isVerySmallScreen) {
-    // More adaptive grid based on screen size
-    final crossAxisCount = isVerySmallScreen ? 1 : (isSmallScreen ? 2 : 3);
-    final aspectRatio = isVerySmallScreen
-        ? 1.0 *
-            cardSize // More rectangular for single column on very small screens
-        : 0.7 * cardSize; // Original aspect ratio for larger screens
+    // الحصول على الأبعاد مباشرة من ViewOptionsHelper
+    final isLargeScreenSetting = ViewOptionsHelper.getIsLargeScreen();
+    final double cardWidth = ViewOptionsHelper.getProductCardWidth();
+    final double cardHeight = ViewOptionsHelper.getProductCardHeight();
+
+    // حساب عدد الأعمدة بناءً على حجم الشاشة الفعلي
+    final screenWidth = MediaQuery.of(Get.context!).size.width;
+    final crossAxisCount = screenWidth < 480 ? 1 : (screenWidth < 720 ? 2 : 3);
+
+    // حساب النسبة المناسبة استنادًا إلى الأبعاد المخزنة
+    final aspectRatio = cardWidth / cardHeight;
 
     final padding = isVerySmallScreen ? 8.0 : 16.0;
     final spacing = isVerySmallScreen ? 8.0 : 16.0;
@@ -467,13 +464,20 @@ class MenuScreen extends StatelessWidget {
                     child: SlideAnimation(
                       verticalOffset: 50.0,
                       child: FadeInAnimation(
-                        child: ProductCard(
+                        child: EnhancedProductCard(
                           product: product,
-                          showImage: showImages,
-                          cardSize: cardSize,
-                          textColor: textColor,
-                          priceColor: priceColor,
-                          onTap: () => _showProductDetails(product),
+                          onTap: () => _handleProductTap(product),
+                          showDetails: true,
+                          heroTag: 'product-${product.id}',
+                          onOrderPlaced: (product, quantity) {
+                            final OrderController orderController =
+                                Get.find<OrderController>();
+                            orderController
+                                .processOrder(product, quantity)
+                                .then((_) {
+                              productQuantities[product.id] = quantity;
+                            });
+                          },
                         ),
                       ),
                     ),
@@ -493,13 +497,18 @@ class MenuScreen extends StatelessWidget {
               itemCount: products.length,
               itemBuilder: (context, index) {
                 final product = products[index];
-                return ProductCard(
+                return EnhancedProductCard(
                   product: product,
-                  showImage: showImages,
-                  cardSize: cardSize,
-                  textColor: textColor,
-                  priceColor: priceColor,
-                  onTap: () => _showProductDetails(product),
+                  onTap: () => _handleProductTap(product),
+                  showDetails: true,
+                  heroTag: 'product-${product.id}',
+                  onOrderPlaced: (product, quantity) {
+                    final OrderController orderController =
+                        Get.find<OrderController>();
+                    orderController.processOrder(product, quantity).then((_) {
+                      productQuantities[product.id] = quantity;
+                    });
+                  },
                 );
               },
             ),
@@ -922,6 +931,12 @@ class MenuScreen extends StatelessWidget {
     );
   }
 
+  // التعامل مع الضغط على المنتج
+  void _handleProductTap(Product product) {
+    // استدعاء دالة عرض تفاصيل المنتج الموجودة بالفعل
+    _showProductDetails(product);
+  }
+
   // عرض مربع حوار البحث
   void _showSearchDialog(BuildContext context) {
     final searchController = TextEditingController(text: searchQuery.value);
@@ -1075,5 +1090,186 @@ class MenuScreen extends StatelessWidget {
       print('Error building product image: $e');
       return const Icon(Icons.broken_image, size: 60);
     }
+  }
+
+  // تطبيق الفلترة المتقدمة
+  List<Product> _getFilteredProducts() {
+    List<Product> filtered = List.from(productController.products);
+
+    // تطبيق فلتر الفئة المحددة من شريط التصفية
+    if (categoryController.selectedCategoryId.value.isNotEmpty) {
+      filtered = filtered
+          .where((p) =>
+              p.categoryId == categoryController.selectedCategoryId.value)
+          .toList();
+    }
+
+    // تطبيق فلتر الفئات المتعددة إذا كانت محددة
+    if (selectedCategoryFilters.isNotEmpty) {
+      filtered = filtered
+          .where((p) => selectedCategoryFilters.contains(p.categoryId))
+          .toList();
+    }
+
+    // تطبيق فلتر البحث
+    if (searchQuery.value.isNotEmpty) {
+      filtered = filtered
+          .where((p) =>
+              p.name.toLowerCase().contains(searchQuery.value.toLowerCase()) ||
+              p.description
+                  .toLowerCase()
+                  .contains(searchQuery.value.toLowerCase()))
+          .toList();
+    }
+
+    // تطبيق فلتر نطاق السعر
+    filtered = filtered
+        .where((p) =>
+            p.price >= priceFilterMin.value && p.price <= priceFilterMax.value)
+        .toList();
+
+    // تطبيق فلتر التوفر
+    if (showOnlyAvailable.value) {
+      filtered = filtered.where((p) => p.isAvailable).toList();
+    }
+
+    return filtered;
+  }
+
+  // داخل كلاس MenuScreen، أضف هذه الدالة
+
+  void _showAdvancedFilterDialog(BuildContext context) {
+    // نسخ قيم الفلترة الحالية إلى متغيرات مؤقتة
+    RxSet<String> tempCategoryFilters = RxSet<String>();
+    tempCategoryFilters.addAll(selectedCategoryFilters);
+
+    RxDouble tempMinPrice = RxDouble(priceFilterMin.value);
+    RxDouble tempMaxPrice = RxDouble(priceFilterMax.value);
+    RxBool tempShowOnlyAvailable = RxBool(showOnlyAvailable.value);
+
+    Get.dialog(
+      AlertDialog(
+        title: const Text('فلترة متقدمة'),
+        content: Container(
+          width: double.maxFinite,
+          height: MediaQuery.of(context).size.height * 0.6,
+          child: SingleChildScrollView(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // قسم فلترة الفئات
+                const Text(
+                  'تصفية حسب الفئة:',
+                  style: TextStyle(fontWeight: FontWeight.bold),
+                ),
+                const SizedBox(height: 10),
+                Container(
+                  height: 200,
+                  decoration: BoxDecoration(
+                    border: Border.all(color: Colors.grey.shade300),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Obx(() => ListView.builder(
+                        itemCount: categoryController.categories.length,
+                        itemBuilder: (context, index) {
+                          final category = categoryController.categories[index];
+                          return CheckboxListTile(
+                            title: Text(category.name),
+                            subtitle: Text(
+                              '${productController.products.where((p) => p.categoryId == category.id).length} منتج',
+                              style: TextStyle(
+                                  fontSize: 12, color: Colors.grey[600]),
+                            ),
+                            value: tempCategoryFilters.contains(category.id),
+                            activeColor: AppTheme.primaryColor,
+                            onChanged: (bool? value) {
+                              if (value == true) {
+                                tempCategoryFilters.add(category.id);
+                              } else {
+                                tempCategoryFilters.remove(category.id);
+                              }
+                            },
+                          );
+                        },
+                      )),
+                ),
+
+                const SizedBox(height: 20),
+                // قسم فلترة نطاق السعر
+                const Text(
+                  'تصفية حسب نطاق السعر:',
+                  style: TextStyle(fontWeight: FontWeight.bold),
+                ),
+                const SizedBox(height: 10),
+                Obx(() => RangeSlider(
+                      values:
+                          RangeValues(tempMinPrice.value, tempMaxPrice.value),
+                      min: 0,
+                      max: 100,
+                      divisions: 100,
+                      labels: RangeLabels(
+                        tempMinPrice.value.toStringAsFixed(1),
+                        tempMaxPrice.value.toStringAsFixed(1),
+                      ),
+                      onChanged: (RangeValues values) {
+                        tempMinPrice.value = values.start;
+                        tempMaxPrice.value = values.end;
+                      },
+                      activeColor: AppTheme.primaryColor,
+                    )),
+                Obx(() => Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text('${tempMinPrice.value.toStringAsFixed(1)} د.ب'),
+                        Text('${tempMaxPrice.value.toStringAsFixed(1)} د.ب'),
+                      ],
+                    )),
+
+                const SizedBox(height: 20),
+                // قسم فلترة التوفر
+                Obx(() => SwitchListTile(
+                      title: const Text('عرض المنتجات المتاحة فقط'),
+                      value: tempShowOnlyAvailable.value,
+                      activeColor: AppTheme.primaryColor,
+                      onChanged: (bool value) {
+                        tempShowOnlyAvailable.value = value;
+                      },
+                    )),
+              ],
+            ),
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Get.back(),
+            child: const Text('إلغاء'),
+          ),
+          TextButton(
+            onPressed: () {
+              // إعادة تعيين الفلاتر
+              tempCategoryFilters.clear();
+              tempMinPrice.value = 0;
+              tempMaxPrice.value = 100;
+              tempShowOnlyAvailable.value = false;
+            },
+            child: const Text('إعادة تعيين'),
+          ),
+          ElevatedButton(
+            onPressed: () {
+              // تطبيق الفلاتر
+              selectedCategoryFilters.value = tempCategoryFilters;
+              priceFilterMin.value = tempMinPrice.value;
+              priceFilterMax.value = tempMaxPrice.value;
+              showOnlyAvailable.value = tempShowOnlyAvailable.value;
+              Get.back();
+            },
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppTheme.primaryColor,
+            ),
+            child: const Text('تطبيق'),
+          ),
+        ],
+      ),
+    );
   }
 }
