@@ -2972,6 +2972,7 @@ class _HomeScreenState extends State<HomeScreen>
   }) {
     // الحصول على متحكم خيارات العرض
     final viewOptionsController = Get.find<ViewOptionsController>();
+    final menuOptionsController = Get.find<MenuOptionsController>();
 
     // استخراج الإعدادات من المتحكم
     final Color textColor = viewOptionsController.getColorFromHex(
@@ -3005,12 +3006,56 @@ class _HomeScreenState extends State<HomeScreen>
           color: Colors.red,
           child: const Icon(Icons.delete, color: Colors.white),
         ),
-        confirmDismiss: isEditing ? (direction) async {
-          // كود التأكيد...
-        } : null,
-        onDismissed: isEditing ? (_) {
-          // كود الحذف...
-        } : null,
+        confirmDismiss: isEditing 
+          ? (direction) async {
+              // إضافة منطق التأكيد قبل الإخفاء
+              return await Get.dialog<bool>(
+                AlertDialog(
+                  title: const Text('إخفاء الخيار'),
+                  content: Text(
+                      'هل تريد إخفاء "${option.title.tr}" من القائمة؟'),
+                  actions: [
+                    TextButton(
+                      onPressed: () => Get.back(result: false),
+                      child: const Text('إلغاء'),
+                    ),
+                    ElevatedButton(
+                      onPressed: () => Get.back(result: true),
+                      style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.red),
+                      child: const Text('إخفاء'),
+                    ),
+                  ],
+                ),
+              ) ?? false;
+            } 
+          : null,
+        onDismissed: isEditing 
+          ? (direction) {
+              // إضافة منطق الإخفاء
+              menuOptionsController.hideOption(option.id);
+              
+              // إظهار رسالة تأكيد
+              Get.snackbar(
+                'تم الإخفاء',
+                'تم إخفاء "${option.title.tr}" من القائمة',
+                snackPosition: SnackPosition.BOTTOM,
+                backgroundColor: Colors.grey.shade800,
+                colorText: Colors.white,
+                duration: const Duration(seconds: 2),
+                mainButton: TextButton(
+                  onPressed: () {
+                    menuOptionsController.showOption(option.id);
+                    Get.closeCurrentSnackbar();
+                  },
+                  child: const Text(
+                    'تراجع',
+                    style: TextStyle(color: Colors.amber),
+                  ),
+                ),
+              );
+            } 
+          : null,
         child: GestureDetector(
           onTap: isEditing ? null : () => Get.find<MenuOptionsController>().navigateToOption(option.route),
           child: Container(
@@ -3064,7 +3109,6 @@ class _HomeScreenState extends State<HomeScreen>
                       fontSize: fontSize,
                       fontWeight: isActive ? FontWeight.bold : FontWeight.w600,
                       color: textColor,
-                      // إزالة الظلال
                       shadows: null,
                     ),
                   ),
