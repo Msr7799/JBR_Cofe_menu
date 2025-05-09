@@ -28,7 +28,7 @@ class PendingOrdersPanel extends StatelessWidget {
       final allActiveOrders = [...pendingOrders, ...processingOrders];
 
       if (allActiveOrders.isEmpty) {
-        return SizedBox(height: 0);
+        return const SizedBox(height: 0);
       }
 
       return Card(
@@ -57,7 +57,7 @@ class PendingOrdersPanel extends StatelessWidget {
                         Colors.orange,
                         pendingOrders.length.toString(),
                       ),
-                      SizedBox(width: 8),
+                      const SizedBox(width: 8),
                       _buildStatusIndicator(
                         'قيد التحضير',
                         Colors.blue,
@@ -67,7 +67,7 @@ class PendingOrdersPanel extends StatelessWidget {
                   ),
                 ],
               ),
-              Divider(),
+              const Divider(),
               ...allActiveOrders
                   .take(maxItems)
                   .map((order) => _buildOrderItem(order, context))
@@ -79,7 +79,7 @@ class PendingOrdersPanel extends StatelessWidget {
                     child: TextButton(
                       child: Text(
                         'عرض جميع الطلبات (${allActiveOrders.length})',
-                        style: TextStyle(
+                        style: const TextStyle(
                           color: AppTheme.primaryColor,
                           fontWeight: FontWeight.w500,
                         ),
@@ -127,7 +127,7 @@ class PendingOrdersPanel extends StatelessWidget {
                 shape: BoxShape.circle,
               ),
             ),
-            SizedBox(width: 8),
+            const SizedBox(width: 8),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -152,7 +152,7 @@ class PendingOrdersPanel extends StatelessWidget {
                 ],
               ),
             ),
-            SizedBox(width: 8),
+            const SizedBox(width: 8),
             Column(
               crossAxisAlignment: CrossAxisAlignment.end,
               children: [
@@ -171,7 +171,7 @@ class PendingOrdersPanel extends StatelessWidget {
               ],
             ),
             if (onOrderTap != null) ...[
-              SizedBox(width: 4),
+              const SizedBox(width: 4),
               Icon(
                 Icons.chevron_right,
                 size: 16,
@@ -199,6 +199,13 @@ class PendingOrdersPanel extends StatelessWidget {
             decoration: BoxDecoration(
               color: color,
               shape: BoxShape.circle,
+              boxShadow: [
+                BoxShadow(
+                  color: color.withOpacity(0.5),
+                  blurRadius: 4,
+                  spreadRadius: 1,
+                ),
+              ],
             ),
           ),
           const SizedBox(width: 4),

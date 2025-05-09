@@ -25,12 +25,10 @@ import 'package:gpr_coffee_shop/utils/hive_reset_util.dart';
 import 'package:gpr_coffee_shop/screens/admin/order_management_screen.dart';
 import 'package:intl/intl.dart';
 import 'package:gpr_coffee_shop/screens/admin/admin_notes.dart';
-import 'package:flutter/material.dart';
 import 'package:gpr_coffee_shop/widgets/admin/category_sales_chart.dart';
 import 'package:gpr_coffee_shop/utils/date_formatter.dart';
 import 'package:gpr_coffee_shop/widgets/pending_orders_panel.dart';
-
-// نقل الكلاسات المساعدة إلى خارج الكلاس الرئيسي (قبل AdminDashboard)
+import 'package:gpr_coffee_shop/screens/admin/sync_screen.dart';
 
 // كلاس مساعد لبيانات الشاشة
 class _ScreenMetrics {
@@ -259,51 +257,6 @@ class _AdminDashboardState extends State<AdminDashboard> {
   }
 
   // تحديث الدالة _buildProfitDetailsCard وإزالة البطاقات المكررة
-  Widget _buildStatisticsCards(_ScreenMetrics metrics) {
-    final stats = orderController.getDailyStats();
-
-    // تعديل _buildStatisticsCards لعدم إظهار المعلومات المكررة - نعرض فقط عدد الطلبات
-    return Card(
-      elevation: 2,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(12),
-      ),
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceAround,
-          children: [
-            Column(
-              children: [
-                const Icon(
-                  Icons.receipt_long,
-                  color: AppTheme.primaryColor,
-                  size: 30,
-                ),
-                const SizedBox(height: 8),
-                Text(
-                  'order_count'.tr,
-                  style: const TextStyle(
-                    fontSize: 14,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  stats['orderCount']?.toString() ?? '0',
-                  style: const TextStyle(
-                    fontSize: 20,
-                    fontWeight: FontWeight.bold,
-                    color: AppTheme.primaryColor,
-                  ),
-                ),
-              ],
-            ),
-          ],
-        ),
-      ),
-    );
-  }
 
   Widget _buildTopProducts() {
     final stats = orderController.getDailyStats();
@@ -342,7 +295,7 @@ class _AdminDashboardState extends State<AdminDashboard> {
                   padding: const EdgeInsets.all(20.0),
                   child: Text(
                     'no_sales_data'.tr,
-                    style: const TextStyle(color: Colors.grey),
+                    style: const TextStyle(color: Color.fromARGB(255, 193, 192, 192)),
                   ),
                 ),
               ),
@@ -394,7 +347,7 @@ class _AdminDashboardState extends State<AdminDashboard> {
               padding: const EdgeInsets.all(16.0),
               child: Text(
                 'no_recent_orders'.tr,
-                style: TextStyle(color: Colors.grey[600]),
+                style: TextStyle(color: const Color.fromARGB(255, 183, 182, 182)),
               ),
             ),
           )
@@ -470,7 +423,7 @@ class _AdminDashboardState extends State<AdminDashboard> {
                           padding: const EdgeInsets.all(16.0),
                           child: Text(
                             'no_recent_orders'.tr,
-                            style: TextStyle(color: Colors.grey[600]),
+                            style: TextStyle(color: const Color.fromARGB(255, 178, 177, 177)),
                           ),
                         ),
                       )
@@ -705,7 +658,7 @@ class _AdminDashboardState extends State<AdminDashboard> {
           subtitle:
               '${productController.products.length} ${'products'.tr.toLowerCase()}',
           color: Colors.indigo,
-          onTap: () => Get.to(() => ProductManagement()),
+          onTap: () => Get.to(() => const ProductManagement()),
         ),
         _buildAdminActionCard(
           icon: Icons.receipt_long,
@@ -713,7 +666,7 @@ class _AdminDashboardState extends State<AdminDashboard> {
           subtitle:
               '${orderController.orders.length} ${'orders'.tr.toLowerCase()}',
           color: Colors.amber.shade700,
-          onTap: () => Get.to(() => OrderManagementScreen()), // تغيير هنا
+          onTap: () => Get.to(() => const OrderManagementScreen()), // تغيير هنا
         ),
         _buildAdminActionCard(
           icon: Icons.settings,
@@ -757,7 +710,21 @@ class _AdminDashboardState extends State<AdminDashboard> {
           subtitle: 'manage_notes'.tr,
           color: Colors.teal,
           onTap: () => Get.to(() => const AdminNotes()),
-        )
+        ),
+        ListTile(
+          leading: const Icon(Icons.sync, color: AppTheme.primaryColor),
+          title: Text('مزامنة البيانات'.tr),
+          onTap: () {
+            Get.to(() => const SyncScreen());
+          },
+        ),
+        _buildAdminActionCard(
+          icon: Icons.cleaning_services,
+          title: 'مسح الكاش',
+          subtitle: 'مسح الملفات المؤقتة',
+          color: Colors.blue,
+          onTap: _showClearCacheDialog,
+        ),
       ],
     );
   }
@@ -900,7 +867,6 @@ class _AdminDashboardState extends State<AdminDashboard> {
 
   String _buildReportContent(Map<String, dynamic> stats, String formattedDate) {
     final buffer = StringBuffer();
-    final topProducts = stats['topProducts'] as List? ?? [];
 
     // بناء التقرير...
     buffer.writeln('تقرير مبيعات المقهى - $formattedDate');
@@ -930,7 +896,6 @@ class _AdminDashboardState extends State<AdminDashboard> {
   }
 
   Widget _buildSystemSettingsCard() {
-    // حذف المعلمة context
     return Card(
       elevation: 2,
       shape: RoundedRectangleBorder(
@@ -940,6 +905,18 @@ class _AdminDashboardState extends State<AdminDashboard> {
         padding: const EdgeInsets.all(16),
         child: Column(
           children: [
+            // خيار مسح الكاش
+            ListTile(
+              leading: const Icon(Icons.cleaning_services, color: Colors.blue),
+              title: const Text('مسح الكاش'),
+              subtitle: const Text('مسح الملفات المؤقتة لتوفير المساحة'),
+              trailing: const Icon(Icons.arrow_forward_ios, size: 16),
+              onTap: _showClearCacheDialog,
+            ),
+            
+            const Divider(),
+            
+            // إعادة ضبط المصنع (الموجود مسبقاً)
             ListTile(
               leading: const Icon(Icons.restore, color: Colors.red),
               title: Text('factory_reset'.tr),
@@ -1309,7 +1286,7 @@ class _AdminDashboardState extends State<AdminDashboard> {
           style: TextStyle(
             fontSize: 14,
             fontWeight: FontWeight.bold,
-            color: Colors.grey[800],
+            color: const Color.fromARGB(255, 150, 150, 150),
           ),
         ),
       ],
@@ -1372,7 +1349,7 @@ class _AdminDashboardState extends State<AdminDashboard> {
                     ),
                     const SizedBox(width: 8),
                     Text(
-                      'pending_orders'.tr + ':',
+                      '${'pending_orders'.tr}:',
                       style: const TextStyle(fontSize: 14),
                     ),
                     const SizedBox(width: 4),
@@ -1387,7 +1364,7 @@ class _AdminDashboardState extends State<AdminDashboard> {
                     const Spacer(),
                     if (pendingCount > 0)
                       const Icon(Icons.arrow_forward_ios,
-                          size: 16, color: Colors.grey),
+                          size: 16, color: Color.fromARGB(255, 191, 191, 191)),
                   ],
                 ),
               ),
@@ -1416,7 +1393,7 @@ class _AdminDashboardState extends State<AdminDashboard> {
                     ),
                     const SizedBox(width: 8),
                     Text(
-                      'processing_orders'.tr + ':',
+                      '${'processing_orders'.tr}:',
                       style: const TextStyle(fontSize: 14),
                     ),
                     const SizedBox(width: 4),
@@ -1431,7 +1408,7 @@ class _AdminDashboardState extends State<AdminDashboard> {
                     const Spacer(),
                     if (processingCount > 0)
                       const Icon(Icons.arrow_forward_ios,
-                          size: 16, color: Colors.grey),
+                          size: 16, color: Color.fromARGB(255, 209, 209, 209)),
                   ],
                 ),
               ),
@@ -1453,88 +1430,6 @@ class _AdminDashboardState extends State<AdminDashboard> {
               ),
           ],
         ),
-      ),
-    );
-  }
-
-  // استخدام مخطط المبيعات في لوحة التحكم
-  Widget _buildSalesSection() {
-    final salesData = _prepareSalesData();
-    return Card(
-      elevation: 2,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(12),
-      ),
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              'sales_overview'.tr,
-              style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-            ),
-            const SizedBox(height: 16),
-            SalesChart(data: salesData),
-          ],
-        ),
-      ),
-    );
-  }
-
-  // إضافة مخطط المبيعات حسب الفئة
-  Widget _buildCategorySalesSection() {
-    final now = DateTime.now();
-    final startOfMonth = DateTime(now.year, now.month, 1);
-
-    return Card(
-      elevation: 2,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(12),
-      ),
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              'category_sales'.tr,
-              style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-            ),
-            const SizedBox(height: 16),
-            CategorySalesChart(
-              startDate: startOfMonth,
-              endDate: now,
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  // إضافة لوحة الطلبات المعلقة في لوحة التحكم
-  Widget _buildPendingOrdersPanel() {
-    return GetX<OrderController>(
-      builder: (controller) {
-        if (controller.pendingItems.isEmpty) {
-          return const SizedBox.shrink();
-        }
-
-        // استخدام المكون الجاهز
-        return const PendingOrdersPanel();
-      },
-    );
-  }
-
-  // استخدام منسق التاريخ لعرض التواريخ بشكل أنيق
-  Widget _buildDateHeader() {
-    final now = DateTime.now();
-    return Text(
-      DateFormatter.formatDateTime(now),
-      style: TextStyle(
-        fontSize: 14,
-        fontWeight: FontWeight.w500,
-        color: Colors.grey[700],
       ),
     );
   }
@@ -1566,7 +1461,7 @@ class _AdminDashboardState extends State<AdminDashboard> {
                   Tab(text: 'المبيعات حسب الفئة'),
                 ],
                 labelColor: Colors.black,
-                unselectedLabelColor: Colors.grey,
+                unselectedLabelColor: Color.fromARGB(255, 202, 202, 202),
                 indicatorColor: AppTheme.primaryColor,
               ),
               const SizedBox(height: 16),
@@ -1605,67 +1500,200 @@ class _AdminDashboardState extends State<AdminDashboard> {
     }).toList();
   }
 
-  Widget _buildDataCardsSection(_ScreenMetrics metrics) {
-    final stats = orderController.getDailyStats();
-    final profitStats = orderController.getProfitStats();
-
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 8.0),
-      child: Column(
-        children: [
-          Row(
-            children: [
-              Expanded(
-                child: DataCard(
-                  title: 'daily_sales'.tr,
-                  value:
-                      '${profitStats['totalSales']?.toStringAsFixed(3) ?? '0'} ${'currency'.tr}',
-                  subtitle: '${stats['orderCount'] ?? '0'} ${'orders'.tr}',
-                  icon: Icons.shopping_cart,
-                  customColor: Colors.blue,
-                  onTap: () => Get.to(() => const OrderHistoryScreen()),
-                ),
-              ),
-              const SizedBox(width: 8),
-              Expanded(
-                child: DataCard(
-                  title: 'daily_profits'.tr,
-                  value:
-                      '${profitStats['totalProfit']?.toStringAsFixed(3) ?? '0'} ${'currency'.tr}',
-                  subtitle:
-                      'هامش: ${profitStats['profitMargin']?.toStringAsFixed(1) ?? '0'}%',
-                  icon: Icons.trending_up,
-                  customColor: Colors.green,
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 8),
-          Row(
-            children: [
-              Expanded(
-                child: DataCard(
-                  title: 'pending_orders'.tr,
-                  value: '${orderController.getPendingOrders().length}',
-                  icon: Icons.pending_actions,
-                  customColor: Colors.orange,
-                  onTap: () => Get.to(() => const OrderManagementScreen()),
-                ),
-              ),
-              const SizedBox(width: 8),
-              Expanded(
-                child: DataCard(
-                  title: 'processing_orders'.tr,
-                  value: '${orderController.getProcessingOrders().length}',
-                  icon: Icons.local_cafe,
-                  customColor: Colors.blue,
-                  onTap: () => Get.to(() => const OrderManagementScreen()),
-                ),
-              ),
-            ],
-          ),
-        ],
-      ),
-    );
+  // حساب حجم الكاش بالميجابايت - نسخة محسنة تركز فقط على مجلدات التطبيق
+  Future<double> _calculateCacheSize() async {
+    try {
+      double totalSize = 0.0;
+      
+      try {
+        // استخدام مجلد التطبيق المؤقت فقط (وليس مجلد المستندات)
+        final tempDir = await getTemporaryDirectory();
+        if (tempDir.existsSync()) {
+          final totalBytes = await _calculateSimpleDirectorySize(tempDir);
+          totalSize += totalBytes;
+        }
+        
+        // استخدام مجلد الكاش الخاص بالتطبيق
+        final appCacheDir = await getApplicationCacheDirectory();
+        if (appCacheDir.existsSync()) {
+          final totalBytes = await _calculateSimpleDirectorySize(appCacheDir);
+          totalSize += totalBytes;
+        }
+      } catch (e) {
+        LoggerUtil.logger.e('خطأ عند حساب حجم الكاش: $e');
+      }
+      
+      // تحويل الحجم من بايت إلى ميجابايت
+      return totalSize / (1024 * 1024);
+    } catch (e) {
+      LoggerUtil.logger.e('خطأ عام عند حساب حجم الكاش: $e');
+      return 0.0;
+    }
   }
+  
+  // دالة بسيطة لحساب حجم المجلد بدون تكرار عميق
+  Future<double> _calculateSimpleDirectorySize(Directory directory) async {
+    double totalSize = 0;
+    try {
+      final List<FileSystemEntity> entities = directory.listSync();
+      
+      for (var entity in entities) {
+        try {
+          if (entity is File) {
+            totalSize += await entity.length();
+          }
+          // تجاهل المجلدات الفرعية للبساطة والأمان
+        } catch (e) {
+          // تجاهل الملفات التي لا يمكن الوصول إليها
+        }
+      }
+    } catch (e) {
+      // تجاهل الأخطاء
+    }
+    return totalSize;
+  }
+  
+  // مسح الكاش - نسخة محسنة تركز فقط على مجلدات التطبيق
+  Future<bool> _clearCache() async {
+    try {
+      int filesCleared = 0;
+      
+      // 1. مسح مجلد التطبيق المؤقت
+      try {
+        final tempDir = await getTemporaryDirectory();
+        if (tempDir.existsSync()) {
+          final entities = tempDir.listSync();
+          for (var entity in entities) {
+            if (entity is File) {
+              try {
+                await entity.delete();
+                filesCleared++;
+              } catch (e) {
+                // تجاهل الملفات التي لا يمكن حذفها
+              }
+            }
+          }
+        }
+      } catch (e) {
+        LoggerUtil.logger.e('خطأ عند مسح مجلد التطبيق المؤقت: $e');
+      }
+      
+      // 2. مسح مجلد الكاش الخاص بالتطبيق
+      try {
+        final appCacheDir = await getApplicationCacheDirectory();
+        if (appCacheDir.existsSync()) {
+          final entities = appCacheDir.listSync();
+          for (var entity in entities) {
+            if (entity is File) {
+              try {
+                await entity.delete();
+                filesCleared++;
+              } catch (e) {
+                // تجاهل الملفات التي لا يمكن حذفها
+              }
+            }
+          }
+        }
+      } catch (e) {
+        LoggerUtil.logger.e('خطأ عند مسح مجلد الكاش: $e');
+      }
+      
+      LoggerUtil.logger.i('تم مسح $filesCleared ملف من الكاش');
+      return filesCleared > 0;
+    } catch (e) {
+      LoggerUtil.logger.e('خطأ عام عند مسح الكاش: $e');
+      return false;
+    }
+  }
+  
+  // عرض مربع حوار لمسح الكاش
+  void _showClearCacheDialog() async {
+    try {
+      // عرض مؤشر التحميل أثناء حساب حجم الكاش
+      Get.dialog(
+        const Center(child: CircularProgressIndicator()),
+        barrierDismissible: false,
+      );
+      
+      // حساب حجم الكاش
+      final cacheSize = await _calculateCacheSize();
+      
+      // إغلاق مؤشر التحميل
+      Get.back();
+      
+      // عرض مربع حوار التأكيد
+      Get.dialog(
+        AlertDialog(
+          title: const Text('مسح الكاش'),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text('حجم الكاش الحالي: ${cacheSize.toStringAsFixed(2)} ميجابايت'),
+              const SizedBox(height: 16),
+              const Text('هل أنت متأكد من رغبتك في مسح جميع ملفات الكاش؟'),
+              const SizedBox(height: 8),
+              const Text(
+                'ملاحظة: سيتم إعادة تحميل الصور والبيانات المؤقتة عند الحاجة.',
+                style: TextStyle(color: Colors.grey, fontSize: 12),
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Get.back(),
+              child: const Text('إلغاء'),
+            ),
+            ElevatedButton(
+              onPressed: () async {
+                Get.back();
+                
+                // عرض مؤشر التحميل
+                Get.dialog(
+                  const Center(child: CircularProgressIndicator()),
+                  barrierDismissible: false,
+                );
+                
+                // مسح الكاش
+                final success = await _clearCache();
+                
+                // إغلاق مؤشر التحميل
+                Get.back();
+                
+                if (success) {
+                  Get.snackbar(
+                    'تم بنجاح',
+                    'تم مسح ملفات الكاش بنجاح',
+                    snackPosition: SnackPosition.BOTTOM,
+                    backgroundColor: Colors.green.withOpacity(0.7),
+                    colorText: Colors.white,
+                  );
+                } else {
+                  Get.snackbar(
+                    'تنبيه',
+                    'تم مسح بعض ملفات الكاش، لكن قد تكون هناك بعض الملفات التي تعذر الوصول إليها',
+                    snackPosition: SnackPosition.BOTTOM,
+                    backgroundColor: Colors.amber.withOpacity(0.7),
+                    colorText: Colors.white,
+                  );
+                }
+              },
+              style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
+              child: const Text('مسح الكاش'),
+            ),
+          ],
+        ),
+      );
+    } catch (e) {
+      LoggerUtil.logger.e('خطأ في عرض نافذة مسح الكاش: $e');
+      Get.snackbar(
+        'خطأ',
+        'حدث خطأ أثناء محاولة مسح ملفات الكاش',
+        snackPosition: SnackPosition.BOTTOM,
+        backgroundColor: Colors.red.withOpacity(0.7),
+        colorText: Colors.white,
+      );
+    }
+  }
+
 }

@@ -1,0 +1,2 @@
+include ':flutter_image_compress'
+project(':flutter_image_compress').projectDir = new File(settingsDir, './plugins_patched/flutter_image_compress')

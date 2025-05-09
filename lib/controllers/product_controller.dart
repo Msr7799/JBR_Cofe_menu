@@ -1,10 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:gpr_coffee_shop/models/product.dart';
-// import 'package:gpr_coffee_shop/models/category.dart'; // Add this import for Category class
 import 'package:gpr_coffee_shop/services/local_storage_service.dart';
-import 'package:gpr_coffee_shop/services/product_service.dart'; // Add this import for ProductService
-// import 'package:uuid/uuid.dart';
+import 'package:gpr_coffee_shop/services/product_service.dart'; 
 import 'package:gpr_coffee_shop/utils/logger_util.dart';
 
 class ProductController extends GetxController {

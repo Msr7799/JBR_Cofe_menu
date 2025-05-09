@@ -196,4 +196,6 @@ class FeedbackController extends GetxController {
   List<FeedbackItem> get featuredFeedbacks {
     return feedbackItems.where((item) => item.featured).toList();
   }
+
+  get feedbacks => null;
 }

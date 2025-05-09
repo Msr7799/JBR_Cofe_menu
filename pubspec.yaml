@@ -9,20 +9,23 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
+  flutter_colorpicker: ^1.0.3
+  reorderable_grid_view: ^2.2.7
   cupertino_icons: ^1.0.6
   get: ^4.6.5
-  get_storage: ^2.1.1 # Added get_storage dependency
+  get_storage: ^2.1.1 #  get_storage
   hive: ^2.2.3
   hive_flutter: ^1.1.0
   uuid: ^3.0.7
   fl_chart: ^0.65.0
-  image_picker: ^1.1.2
+  image_picker: ^1.0.4 # لاختيار الصور
+  image: ^4.0.17 # لمعالجة الصور
+  path_provider: ^2.0.15 # للحصول على المسارات
   google_fonts: ^4.0.4
   shimmer: ^3.0.0
   flutter_neumorphic_plus: ^3.3.0
   url_launcher: ^6.1.10
   carousel_slider: ^4.2.1
-  path_provider: ^2.1.5
   flutter_staggered_animations: ^1.1.1
   flutter_staggered_grid_view: ^0.7.0
   path: ^1.8.3
@@ -32,9 +35,13 @@ dependencies:
   shared_preferences: ^2.2.0
   share_plus: ^7.2.1
   logger: ^2.0.2
-  intl: ^0.18.1 # Add this line for date/time formatting
+  intl: ^0.18.0 #  for date/time formatting
   cached_network_image: ^3.3.0 # إضافة مكتبة تخزين الصور مؤقتاً من الإنترنت
   transparent_image: ^2.0.1 # إضافة مكتبة صور شفافة للتحميل المتدرج
+  google_maps_flutter: ^2.5.2 # إضافة مكتبة خرائط جوجل
+  flutter_image_compress: ^2.0.0
+  splash_master: ^0.0.2
+  video_player: ^2.9.5
 
 dev_dependencies:
   flutter_test:
@@ -47,36 +54,63 @@ dev_dependencies:
 flutter:
   uses-material-design: true
   assets:
-    - assets/images/
-    - assets/images/bahrain_flag.png
-    - assets/images/JBR.png
-    - assets/images/JBR1.png
-    - assets/images/JBR2.png
-    - assets/images/JBR3.png
-    - assets/images/JBRB3.png
-    - assets/images/JBRbg.png
-    - assets/images/JBRbg1.png
-    - assets/images/JBRbg2.png
-    - assets/images/JBRC1.png
-    - assets/images/JBRC2.png
-    - assets/images/JBRC3.png
-    - assets/images/JBRD1.png
-    - assets/images/JBRD2.png
-    - assets/images/JBRD4.png
-    - assets/images/JBRH1.png
-    - assets/images/JBRH2.png
-    - assets/images/JBRH3.png
-    - assets/images/JBRTbg.png
-    - assets/images/JBRV1.mp4
-    - assets/images/JBRV2.mp4
-    - assets/images/Logo.gif
-    - assets/images/logo.png
-    - assets/images/placeholder.png
-    - assets/images/placeholder.svg
-    # أضف مسارات إضافية للصور حسب الحاجة
-    # - assets/other_images/
+  - assets/images/JBR6.png
+  - assets/images/JBRbg.png
+  - assets/images/JBRbg2.png
+  - assets/images/JBRTbg.png
+  - assets/images/logo.png
+  - assets/images/logo1.png
+  - assets/images/logo2.png
+  - assets/images/logo3.png
+  - assets/images/logo4.png
+  - assets/images/logo5.png
+  - assets/images/logo7.png
+  - assets/images/logo8.png
+  - assets/images/placeholder.png
+  - assets/images/splash_video.mp4
+  - assets/splash_pic.gif
+  - assets/images/bahrain_flag.png
+
+
+# splash_master:
+  # # Use to specifies the color for the splash screen
+  # color: '#FFFFFFFF'
+  # # Use to specifies the splash image
+  # image: 'assets/images/logo.png'
+  # # Provides content mode for splash image in iOS
+  # # iOS content mode options: scaleToFill, scaleAspectFit, scaleAspectFill, redraw, center, top, bottom,
+  # # left, right, topLeft, topRight, bottomLeft, bottomRight.
+  # ios_content_mode: 'center'
+  # # Provides gravity for splash image in Android
+  # # Android gravity options: center, clip_horizontal, clip_vertical, fill_horizontal, fill, center_vertical, 
+  # # bottom, fill_vertical, center_horizontal, top, end, left, right, start
+  # android_gravity: 'center'
+  # # Use to specifies the splash image
+  # background_image: 'assets/background_image.png'
+  # # Provided content mode for splash image in background for iOS
+  # ios_background_content_mode: 'scaleToFill'
+  # # Provides gravity for background image in Android
+  # # Android gravity options: center, clip_horizontal, clip_vertical, fill_horizontal, fill, center_vertical, 
+  # # bottom, fill_vertical, center_horizontal, top, end, left, right, start
+  # android_background_image_gravity: 'fill'
+  # # Use to specifies image for android in dark mode
+  # image_dark_android: 'assets/splash_dark.png'
+  # # Provides gravity for splash image for Android in dark mode
+  # android_dark_gravity_key: 'center'
+  # # Use to specifies the color for the splash screen for Android in dark mode
+  # color_dark_android: '#000000'
+  # # Section to specifies the configuration for the splash in Android 12+
+  # android_12_and_above:
+  #   # Provides the background color of splash screen
+  #   color: '#FFFFFF'
+  #   # Provides custom icon to replace the default app icon
+  #   image: 'assets/splash_12.png'
+  #   # Provides branding image which is shown under main icon image. 
+  #   branding_image: 'assets/branding_image.png'
+
 
   fonts:
     - family: Cairo
       fonts:
         - asset: assets/fonts/Cairo-Regular.ttf
+

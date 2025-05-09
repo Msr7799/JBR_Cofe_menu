@@ -8,7 +8,8 @@ import 'package:flutter_neumorphic_plus/flutter_neumorphic.dart';
 import 'package:gpr_coffee_shop/screens/admin/login_screen.dart';
 import 'package:gpr_coffee_shop/screens/home_screen.dart';
 import 'package:gpr_coffee_shop/models/app_settings.dart';
-
+import 'package:gpr_coffee_shop/utils/image_helper.dart';
+import 'package:flutter_colorpicker/flutter_colorpicker.dart';
 class SettingsScreen extends StatefulWidget {
   const SettingsScreen({Key? key}) : super(key: key);
 
@@ -204,10 +205,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
           physics: const NeverScrollableScrollPhysics(),
           gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
             crossAxisCount:
-                4, // تغيير من 3 إلى 4 لوضع الثيمات الأربعة في صف واحد
-            childAspectRatio: 0.7, // تعديل النسبة لجعل البطاقات أطول قليلاً
-            crossAxisSpacing: 6, // تقليل المسافة بين البطاقات
-            mainAxisSpacing: 6, // تقليل المسافة بين الصفوف
+                4,
+                            childAspectRatio: 0.7,
+            crossAxisSpacing: 6,
+            mainAxisSpacing: 6,
           ),
           itemCount: settingsController.availableThemes.length,
           itemBuilder: (context, index) {
@@ -235,25 +236,41 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
     // تحديد ألوان مصغرة لكل ثيم
     switch (themeKey) {
+      case 'classic':
+        primaryColor = AppTheme.primaryColor;
+        backgroundColor = AppTheme.backgroundColor;
+        accentColor = AppTheme.accentColor;
+        break;
+      case 'modern':
+        primaryColor = const Color(0xFF1A237E); // أزرق داكن
+        backgroundColor = const Color(0xFFF5F7FA); // رمادي فاتح جداً
+        accentColor = const Color(0xFF42A5F5); // أزرق فاتح
+        break;
+      case 'green':
+        primaryColor = const Color(0xFF2E7D32); // أخضر داكن
+        backgroundColor = const Color(0xFFF1F8E9); // أخضر فاتح جداً
+        accentColor = const Color(0xFFFFD54F); // ذهبي
+        break;
+      case 'dark':
+        primaryColor = const Color(0xFF263238); // رمادي غامق
+        backgroundColor = const Color(0xFF121212); // أسود غامق
+        accentColor = const Color(0xFF4FC3F7); // أزرق فاتح
+        break;
+      // حالات الثيمات القديمة إذا كنت ستحتفظ بها
       case 'light':
         primaryColor = AppTheme.primaryColor;
         backgroundColor = AppTheme.backgroundColor;
         accentColor = AppTheme.accentColor;
         break;
-      case 'dark':
-        primaryColor = const Color(0xFF9FA8DA);
-        backgroundColor = const Color(0xFF121212);
-        accentColor = const Color(0xFFFFAB91);
-        break;
       case 'coffee':
         primaryColor = AppTheme.coffeePrimaryColor;
         backgroundColor = AppTheme.coffeeBackgroundColor;
-        accentColor = AppTheme.coffeeSecondaryColor;
+        accentColor = AppTheme.coffeeAccentColor;
         break;
       case 'sweet':
         primaryColor = AppTheme.sweetPrimaryColor;
         backgroundColor = AppTheme.sweetBackgroundColor;
-        accentColor = AppTheme.sweetSecondaryColor;
+        accentColor = AppTheme.sweetAccentColor;
         break;
       default:
         primaryColor = AppTheme.primaryColor;
@@ -397,46 +414,43 @@ class _SettingsScreenState extends State<SettingsScreen> {
           ),
         ),
 
-        // Color selection
-        Text(
-          'choose_color'.tr,
-          style: const TextStyle(fontWeight: FontWeight.w500),
-        ),
-        const SizedBox(height: 8),
-        SingleChildScrollView(
-          scrollDirection: Axis.horizontal,
-          child: Row(
+        // Background type selection - radios
+        ListTile(
+          contentPadding: EdgeInsets.zero,
+          title: const Text('نوع الخلفية'),
+          subtitle: Wrap(
+            spacing: 8,
             children: [
-              ...settingsController.predefinedBackgroundColors.map(
-                (color) => GestureDetector(
-                  onTap: () => settingsController.setBackgroundColor(color),
-                  child: Container(
-                    width: 50,
-                    height: 50,
-                    margin: const EdgeInsets.only(right: 10),
-                    decoration: BoxDecoration(
-                      color: color,
-                      shape: BoxShape.circle,
-                      border: Border.all(
-                        color: settingsController.backgroundColor == color &&
-                                settingsController.backgroundType ==
-                                    BackgroundType.color
-                            ? AppTheme.primaryColor
-                            : Colors.grey.withAlpha(100),
-                        width: settingsController.backgroundColor == color &&
-                                settingsController.backgroundType ==
-                                    BackgroundType.color
-                            ? 3
-                            : 1,
-                      ),
-                    ),
-                    child: settingsController.backgroundColor == color &&
-                            settingsController.backgroundType ==
-                                BackgroundType.color
-                        ? const Icon(Icons.check, color: AppTheme.primaryColor)
-                        : null,
-                  ),
-                ),
+              ChoiceChip(
+                label: const Text('افتراضي'),
+                selected: settingsController.backgroundType == BackgroundType.default_bg,
+                onSelected: (selected) {
+                  if (selected) {
+                    settingsController.setBackgroundType(BackgroundType.default_bg);
+                  }
+                },
+              ),
+              ChoiceChip(
+                label: const Text('لون'),
+                selected: settingsController.backgroundType == BackgroundType.color,
+                onSelected: (selected) {
+                  if (selected) {
+                    settingsController.setBackgroundType(BackgroundType.color);
+                  }
+                },
+              ),
+              ChoiceChip(
+                label: const Text('صورة'),
+                selected: settingsController.backgroundType == BackgroundType.image,
+                onSelected: (selected) {
+                  // تحديد خلفية صورة، إذا لم تكن الصورة موجودة، سيُطلب من المستخدم اختيار صورة
+                  if (settingsController.backgroundImagePath == null || 
+                      !File(settingsController.backgroundImagePath!).existsSync()) {
+                    settingsController.pickAndSetBackgroundImage();
+                  } else {
+                    settingsController.setBackgroundType(BackgroundType.image);
+                  }
+                },
               ),
             ],
           ),
@@ -444,10 +458,71 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
         const SizedBox(height: 20),
 
+        // The content changes based on the selected background type
+        if (settingsController.backgroundType == BackgroundType.color) ...[
+          // Color selection with Color Picker
+          Text(
+            'اختر لوناً للخلفية',
+            style: const TextStyle(fontWeight: FontWeight.w500),
+          ),
+          const SizedBox(height: 12),
+          
+          Center(
+            child: InkWell(
+              onTap: () => _showColorPickerDialog(
+                context: context,
+                currentColor: settingsController.backgroundColor,
+                onColorChanged: (Color color) {
+                  settingsController.setBackgroundColor(color);
+                },
+                title: 'اختر لون الخلفية',
+              ),
+              child: Container(
+                width: 80,
+                height: 80,
+                decoration: BoxDecoration(
+                  color: settingsController.backgroundColor,
+                  shape: BoxShape.circle,
+                  border: Border.all(color: Colors.grey.shade300),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withOpacity(0.1),
+                      blurRadius: 4,
+                      spreadRadius: 1,
+                    ),
+                  ],
+                ),
+                child: const Icon(
+                  Icons.colorize,
+                  color: Colors.white,
+                  size: 30,
+                ),
+              ),
+            ),
+          ),
+        ],
+
+        if (settingsController.backgroundType == BackgroundType.image) ...[
+          Center(
+            child: ElevatedButton.icon(
+              icon: const Icon(Icons.image),
+              label: Text('اختر صورة أخرى'.tr),
+              onPressed: () => settingsController.pickAndSetBackgroundImage(),
+              style: ElevatedButton.styleFrom(
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                backgroundColor: AppTheme.primaryColor,
+                foregroundColor: Colors.white,
+              ),
+            ),
+          ),
+        ],
+
+        const SizedBox(height: 24),
+
         // Text color settings
-        Text(
-          'text_color'.tr,
-          style: const TextStyle(fontWeight: FontWeight.w500),
+        const Text(
+          'لون النص',
+          style: TextStyle(fontWeight: FontWeight.w500),
         ),
         const SizedBox(height: 8),
 
@@ -476,67 +551,45 @@ class _SettingsScreenState extends State<SettingsScreen> {
         // Manual text color selection (only enabled when auto is off)
         Opacity(
           opacity: settingsController.autoTextColor ? 0.5 : 1.0,
-          child: SingleChildScrollView(
-            scrollDirection: Axis.horizontal,
-            child: Row(
-              children: [
-                ...settingsController.predefinedTextColors.map(
-                  (color) => GestureDetector(
-                    onTap: settingsController.autoTextColor
-                        ? null
-                        : () => settingsController.setTextColor(color, false),
-                    child: Container(
-                      width: 50,
-                      height: 50,
-                      margin: const EdgeInsets.only(right: 10),
-                      decoration: BoxDecoration(
-                        color: color,
-                        shape: BoxShape.circle,
-                        border: Border.all(
-                          color: settingsController.textColor == color &&
-                                  !settingsController.autoTextColor
-                              ? AppTheme.primaryColor
-                              : Colors.grey.withAlpha(100),
-                          width: settingsController.textColor == color &&
-                                  !settingsController.autoTextColor
-                              ? 3
-                              : 1,
-                        ),
-                      ),
-                      child: settingsController.textColor == color &&
-                              !settingsController.autoTextColor
-                          ? Icon(
-                              Icons.check,
-                              color: color == Colors.white
-                                  ? Colors.black
-                                  : Colors.white,
-                            )
-                          : null,
+          child: Center(
+            child: InkWell(
+              onTap: settingsController.autoTextColor ? null : () => _showColorPickerDialog(
+                context: context,
+                currentColor: settingsController.textColor,
+                onColorChanged: (Color color) {
+                  if (!settingsController.autoTextColor) {
+                    settingsController.setTextColor(color, false);
+                  }
+                },
+                title: 'اختر لون النص',
+              ),
+              child: Container(
+                width: 60,
+                height: 60,
+                margin: const EdgeInsets.symmetric(vertical: 16),
+                decoration: BoxDecoration(
+                  color: settingsController.textColor,
+                  shape: BoxShape.circle,
+                  border: Border.all(color: Colors.grey.shade300),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withOpacity(0.1),
+                      blurRadius: 4,
+                      spreadRadius: 1,
                     ),
-                  ),
+                  ],
                 ),
-              ],
+                child: Icon(
+                  Icons.format_color_text,
+                  color: settingsController.textColor.computeLuminance() > 0.5 ? Colors.black : Colors.white,
+                  size: 24,
+                ),
+              ),
             ),
           ),
         ),
 
         const SizedBox(height: 20),
-
-        // Image upload button
-        Center(
-          child: ElevatedButton.icon(
-            icon: const Icon(Icons.image),
-            label: Text('pick_background_image'.tr),
-            onPressed: () => settingsController.pickAndSetBackgroundImage(),
-            style: ElevatedButton.styleFrom(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-              backgroundColor: AppTheme.primaryColor,
-              foregroundColor: Colors.white,
-            ),
-          ),
-        ),
-
-        const SizedBox(height: 10),
 
         // Reset button
         Center(
@@ -547,6 +600,65 @@ class _SettingsScreenState extends State<SettingsScreen> {
           ),
         ),
       ],
+    );
+  }
+
+  // إضافة دالة لعرض مربع حوار اختيار اللون
+  void _showColorPickerDialog({
+    required BuildContext context,
+    required Color currentColor,
+    required Function(Color) onColorChanged,
+    required String title,
+  }) {
+    Color pickerColor = currentColor;
+
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text(title),
+          content: SingleChildScrollView(
+            child: ColorPicker(
+              pickerColor: pickerColor,
+              onColorChanged: (color) {
+                pickerColor = color;
+              },
+              pickerAreaHeightPercent: 0.8,
+              enableAlpha: true,
+              displayThumbColor: true,
+              paletteType: PaletteType.hsvWithHue,
+              labelTypes: const [
+                ColorLabelType.rgb,
+                ColorLabelType.hsv,
+                ColorLabelType.hsl,
+                ColorLabelType.hex,
+              ],
+              pickerAreaBorderRadius: const BorderRadius.all(Radius.circular(10)),
+              hexInputBar: true,
+              portraitOnly: true,
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+              child: const Text('إلغاء'),
+            ),
+            ElevatedButton(
+              onPressed: () {
+                onColorChanged(pickerColor);
+                Navigator.of(context).pop();
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppTheme.primaryColor,
+                foregroundColor: Colors.white,
+              ),
+              child: const Text('تأكيد'),
+            ),
+          ],
+        );
+      },
     );
   }
 
@@ -659,160 +771,307 @@ class _SettingsScreenState extends State<SettingsScreen> {
     }
   }
 
-  // دالة لعرض واجهة اختيار اللوقو
+  // تحسين دالة _buildLogoSelector
+
   Widget _buildLogoSelector() {
-    // قائمة شعارات التطبيق المتوفرة - اقتصرت على 3 شعارات فقط
+    // قائمة شعارات التطبيق المتوفرة
     final List<String> availableLogos = [
       'assets/images/logo.png',
-      'assets/images/JBR.png',
-      'assets/images/JBR1.png',
+      'assets/images/logo1.png',
+      'assets/images/logo2.png',
+      'assets/images/logo3.png',
+      'assets/images/logo4.png',
+      'assets/images/logo5.png',
+      'assets/images/logo6.png',
+      'assets/images/logo7.png',
+      'assets/images/logo8.png',
     ];
 
-    // الحصول على مسار الشعار الحالي
-    final currentLogo = settingsController.logoPath ?? 'assets/images/logo.png';
-
-    // التحقق مما إذا كان اللوقو الحالي هو لوقو مخصص
-    bool isCustomLogo = currentLogo.contains('custom_logo_');
+    // استخدام متغير currentLogo بدلاً من إعادة استعلامه عدة مرات
+    final String currentLogo = settingsController.logoPath ?? 'assets/images/logo.png';
+    final bool isCustomLogo = !currentLogo.startsWith('assets/');
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         // عنوان القسم
-        Text(
+        const Text(
           'اختيار شعار التطبيق',
-          style: const TextStyle(
+          style: TextStyle(
             fontSize: 16,
             fontWeight: FontWeight.bold,
           ),
         ),
         const SizedBox(height: 12),
 
-        // معاينة الشعار الحالي - تم تصغير الحجم
+        // معاينة الشعار الحالي
+        Center(
+          child: Neumorphic(
+            style: NeumorphicStyle(
+              depth: 8,
+              intensity: 0.7,
+              boxShape: const NeumorphicBoxShape.circle(),
+              lightSource: LightSource.topLeft,
+              color: Colors.white,
+            ),
+            child: InkWell(
+              onTap: () => _showLogoSelectionDialog(availableLogos, currentLogo),
+              child: Container(
+                width: 100,
+                height: 100,
+                padding: const EdgeInsets.all(8),
+                child: Builder(builder: (context) {
+                  // عرض الشعار الحالي
+                  if (isCustomLogo) {
+                    // للصور المخصصة من نظام الملفات
+                    final file = File(currentLogo);
+                    if (!file.existsSync()) {
+                      return Image.asset('assets/images/logo.png', fit: BoxFit.contain);
+                    }
+                    return ClipRRect(
+                      borderRadius: BorderRadius.circular(50),
+                      child: Image.file(
+                        file,
+                        fit: BoxFit.contain,
+                        errorBuilder: (context, error, stackTrace) {
+                          return Image.asset('assets/images/logo.png', fit: BoxFit.contain);
+                        },
+                      ),
+                    );
+                  } else {
+                    // للصور من موارد التطبيق
+                    return ClipRRect(
+                      borderRadius: BorderRadius.circular(50),
+                      child: Image.asset(
+                        currentLogo,
+                        fit: BoxFit.contain,
+                        errorBuilder: (context, error, stackTrace) {
+                          return Image.asset('assets/images/logo.png', fit: BoxFit.contain);
+                        },
+                      ),
+                    );
+                  }
+                }),
+              ),
+            ),
+          ),
+        ),
+        
+        const SizedBox(height: 8),
         Center(
           child: Column(
             children: [
-              Container(
-                width: 80, // تم تصغير الحجم من 100 إلى 80
-                height: 80, // تم تصغير الحجم من 100 إلى 80
-                padding: const EdgeInsets.all(6), // تصغير الحشو
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(10),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.black.withOpacity(0.1),
-                      blurRadius: 6,
-                      spreadRadius: 1,
-                    ),
-                  ],
-                ),
-                child: isCustomLogo
-                    ? Image.file(
-                        File(currentLogo),
-                        fit: BoxFit.contain,
-                        errorBuilder: (context, error, stackTrace) {
-                          // إظهار شعار افتراضي في حالة وجود خطأ
-                          return Image.asset('assets/images/logo.png',
-                              fit: BoxFit.contain);
-                        },
-                      )
-                    : Image.asset(
-                        currentLogo,
-                        fit: BoxFit.contain,
-                      ),
-              ),
-              const SizedBox(height: 6),
               Text(
                 'الشعار الحالي',
                 style: TextStyle(
-                  fontSize: 11, // تصغير حجم النص
-                  color: Colors.grey.shade600,
+                  fontSize: 14,
+                  color: Colors.grey.shade700,
                 ),
               ),
+              if (isCustomLogo)
+                Text(
+                  'شعار مخصص',
+                  style: TextStyle(
+                    fontSize: 12,
+                    color: Colors.grey.shade500,
+                    fontStyle: FontStyle.italic,
+                  ),
+                ),
             ],
           ),
         ),
 
-        const SizedBox(height: 16), // تقليل المسافة
-        Text(
-          'اختر شعاراً آخر:',
-          style: const TextStyle(
-            fontSize: 14,
-            fontWeight: FontWeight.w500,
-          ),
-        ),
-        const SizedBox(height: 10), // تقليل المسافة
+        const SizedBox(height: 24),
 
-        // عرض الشعارات المتاحة في صف واحد
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-          children: availableLogos.map((logo) {
-            final isSelected = currentLogo == logo;
-
-            return GestureDetector(
-              onTap: () => settingsController.setLogoPath(logo),
-              child: Container(
-                width: 70,
-                height: 70,
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(8),
-                  border: Border.all(
-                    color: isSelected
-                        ? AppTheme.primaryColor
-                        : Colors.grey.shade300,
-                    width: isSelected ? 2 : 1,
-                  ),
-                ),
-                padding: const EdgeInsets.all(6),
-                child: Stack(
-                  children: [
-                    Center(
-                      child: Image.asset(
-                        logo,
-                        fit: BoxFit.contain,
-                      ),
-                    ),
-                    if (isSelected)
-                      Positioned(
-                        right: 0,
-                        bottom: 0,
-                        child: Container(
-                          decoration: BoxDecoration(
-                            color: AppTheme.primaryColor,
-                            shape: BoxShape.circle,
-                          ),
-                          padding: const EdgeInsets.all(2),
-                          child: const Icon(
-                            Icons.check,
-                            color: Colors.white,
-                            size: 12, // تم تصغير حجم الأيقونة
-                          ),
-                        ),
-                      ),
-                  ],
-                ),
-              ),
-            );
-          }).toList(),
-        ),
-
-        const SizedBox(height: 16),
-
-        // زر لتحميل شعار مخصص - تم تفعيله
+        // نص توجيهي
         Center(
-          child: ElevatedButton.icon(
-            onPressed: () => settingsController.pickAndSetCustomLogo(),
-            icon: const Icon(Icons.add_photo_alternate, size: 18),
-            label: const Text('تحميل شعار مخصص'),
-            style: ElevatedButton.styleFrom(
-              backgroundColor: AppTheme.primaryColor,
-              foregroundColor: Colors.white,
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+          child: Text(
+            'اضغط على الشعار لتغييره',
+            style: TextStyle(
+              fontSize: 14,
+              color: Colors.grey.shade600,
+              fontStyle: FontStyle.italic,
             ),
           ),
         ),
+
+        const SizedBox(height: 20),
+
+        // زر استعادة الشعار الافتراضي
+        if (isCustomLogo)
+          Center(
+            child: TextButton.icon(
+              onPressed: () {
+                settingsController.setLogoPath('assets/images/logo.png');
+              },
+              icon: const Icon(Icons.restore, size: 18),
+              label: const Text('استعادة الشعار الافتراضي'),
+              style: TextButton.styleFrom(
+                foregroundColor: Colors.grey.shade700,
+              ),
+            ),
+          ),
       ],
+    );
+  }
+
+  // إضافة دالة لعرض نافذة اختيار اللوغو
+  void _showLogoSelectionDialog(List<String> availableLogos, String currentLogo) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (context) => StatefulBuilder(
+        builder: (context, setState) {
+          return Container(
+            padding: const EdgeInsets.all(20),
+            // استخدام ارتفاع معقول لا يتجاوز 70% من الشاشة
+            height: MediaQuery.of(context).size.height * 0.7,
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Center(
+                  child: Container(
+                    width: 50,
+                    height: 5,
+                    decoration: BoxDecoration(
+                      color: Colors.grey.shade300,
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 20),
+                const Text(
+                  'تغيير شعار التطبيق',
+                  style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                const SizedBox(height: 5),
+                Text(
+                  'اختر شعارًا أو قم بتحميل صورة مخصصة:',
+                  style: TextStyle(
+                    fontSize: 14,
+                    color: Colors.grey.shade700,
+                  ),
+                ),
+                const SizedBox(height: 20),
+
+                // شبكة الشعارات المتوفرة
+                Expanded(
+                  child: GridView.builder(
+                    gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                      crossAxisCount: 3,
+                      childAspectRatio: 1.0,
+                      crossAxisSpacing: 10,
+                      mainAxisSpacing: 10,
+                    ),
+                    itemCount: availableLogos.length + 1, // +1 لزر التحميل المخصص
+                    itemBuilder: (context, index) {
+                      if (index == availableLogos.length) {
+                        // خيار تحميل شعار مخصص
+                        return GestureDetector(
+                          onTap: () async {
+                            Navigator.pop(context);
+                            await Future.delayed(const Duration(milliseconds: 300));
+                            await settingsController.pickAndSetCustomLogo();
+                          },
+                          child: Container(
+                            decoration: BoxDecoration(
+                              color: Colors.grey.shade100,
+                              borderRadius: BorderRadius.circular(12),
+                              border: Border.all(color: Colors.grey.shade300),
+                            ),
+                            child: const Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Icon(
+                                  Icons.add_photo_alternate,
+                                  size: 40,
+                                  color: AppTheme.primaryColor,
+                                ),
+                                SizedBox(height: 8),
+                                Text(
+                                  'تحميل صورة',
+                                  style: TextStyle(
+                                    fontSize: 12,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                  textAlign: TextAlign.center,
+                                ),
+                              ],
+                            ),
+                          ),
+                        );
+                      }
+
+                      final logoPath = availableLogos[index];
+                      final isSelected = currentLogo == logoPath;
+
+                      return GestureDetector(
+                        onTap: () {
+                          settingsController.setLogoPath(logoPath);
+                          Navigator.pop(context);
+                        },
+                        child: Container(
+                          decoration: BoxDecoration(
+                            color: Colors.white,
+                            borderRadius: BorderRadius.circular(12),
+                            border: Border.all(
+                              color: isSelected ? AppTheme.primaryColor : Colors.grey.shade300,
+                              width: isSelected ? 2 : 1,
+                            ),
+                          ),
+                          padding: const EdgeInsets.all(8),
+                          child: Stack(
+                            fit: StackFit.expand,
+                            children: [
+                              Image.asset(
+                                logoPath,
+                                fit: BoxFit.contain,
+                              ),
+                              if (isSelected)
+                                Positioned(
+                                  right: 5,
+                                  bottom: 5,
+                                  child: Container(
+                                    decoration: const BoxDecoration(
+                                      color: AppTheme.primaryColor,
+                                      shape: BoxShape.circle,
+                                    ),
+                                    padding: const EdgeInsets.all(4),
+                                    child: const Icon(
+                                      Icons.check,
+                                      color: Colors.white,
+                                      size: 14,
+                                    ),
+                                  ),
+                                ),
+                            ],
+                          ),
+                        ),
+                      );
+                    },
+                  ),
+                ),
+                
+                const SizedBox(height: 10),
+                Center(
+                  child: TextButton.icon(
+                    onPressed: () => Navigator.pop(context),
+                    icon: const Icon(Icons.close),
+                    label: const Text('إغلاق'),
+                  ),
+                ),
+              ],
+            ),
+          );
+        },
+      ),
     );
   }
 
@@ -870,5 +1129,68 @@ class _SettingsScreenState extends State<SettingsScreen> {
         snackPosition: SnackPosition.BOTTOM,
       );
     }
+  }
+
+  // دالة لإنشاء عنصر اختيار اللون
+  Widget _buildColorPickerItem({
+    required String title,
+    required Color currentColor,
+    required Function(Color) onColorChanged,
+  }) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 8.0),
+      child: Neumorphic(
+        style: NeumorphicStyle(
+          depth: 2,
+          intensity: 0.8,
+          boxShape: NeumorphicBoxShape.roundRect(BorderRadius.circular(8)),
+        ),
+        child: ListTile(
+          title: Text(title),
+          trailing: Container(
+            width: 36,
+            height: 36,
+            decoration: BoxDecoration(
+              color: currentColor,
+              borderRadius: BorderRadius.circular(18),
+              border: Border.all(color: Colors.grey.shade300),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.1),
+                  blurRadius: 4,
+                  offset: const Offset(0, 2),
+                )
+              ],
+            ),
+          ),
+          onTap: () {
+            Get.dialog(
+              AlertDialog(
+                title: Text(title),
+                content: SingleChildScrollView(
+                  child: ColorPicker(
+                    pickerColor: currentColor,
+                    onColorChanged: onColorChanged,
+                    pickerAreaHeightPercent: 0.8,
+                    enableAlpha: true,
+                    displayThumbColor: true,
+                    showLabel: true,
+                    paletteType: PaletteType.hsv,
+                  ),
+                ),
+                actions: <Widget>[
+                  TextButton(
+                    child: const Text('حفظ'),
+                    onPressed: () {
+                      Get.back();
+                    },
+                  ),
+                ],
+              ),
+            );
+          },
+        ),
+      ),
+    );
   }
 }

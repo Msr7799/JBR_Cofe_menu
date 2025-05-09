@@ -1,5 +1,3 @@
-import 'dart:io';
-import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:gpr_coffee_shop/constants/theme.dart';
 import 'package:gpr_coffee_shop/controllers/settings_controller.dart';

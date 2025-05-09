@@ -2,7 +2,6 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:gpr_coffee_shop/constants/theme.dart';
 import 'package:gpr_coffee_shop/models/category.dart';
-import 'package:gpr_coffee_shop/utils/image_helper.dart';
 
 class CategoryCard extends StatefulWidget {
   final Category category;
@@ -73,6 +72,13 @@ class _CategoryCardState extends State<CategoryCard>
                 : Colors.black.withOpacity(0.2),
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(16),
+              // إضافة بوردر خفيف للبطاقات
+              side: BorderSide(
+                color: _isHovering 
+                  ? AppTheme.primaryColor.withOpacity(0.3) 
+                  : Colors.grey.withOpacity(0.2),
+                width: _isHovering ? 1.5 : 1.0,
+              ),
             ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -84,7 +90,7 @@ class _CategoryCardState extends State<CategoryCard>
                     fit: StackFit.expand,
                     children: [
                       _buildCategoryImage(),
-                      // طبقة داكنة فوق الصورة لتحسين ظهور النص
+                      // طبقة تدرج لتحسين وضوح النص
                       Container(
                         decoration: BoxDecoration(
                           gradient: LinearGradient(
@@ -98,16 +104,23 @@ class _CategoryCardState extends State<CategoryCard>
                           ),
                         ),
                       ),
-                      // عدد المنتجات في الفئة
+                      // عنوان الفئة - بتعديل عرض الفئة
                       Positioned(
                         top: 8,
                         right: 8,
                         child: Container(
                           padding: const EdgeInsets.symmetric(
-                              horizontal: 8, vertical: 4),
+                              horizontal: 10, vertical: 4),
                           decoration: BoxDecoration(
-                            color: AppTheme.primaryColor.withOpacity(0.8),
+                            color: AppTheme.primaryColor,
                             borderRadius: BorderRadius.circular(12),
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.black.withOpacity(0.2),
+                                blurRadius: 4,
+                                offset: const Offset(0, 2),
+                              ),
+                            ],
                           ),
                           child: const Text(
                             'فئة',
@@ -146,11 +159,16 @@ class _CategoryCardState extends State<CategoryCard>
                     ],
                   ),
                 ),
-                // قسم المعلومات
+                // قسم المعلومات - تحسين الوصف
                 Expanded(
                   flex: 1,
                   child: Container(
-                    padding: const EdgeInsets.all(8.0),
+                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                    decoration: BoxDecoration(
+                      color: _isHovering 
+                          ? AppTheme.primaryColor.withOpacity(0.05) 
+                          : Colors.transparent,
+                    ),
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
                       crossAxisAlignment: CrossAxisAlignment.center,
@@ -160,8 +178,10 @@ class _CategoryCardState extends State<CategoryCard>
                           style: TextStyle(
                             fontSize: 13 * widget.cardSize,
                             color: Colors.grey[700],
+                            height: 1.2, // تحسين المسافة بين السطور
+                            fontWeight: FontWeight.w400, // تحسين وزن الخط
                           ),
-                          maxLines: 1,
+                          maxLines: 2, // السماح بسطرين للوصف
                           overflow: TextOverflow.ellipsis,
                           textAlign: TextAlign.center,
                         ),

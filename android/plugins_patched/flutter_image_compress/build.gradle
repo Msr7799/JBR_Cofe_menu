@@ -1,0 +1,27 @@
+group 'com.example.flutter_image_compress'
+version '1.0'
+
+buildscript {
+    repositories {
+        google()
+        mavenCentral()
+    }
+}
+
+rootProject.allprojects {
+    repositories {
+        google()
+        mavenCentral()
+    }
+}
+
+apply plugin: 'com.android.library'
+
+android {
+    namespace "com.example.flutter_image_compress"
+    compileSdkVersion 33
+    
+    defaultConfig {
+        minSdkVersion 21
+    }
+}

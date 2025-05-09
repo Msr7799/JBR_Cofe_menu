@@ -1,18 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:gpr_coffee_shop/constants/theme.dart';
 import 'package:gpr_coffee_shop/controllers/order_controller.dart';
 import 'package:gpr_coffee_shop/controllers/product_controller.dart';
 import 'package:gpr_coffee_shop/controllers/category_controller.dart';
-import 'package:gpr_coffee_shop/models/order.dart';
-import 'package:gpr_coffee_shop/widgets/admin/data_card.dart';
-import 'package:gpr_coffee_shop/widgets/admin/sales_chart.dart';
 import 'package:gpr_coffee_shop/widgets/admin/category_sales_chart.dart';
 // إزالة استيراد chart_utils.dart و date_formatter.dart غير المستخدمين
-import 'package:intl/intl.dart';
-import 'dart:io';
-import 'package:path_provider/path_provider.dart';
-import 'package:share_plus/share_plus.dart';
 import 'package:gpr_coffee_shop/utils/logger_util.dart';
 // إزالة استيراد fl_chart.dart غير المستخدم
 

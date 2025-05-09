@@ -7,9 +7,7 @@ import 'package:gpr_coffee_shop/controllers/order_controller.dart';
 import 'package:gpr_coffee_shop/models/product.dart';
 import 'package:gpr_coffee_shop/models/order.dart';
 import 'package:gpr_coffee_shop/models/category.dart'; // Añadido para solucionar el error
-import 'package:gpr_coffee_shop/services/notification_service.dart';
 import 'package:gpr_coffee_shop/utils/view_options_helper.dart';
-import 'package:transparent_image/transparent_image.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:gpr_coffee_shop/utils/image_helper.dart';
 import 'package:gpr_coffee_shop/utils/logger_util.dart';
@@ -119,7 +117,7 @@ class _EnhancedProductCardState extends State<EnhancedProductCard>
     }
   }
 
-  // تحميل خيارات العرض
+  // تعديل دالة _loadViewOptions لزيادة ارتفاع الصورة الافتراضي إذا كانت القيمة المستردة منخفضة
   void _loadViewOptions() {
     _cardSize = ViewOptionsHelper.getCardSize();
     _showImages = ViewOptionsHelper.getShowImages();
@@ -132,7 +130,9 @@ class _EnhancedProductCardState extends State<EnhancedProductCard>
     _priceColor = Color(ViewOptionsHelper.getPriceColor());
     _cardWidth = ViewOptionsHelper.getProductCardWidth();
     _cardHeight = ViewOptionsHelper.getProductCardHeight();
-    _imageHeight = ViewOptionsHelper.getProductImageHeight();
+
+    // زيادة ارتفاع الصورة بنسبة 1.5
+    _imageHeight = ViewOptionsHelper.getProductImageHeight() * 1.5;
   }
 
   // بناء البطاقة
@@ -150,17 +150,19 @@ class _EnhancedProductCardState extends State<EnhancedProductCard>
             ? _cardWidth * 0.9
             : _cardWidth;
 
+    // زيادة ارتفاع البطاقة لاستيعاب الصورة الأكبر
     final calculatedCardHeight = isSmallScreen
-        ? _cardHeight * 0.85
+        ? _cardHeight * 1.05
         : isMediumScreen
-            ? _cardHeight * 0.9
-            : _cardHeight;
+            ? _cardHeight * 1.1
+            : _cardHeight * 1.2;
 
+    // زيادة ارتفاع الصورة بشكل أكبر (زيادة بنسبة 40-60%)
     final calculatedImageHeight = isSmallScreen
-        ? _imageHeight * 0.8
+        ? _imageHeight * 1.0
         : isMediumScreen
-            ? _imageHeight * 0.9
-            : _imageHeight;
+            ? _imageHeight * 1.3
+            : _imageHeight * 1.5;
 
     final calculatedTitleSize = isSmallScreen
         ? _titleFontSize * 0.85
@@ -213,17 +215,21 @@ class _EnhancedProductCardState extends State<EnhancedProductCard>
                 padding: const EdgeInsets.all(8.0),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
-                  mainAxisSize:
-                      MainAxisSize.min, // استخدام هذا لمنع مشكلة الفائض
+                  mainAxisSize: MainAxisSize.min,
                   textDirection: TextDirection.rtl,
                   children: [
+                    // قسم الصورة مع زيادة الارتفاع
                     if (_showImages) _buildProductImage(calculatedImageHeight),
-                    const SizedBox(height: 8),
-                    Flexible(
+
+                    // مسافة أقل بعد الصورة
+                    const SizedBox(height: 4),
+
+                    // معلومات المنتج في قسم منفصل
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 4.0),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
-                        mainAxisSize:
-                            MainAxisSize.min, // استخدام هذا لمنع مشكلة الفائض
+                        mainAxisSize: MainAxisSize.min,
                         children: [
                           Text(
                             widget.product.name,
@@ -247,7 +253,7 @@ class _EnhancedProductCardState extends State<EnhancedProductCard>
                               maxLines: 1,
                             ),
                           ],
-                          const SizedBox(height: 4),
+                          const SizedBox(height: 2),
                           Text(
                             '${widget.product.price.toStringAsFixed(3)} د.ب',
                             style: TextStyle(
@@ -256,38 +262,52 @@ class _EnhancedProductCardState extends State<EnhancedProductCard>
                               color: _priceColor,
                             ),
                           ),
-                          const SizedBox(height: 8),
-                          if (widget.showDetails && _showOrderButton) ...[
-                            Row(
-                              children: [
-                                _buildQuantityControls(calculatedButtonSize),
-                                const Spacer(),
-                                ElevatedButton(
-                                  onPressed: _placeOrder,
-                                  style: ElevatedButton.styleFrom(
-                                    backgroundColor: AppTheme.primaryColor,
-                                    padding: const EdgeInsets.symmetric(
-                                      horizontal: 10,
-                                      vertical: 4,
-                                    ),
-                                    minimumSize: Size.zero,
-                                    tapTargetSize:
-                                        MaterialTapTargetSize.shrinkWrap,
-                                  ),
-                                  child: Text(
-                                    'طلب',
-                                    style: TextStyle(
-                                      fontSize: calculatedButtonSize,
-                                      color: Colors.white,
-                                    ),
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ],
                         ],
                       ),
                     ),
+
+                    // إضافة Spacer لدفع الأزرار إلى الأسفل
+                    const Spacer(),
+
+                    // أزرار الطلب وتغيير الكمية في أسفل البطاقة
+                    if (widget.showDetails && _showOrderButton) ...[
+                      const SizedBox(height: 4),
+                      Container(
+                        width: double.infinity,
+                        padding: const EdgeInsets.symmetric(vertical: 6),
+                        decoration: BoxDecoration(
+                          color: Colors.grey.shade50,
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: Column(
+                          children: [
+                            // عرض زر اختيار الكمية في الأعلى
+                            _buildQuantityControls(calculatedButtonSize),
+                            const SizedBox(height: 6),
+                            // زر الطلب بعرض كامل
+                            SizedBox(
+                              width: double.infinity,
+                              child: ElevatedButton(
+                                onPressed: _placeOrder,
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: const Color.fromARGB(255, 45, 57, 132),
+                                  padding: const EdgeInsets.symmetric(
+                                    vertical: 6,
+                                  ),
+                                ),
+                                child: Text(
+                                  'طلب',
+                                  style: TextStyle(
+                                    fontSize: calculatedButtonSize,
+                                    color: Colors.white,
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
                   ],
                 ),
               ),
@@ -298,10 +318,10 @@ class _EnhancedProductCardState extends State<EnhancedProductCard>
     );
   }
 
-  // بناء صورة المنتج
+  // تعديل طريقة بناء الصورة لاستخدام الارتفاع المزيد
   Widget _buildProductImage(double height) {
-    // استخدام القيمة المخزنة من ViewOptionsHelper
-    double imageHeight = ViewOptionsHelper.getProductImageHeight() * _cardSize;
+    // استخدام القيمة المزيدة للصورة
+    double imageHeight = height;
 
     String? imageUrl = widget.product.imageUrl;
     Widget errorWidget = Container(
@@ -351,8 +371,10 @@ class _EnhancedProductCardState extends State<EnhancedProductCard>
               // صورة المنتج مع استخدام ImageHelper
               ImageHelper.buildImage(
                 imageUrl,
-                fit: BoxFit.cover,
-                errorWidget: errorWidget,
+                fit: BoxFit
+                    .cover, // استخدام BoxFit.cover لتناسب الصورة بشكل أفضل
+                width: double.infinity,
+                height: height,
               ),
 
               // تأثير الضغط على الصورة
@@ -402,7 +424,7 @@ class _EnhancedProductCardState extends State<EnhancedProductCard>
   // بناء التحكم بالكمية
   Widget _buildQuantityControls(double fontSize) {
     return Row(
-      mainAxisSize: MainAxisSize.min,
+      mainAxisAlignment: MainAxisAlignment.center,
       children: [
         _buildQuantityButton(
           Icons.remove,
@@ -415,7 +437,7 @@ class _EnhancedProductCardState extends State<EnhancedProductCard>
         ),
         Container(
           width: fontSize * 2,
-          margin: const EdgeInsets.symmetric(horizontal: 4),
+          margin: const EdgeInsets.symmetric(horizontal: 8),
           alignment: Alignment.center,
           decoration: BoxDecoration(
             border: Border.all(color: Colors.grey.shade300),
@@ -426,6 +448,7 @@ class _EnhancedProductCardState extends State<EnhancedProductCard>
             style: TextStyle(
               fontSize: fontSize * 0.9,
               fontWeight: FontWeight.bold,
+              color: Colors.black,
             ),
           ),
         ),
@@ -452,14 +475,14 @@ class _EnhancedProductCardState extends State<EnhancedProductCard>
         width: size * 1.6,
         height: size * 1.6,
         decoration: BoxDecoration(
-          color: isAdd ? AppTheme.primaryColor : Colors.grey.shade200,
+          color: isAdd ? AppTheme.primaryColor : Colors.grey.shade700,
           borderRadius: BorderRadius.circular(4),
         ),
         alignment: Alignment.center,
         child: Icon(
           icon,
           size: size * 0.8,
-          color: isAdd ? Colors.white : Colors.black,
+          color: isAdd ? const Color.fromARGB(255, 20, 20, 20) : Colors.black,
         ),
       ),
     );
@@ -506,7 +529,7 @@ class _EnhancedProductCardState extends State<EnhancedProductCard>
         'حدث خطأ أثناء إضافة المنتج للطلب',
         snackPosition: SnackPosition.BOTTOM,
         backgroundColor: Colors.red.withOpacity(0.7),
-        colorText: Colors.white,
+        colorText: const Color.fromARGB(255, 253, 252, 252),
         duration: const Duration(seconds: 3),
       );
     }
@@ -617,7 +640,7 @@ class _EnhancedProductCardState extends State<EnhancedProductCard>
                           });
                         },
                         style: ElevatedButton.styleFrom(
-                          backgroundColor: AppTheme.primaryColor,
+                          backgroundColor: const Color.fromARGB(255, 45, 57, 132),
                         ),
                         child: const Text('إضافة للطلب'),
                       ),
@@ -639,12 +662,12 @@ class _EnhancedProductCardState extends State<EnhancedProductCard>
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          const Icon(
+          Icon(
             Icons.error_outline,
             color: Colors.white,
             size: 64,
           ),
-          const SizedBox(height: 16),
+          SizedBox(height: 16),
           Text(
             'تعذّر تحميل الصورة',
             style: TextStyle(
@@ -714,11 +737,10 @@ class _EnhancedProductCardState extends State<EnhancedProductCard>
             ),
             const SizedBox(height: 4),
             // وصف المنتج مع تقييد المساحة
-            if (widget.product.description != null &&
-                widget.product.description!.isNotEmpty)
+            if (widget.product.description.isNotEmpty)
               Flexible(
                 child: Text(
-                  widget.product.description!,
+                  widget.product.description,
                   style: TextStyle(
                     fontSize: 12,
                     color: Colors.grey[700],
@@ -750,7 +772,7 @@ class _EnhancedProductCardState extends State<EnhancedProductCard>
                       color: Colors.orange,
                       borderRadius: BorderRadius.circular(10),
                     ),
-                    child: Icon(
+                    child: const Icon(
                       Icons.star,
                       color: Colors.white,
                       size: 14,

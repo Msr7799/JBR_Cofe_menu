@@ -4,15 +4,16 @@ import 'package:gpr_coffee_shop/services/shared_preferences_service.dart';
 import 'package:gpr_coffee_shop/models/app_settings.dart';
 import 'package:gpr_coffee_shop/services/local_storage_service.dart';
 import 'package:gpr_coffee_shop/services/app_translation_service.dart';
-import 'package:gpr_coffee_shop/screens/home_screen.dart';
 import 'package:gpr_coffee_shop/constants/theme.dart';
 import 'package:gpr_coffee_shop/utils/logger_util.dart';
+import 'package:gpr_coffee_shop/utils/image_helper.dart'; // إضافة هذا الاستيراد
 import 'package:image_picker/image_picker.dart';
 import 'dart:io';
 import 'package:path_provider/path_provider.dart';
 import 'package:path/path.dart' as path;
 
 class SettingsController extends GetxController {
+  
   final SharedPreferencesService _prefsService =
       Get.find<SharedPreferencesService>();
   final LocalStorageService _storageService = Get.find<LocalStorageService>();
@@ -35,17 +36,17 @@ class SettingsController extends GetxController {
   final List<Color> predefinedBackgroundColors = [
     Colors.white,
     Colors.black,
-    Color(0xFFD0B8A8), // Coffee brown color
-    Color(0xFF7D6E83), // Lavender gray
-    Color(0xFFF8EDE3), // Cream color
+    const Color(0xFFD0B8A8), // Coffee brown color
+    const Color(0xFF7D6E83), // Lavender gray
+    const Color(0xFFF8EDE3), // Cream color
   ];
 
   // Predefined colors for text
   final List<Color> predefinedTextColors = [
     Colors.white,
     Colors.black,
-    Color(0xFF000080), // Navy blue
-    Color(0xFF800000), // Maroon
+    const Color(0xFF000080), // Navy blue
+    const Color(0xFF800000), // Maroon
   ];
 
   // Convenience getters
@@ -477,77 +478,129 @@ class SettingsController extends GetxController {
   // دالة للحصول على مسار صورة اللوغو
   String? get logoPath => settings.value.logoPath;
 
-  // دالة لتعيين مسار صورة اللوغو
+  // دالة لتعيين مسار صورة اللوغو - إصدار محسن ومستقر
   Future<void> setLogoPath(String path) async {
-    settings.update((val) {
-      val?.logoPath = path;
-    });
-    await saveSettings();
-    update();
+    // التحقق من صلاحية المسار قبل محاولة التعيين
+    if (path.isEmpty) {
+      LoggerUtil.logger.w('محاولة تعيين مسار فارغ للوغو');
+      return;
+    }
 
-    Get.snackbar(
-      'تم التغيير',
-      'تم تغيير شعار التطبيق بنجاح',
-      snackPosition: SnackPosition.BOTTOM,
-      duration: const Duration(seconds: 2),
-    );
-  }
-
-  // دالة لتحميل لوقو مخصص واستخدامه
-  Future<void> pickAndSetCustomLogo() async {
+    // بدء عملية التحميل
+    isLoading.value = true;
+    
     try {
-      final ImagePicker picker = ImagePicker();
-      final XFile? pickedFile = await picker.pickImage(
-        source: ImageSource.gallery,
-        imageQuality: 100,
-      );
-
-      if (pickedFile != null) {
-        // حفظ الصورة في مجلد التطبيق
-        final appDir = await getApplicationDocumentsDirectory();
-        final fileName =
-            'custom_logo_${DateTime.now().millisecondsSinceEpoch}${path.extension(pickedFile.path)}';
-        final savedImagePath = path.join(appDir.path, 'logos', fileName);
-
-        // التأكد من وجود المجلد
-        final directory = Directory(path.join(appDir.path, 'logos'));
-        if (!await directory.exists()) {
-          await directory.create(recursive: true);
-        }
-
-        // نسخ الصورة
-        final File imageFile = File(pickedFile.path);
-        final File copiedFile = await imageFile.copy(savedImagePath);
-
-        // التحقق من أن الملف تم نسخه بنجاح
-        if (!await copiedFile.exists()) {
-          throw Exception('فشل في حفظ الصورة');
-        }
-
-        // تحديث مسار الصورة في الإعدادات
-        settings.update((val) {
-          val?.logoPath = savedImagePath;
-        });
-        await saveSettings();
-        update();
-
-        // عرض رسالة نجاح
-        Get.snackbar(
-          'تم التغيير',
-          'تم تغيير شعار التطبيق بنجاح',
-          snackPosition: SnackPosition.BOTTOM,
-          duration: const Duration(seconds: 2),
-        );
+      // التحقق من أن الصورة صالحة قبل تطبيقها
+      final bool isValidImage = path.startsWith('assets/') || 
+          (File(path).existsSync() && await File(path).length() > 0);
+      
+      if (!isValidImage) {
+        throw Exception('صورة اللوغو غير صالحة أو غير موجودة: $path');
       }
-    } catch (e) {
-      LoggerUtil.logger.e('خطأ في تحميل شعار مخصص: $e');
+      
+      
+      // تحديث إعدادات اللوغو في الذاكرة
+      settings.update((val) {
+        val?.logoPath = path;
+      });
+      
+      // حفظ الإعدادات في التخزين المستمر
+      await saveSettings();
+      
+      // تحديث الواجهة بشكل محدد باستخدام معرف
+      update(['app_logo']);
+      
+      // عرض رسالة نجاح
+      Get.snackbar(
+        'تم التغيير',
+        'تم تغيير شعار التطبيق بنجاح',
+        snackPosition: SnackPosition.BOTTOM,
+        backgroundColor: Colors.green.withAlpha(200),
+        colorText: Colors.white,
+        duration: const Duration(seconds: 2),
+      );
+    } catch (e, stackTrace) {
+      // تسجيل الخطأ بالتفصيل
+      LoggerUtil.error('خطأ في تغيير شعار التطبيق:', e, stackTrace);
+      
+      // استعادة المسار القديم إذا كان متاحًا
+      if (settings.value.logoPath != 'assets/images/logo.png') {
+        settings.update((val) {
+          val?.logoPath = 'assets/images/logo.png';
+        });
+        
+        try {
+          await saveSettings();
+          update(['app_logo']);
+        } catch (_) {
+          // تجاهل أي أخطاء أخرى هنا لمنع سلسلة من الاستثناءات
+        }
+      }
+      
+      // إظهار رسالة خطأ للمستخدم
       Get.snackbar(
         'خطأ',
-        'حدث خطأ أثناء تحميل الشعار المخصص: $e',
+        'حدث خطأ أثناء تغيير شعار التطبيق. تم استعادة الشعار الافتراضي.',
         snackPosition: SnackPosition.BOTTOM,
-        backgroundColor: Colors.red.withAlpha(180),
+        backgroundColor: Colors.red.withAlpha(200),
         colorText: Colors.white,
+        duration: const Duration(seconds: 3),
       );
+    } finally {
+      // إنهاء حالة التحميل
+      isLoading.value = false;
     }
   }
+
+  // اختيار وتطبيق لوغو مخصص
+  Future<bool> pickAndSetCustomLogo() async {
+    try {
+      // عرض مؤشر التحميل
+      isLoading(true);
+
+      // استخدام ImageHelper.pickImage بدلاً من image_picker مباشرة
+      final File? pickedFile = await ImageHelper.pickImage(source: ImageSource.gallery);
+
+      // إذا لم يختر المستخدم صورة
+      if (pickedFile == null) {
+        isLoading(false);
+        return false;
+      }
+
+      // الاحتفاظ بمسار اللوغو القديم للحذف لاحقاً
+      final String? oldPath = logoPath;
+      
+      // نسخ الصورة إلى مجلد التطبيق
+      final customLogoPath = await ImageHelper.copyImageToAppDirectory(pickedFile.path);
+
+      if (customLogoPath != null) {
+        // تغيير حجم الصورة وحفظها مع الحفاظ على نسبة العرض للارتفاع
+        final resizedPath = await ImageHelper.resizeAndSaveImage(
+          customLogoPath,
+          targetWidth: 300,
+          targetHeight: 300,
+          keepAspectRatio: true,
+        );
+
+        // تعيين مسار اللوغو الجديد
+        await setLogoPath(resizedPath ?? customLogoPath);
+        
+        // حذف الملف القديم إذا كان موجوداً ولم يكن من الأصول
+        if (oldPath != null && oldPath.isNotEmpty && !oldPath.startsWith('assets/')) {
+          await ImageHelper.safeDeleteImage(oldPath);
+        }
+        
+        isLoading(false);
+        return true;
+      }
+
+      isLoading(false);
+      return false;
+    } catch (e) {
+      LoggerUtil.logger.e('فشل في اختيار وتعيين اللوغو المخصص: $e');
+      isLoading(false);
+      return false;
+    }
+  }
+
 }

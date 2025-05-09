@@ -38,8 +38,8 @@ class Category extends HiveObject {
     this.iconPath,
     this.order = 0,
     this.isActive = true,
-    this.nameEn = '', // Default value
-    this.descriptionEn = '', // Default value,
+    this.nameEn = '',
+    this.descriptionEn = '', 
   });
 
   // Localized getters for name and description

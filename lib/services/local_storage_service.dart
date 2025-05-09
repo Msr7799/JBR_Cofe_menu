@@ -5,7 +5,6 @@ import 'package:gpr_coffee_shop/models/app_settings.dart';
 import 'package:gpr_coffee_shop/models/category.dart';
 import 'package:gpr_coffee_shop/models/order.dart';
 import 'package:gpr_coffee_shop/utils/logger_util.dart';
-import 'package:logger/logger.dart';
 
 class LocalStorageService extends GetxService {
   static const String PRODUCTS_BOX = 'products_box';
@@ -388,7 +387,7 @@ class LocalStorageService extends GetxService {
           notes: orderMap['notes'] as String?,
         );
         
-        LoggerUtil.logger.i('تم استعادة الطلب ${id}، عدد العناصر: ${order.items.length}');
+        LoggerUtil.logger.i('تم استعادة الطلب $id، عدد العناصر: ${order.items.length}');
         return order;
       }
       return null;
@@ -474,7 +473,7 @@ class LocalStorageService extends GetxService {
       LoggerUtil.logger.i('تم حفظ الإعدادات بنجاح');
     } catch (e) {
       LoggerUtil.logger.e('خطأ في حفظ الإعدادات: $e');
-      throw e; // إعادة إرسال الخطأ للمعالجة في المستوى الأعلى
+      rethrow; // إعادة إرسال الخطأ للمعالجة في المستوى الأعلى
     }
   }
 

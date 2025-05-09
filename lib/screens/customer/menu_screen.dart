@@ -10,11 +10,9 @@ import 'package:gpr_coffee_shop/models/category.dart';
 import 'package:gpr_coffee_shop/widgets/enhanced_product_card.dart';
 import 'package:gpr_coffee_shop/screens/home_screen.dart';
 import 'package:gpr_coffee_shop/utils/view_options_helper.dart';
-import 'package:gpr_coffee_shop/utils/image_helper.dart';
 import 'package:gpr_coffee_shop/widgets/category_card.dart';
 import 'package:flutter_staggered_animations/flutter_staggered_animations.dart';
 import 'package:gpr_coffee_shop/controllers/order_controller.dart';
-import 'package:gpr_coffee_shop/models/order.dart';
 
 class MenuScreen extends StatelessWidget {
   final ProductController productController = Get.find<ProductController>();
@@ -74,7 +72,6 @@ class MenuScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final screenWidth = MediaQuery.of(context).size.width;
-    final screenHeight = MediaQuery.of(context).size.height;
     final isSmallScreen = screenWidth < 600;
     // Add more granular screen size checks
     final isVerySmallScreen = screenWidth < 360;
@@ -120,7 +117,7 @@ class MenuScreen extends StatelessWidget {
       body: RefreshIndicator(
         onRefresh: () async {
           // Add refresh functionality if needed
-          await Future.delayed(Duration(milliseconds: 500));
+          await Future.delayed(const Duration(milliseconds: 500));
         },
         child: Obx(
           () => categoryController.isLoading.value ||
@@ -171,7 +168,7 @@ class MenuScreen extends StatelessWidget {
 
                     // قسم تصفية الفئات (يظهر فقط في طريقة عرض المنتجات)
                     if (!showCategoryView.value)
-                      Container(
+                      SizedBox(
                         height: 50,
                         child: _buildCategoriesSection(isVerySmallScreen),
                       ),
@@ -208,63 +205,242 @@ class MenuScreen extends StatelessWidget {
 
   // شريط تصفية الفئات
   Widget _buildCategoriesSection(bool isVerySmallScreen) {
-    return ListView.builder(
-      scrollDirection: Axis.horizontal,
-      physics: const BouncingScrollPhysics(),
-      itemCount: categoryController.categories.length + 1,
-      padding: EdgeInsets.symmetric(
-          horizontal: isVerySmallScreen ? 8 : 16, vertical: 8),
-      itemBuilder: (context, index) {
-        if (index == 0) {
-          return Padding(
-            padding: const EdgeInsets.only(right: 8),
-            child: Obx(() => ChoiceChip(
-                  label: Text(
-                    'الكل',
-                    style: TextStyle(fontSize: isVerySmallScreen ? 12 : 14),
-                  ),
-                  selected: categoryController.selectedCategoryId.value.isEmpty,
-                  onSelected: (selected) {
-                    if (selected) {
-                      categoryController.selectedCategoryId.value = '';
-                    }
-                  },
-                  backgroundColor: AppTheme.backgroundColor,
-                  selectedColor: AppTheme.primaryColor.withAlpha(51),
-                  labelStyle: TextStyle(
-                    color: AppTheme.primaryColor,
-                    fontWeight: FontWeight.bold,
-                  ),
-                )),
-          );
-        }
+    // حساب عرض الشاشة المتاح
+    final screenWidth = MediaQuery.of(Get.context!).size.width;
+    
+    // تحديد المتغيرات بناءً على حجم الشاشة
+    final chipWidth = isVerySmallScreen ? 
+        (screenWidth < 320 ? 70.0 : 85.0) : 
+        (screenWidth < 600 ? 100.0 : 120.0);
+        
+    // تعديل المسافات حسب حجم الشاشة
+    final horizontalPadding = isVerySmallScreen ? 4.0 : 8.0;
+    final chipSpacing = isVerySmallScreen ? 4.0 : 6.0;
+    
+    // استخدام ScrollController للتحكم في التمرير
+    final ScrollController scrollController = ScrollController();
 
-        final category = categoryController.categories[index - 1];
-        return Padding(
-          padding: const EdgeInsets.only(right: 8),
-          child: Obx(() => ChoiceChip(
-                label: Text(
-                  category.localizedName,
-                  style: TextStyle(fontSize: isVerySmallScreen ? 12 : 14),
-                ), // استخدام الاسم المترجم
-                selected:
-                    categoryController.selectedCategoryId.value == category.id,
-                onSelected: (selected) {
-                  if (selected) {
-                    categoryController.selectedCategoryId.value = category.id;
-                  } else {
-                    categoryController.selectedCategoryId.value = '';
-                  }
-                },
-                backgroundColor: AppTheme.backgroundColor,
-                selectedColor: AppTheme.primaryColor.withAlpha(51),
-                labelStyle: TextStyle(
-                  color: AppTheme.primaryColor,
-                  fontWeight: FontWeight.bold,
+    // متغير لتتبع حالة الهوفر
+    final RxBool isLeftArrowHovered = false.obs;
+    final RxBool isRightArrowHovered = false.obs;
+
+    return Container(
+      width: screenWidth,
+      height: 60, // زيادة الارتفاع لاستيعاب النص على سطرين
+      child: Stack(
+        children: [
+          Padding(
+            padding: EdgeInsets.symmetric(horizontal: 20),
+            child: ListView.builder(
+              controller: scrollController,
+              scrollDirection: Axis.horizontal,
+              physics: const BouncingScrollPhysics(),
+              itemCount: categoryController.categories.length + 1,
+              padding: EdgeInsets.symmetric(
+                  horizontal: horizontalPadding, vertical: 8),
+              itemBuilder: (context, index) {
+                if (index == 0) {
+                  return Padding(
+                    padding: EdgeInsets.only(right: chipSpacing),
+                    child: Obx(() => Container(
+                          constraints: BoxConstraints(
+                            minWidth: chipWidth * 0.5,
+                            maxWidth: chipWidth * 0.8,
+                          ),
+                          child: ChoiceChip(
+                            label: const Text(
+                              'الكل',
+                                                                                            style: TextStyle(
+                                fontWeight: FontWeight.bold,
+                                fontSize: 12,
+                              ),
+                            ),
+                            selected: categoryController.selectedCategoryId.value.isEmpty,
+                            onSelected: (selected) {
+                              if (selected) {
+                                categoryController.selectedCategoryId.value = '';
+                              }
+                            },
+                            backgroundColor: AppTheme.backgroundColor,
+                            selectedColor: AppTheme.primaryColor.withAlpha(51),
+                            labelStyle: const TextStyle(
+                              color: AppTheme.primaryColor,
+                              fontWeight: FontWeight.bold,
+                            ),
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 4,
+                              vertical: 2,
+                            ),
+                            materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                          ),
+                        )),
+                  );
+                }
+
+                final category = categoryController.categories[index - 1];
+                final categoryName = category.localizedName;
+                
+                // تحديد ما إذا كان النص طويلاً ويحتاج إلى تقليص
+                final bool isLongText = categoryName.length > (isVerySmallScreen ? 7 : 10);
+                // تقليص حجم الخط بشكل أكبر للنصوص الطويلة على الشاشات الصغيرة
+                final double textSize = isVerySmallScreen ? 
+                    (isLongText ? 8.0 : 10.0) : 
+                    (isLongText ? 10.0 : 12.0);
+                
+                return Padding(
+                  padding: EdgeInsets.only(right: chipSpacing),
+                  child: Obx(() => Container(
+                        constraints: BoxConstraints(
+                          minWidth: chipWidth * 0.7,
+                          maxWidth: chipWidth * (isLongText ? 1.2 : 1.0),
+                        ),
+                        child: ChoiceChip(
+                          label: Container(
+                            width: chipWidth,
+                            height: isLongText ? 30 : 20, // تحديد ارتفاع ثابت للنص
+                            alignment: Alignment.center,
+                            child: Text(
+                              categoryName,
+                              style: TextStyle(
+                                fontSize: textSize,
+                                fontWeight: FontWeight.bold,
+                              ),
+                              textAlign: TextAlign.center,
+                              overflow: TextOverflow.ellipsis,
+                              softWrap: true,
+                              maxLines: 2, // دائماً نسمح بسطرين للنص
+                            ),
+                          ),
+                          selected: categoryController.selectedCategoryId.value == category.id,
+                          onSelected: (selected) {
+                            if (selected) {
+                              categoryController.selectedCategoryId.value = category.id;
+                            } else {
+                              categoryController.selectedCategoryId.value = '';
+                            }
+                          },
+                          backgroundColor: AppTheme.backgroundColor,
+                          selectedColor: AppTheme.primaryColor.withAlpha(51),
+                          labelStyle: const TextStyle(
+                            color: AppTheme.primaryColor,
+                            fontWeight: FontWeight.bold,
+                          ),
+                          // تقليل المساحة الداخلية للأزرار
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 2,
+                            vertical: 1,
+                          ),
+                          materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                          // تقليص labelPadding للتناسب أفضل
+                          labelPadding: EdgeInsets.zero,
+                        ),
+                      )),
+                );
+              },
+            ),
+          ),
+          
+          // إضافة أسهم التنقل الجانبية
+          Positioned(
+            left: 0,
+            top: 0,
+            bottom: 0,
+            child: MouseRegion(
+              onEnter: (_) => isLeftArrowHovered.value = true,
+              onExit: (_) => isLeftArrowHovered.value = false,
+              child: Obx(() => AnimatedOpacity(
+                opacity: isLeftArrowHovered.value ? 1.0 : 0.0,
+                duration: const Duration(milliseconds: 200),
+                child: Container(
+                  width: 24,
+                  height: 24,
+                  decoration: BoxDecoration(
+                    color: Colors.lime,
+                    shape: BoxShape.circle,
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withOpacity(0.1),
+                        spreadRadius: 1,
+                        blurRadius: 3,
+                      ),
+                    ],
+                  ),
+                  child: IconButton(
+                    icon: const Icon(
+                      Icons.chevron_left,
+                      color: Colors.black,
+                      size: 16,
+                    ),
+                    onPressed: () {
+                      final currentPosition = scrollController.position.pixels;
+                      final targetPosition = currentPosition - chipWidth * 2;
+                      scrollController.animateTo(
+                        targetPosition < 0 ? 0 : targetPosition,
+                        duration: const Duration(milliseconds: 300),
+                        curve: Curves.easeInOut,
+                      );
+                    },
+                    splashRadius: 12,
+                    padding: const EdgeInsets.all(0),
+                    constraints: const BoxConstraints(),
+                    visualDensity: VisualDensity.compact,
+                  ),
                 ),
               )),
-        );
-      },
+            ),
+          ),
+
+          Positioned(
+            right: 0,
+            top: 0,
+            bottom: 0,
+            child: MouseRegion(
+              onEnter: (_) => isRightArrowHovered.value = true,
+              onExit: (_) => isRightArrowHovered.value = false,
+              child: Obx(() => AnimatedOpacity(
+                opacity: isRightArrowHovered.value ? 1.0 : 0.0,
+                duration: const Duration(milliseconds: 200),
+                child: Container(
+                  width: 24,
+                  height: 24,
+                  decoration: BoxDecoration(
+                    color: Colors.lime,
+                    shape: BoxShape.circle,
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withOpacity(0.1),
+                        spreadRadius: 1,
+                        blurRadius: 3,
+                      ),
+                    ],
+                  ),
+                  child: IconButton(
+                    icon: const Icon(
+                      Icons.chevron_right,
+                      color: Colors.black,
+                      size: 16,
+                    ),
+                    onPressed: () {
+                      final currentPosition = scrollController.position.pixels;
+                      final maxPosition = scrollController.position.maxScrollExtent;
+                      final targetPosition = currentPosition + chipWidth * 2;
+                      scrollController.animateTo(
+                        targetPosition > maxPosition ? maxPosition : targetPosition,
+                        duration: const Duration(milliseconds: 300),
+                        curve: Curves.easeInOut,
+                      );
+                    },
+                    splashRadius: 12,
+                    padding: const EdgeInsets.all(0),
+                    constraints: const BoxConstraints(),
+                    visualDensity: VisualDensity.compact,
+                  ),
+                ),
+              )),
+            ),
+          ),
+        ],
+      ),
     );
   }
 
@@ -427,7 +603,7 @@ class MenuScreen extends StatelessWidget {
   Widget _buildGridView(List<Product> products, bool showImages,
       bool isSmallScreen, bool isVerySmallScreen) {
     // الحصول على الأبعاد مباشرة من ViewOptionsHelper
-    final isLargeScreenSetting = ViewOptionsHelper.getIsLargeScreen();
+    ViewOptionsHelper.getIsLargeScreen();
     final double cardWidth = ViewOptionsHelper.getProductCardWidth();
     final double cardHeight = ViewOptionsHelper.getProductCardHeight();
 
@@ -917,7 +1093,7 @@ class MenuScreen extends StatelessWidget {
                         }
                       },
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: AppTheme.primaryColor,
+                        backgroundColor: const Color.fromARGB(255, 45, 57, 132),
                       ),
                       child: const Text('إضافة للطلب'),
                     ),
@@ -1150,7 +1326,7 @@ class MenuScreen extends StatelessWidget {
     Get.dialog(
       AlertDialog(
         title: const Text('فلترة متقدمة'),
-        content: Container(
+        content: SizedBox(
           width: double.maxFinite,
           height: MediaQuery.of(context).size.height * 0.6,
           child: SingleChildScrollView(
@@ -1257,6 +1433,7 @@ class MenuScreen extends StatelessWidget {
           ElevatedButton(
             onPressed: () {
               // تطبيق الفلاتر
+              // ignore: invalid_use_of_protected_member
               selectedCategoryFilters.value = tempCategoryFilters;
               priceFilterMin.value = tempMinPrice.value;
               priceFilterMax.value = tempMaxPrice.value;

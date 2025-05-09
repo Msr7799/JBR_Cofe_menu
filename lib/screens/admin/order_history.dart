@@ -54,8 +54,8 @@ class OrderHistoryScreenState extends State<OrderHistoryScreen> {
           TextField(
             decoration: InputDecoration(
               labelText: 'search'.tr,
-              prefixIcon: Icon(Icons.search),
-              border: OutlineInputBorder(),
+              prefixIcon: const Icon(Icons.search),
+              border: const OutlineInputBorder(),
             ),
             onChanged: (value) {
               setState(() {

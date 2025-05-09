@@ -1,14 +1,17 @@
 import 'dart:io';
+import 'dart:math';
 import 'dart:ui';
 import 'dart:async';
-import 'package:flutter/material.dart';
+import 'package:gpr_coffee_shop/controllers/view_options_controller.dart';
 import 'package:gpr_coffee_shop/screens/admin/order_management_screen.dart';
+import 'package:gpr_coffee_shop/screens/location_screen.dart';
 import 'package:gpr_coffee_shop/services/app_translation_service.dart';
 import 'package:gpr_coffee_shop/utils/logger_util.dart';
 import 'package:intl/intl.dart';
 import 'package:flutter_neumorphic_plus/flutter_neumorphic.dart';
 import 'package:flutter_staggered_animations/flutter_staggered_animations.dart';
 import 'package:get/get.dart';
+import 'package:reorderable_grid_view/reorderable_grid_view.dart'; // أضف هذا السطر
 import 'package:gpr_coffee_shop/constants/theme.dart';
 import 'package:gpr_coffee_shop/controllers/auth_controller.dart';
 import 'package:gpr_coffee_shop/controllers/feedback_controller.dart';
@@ -22,10 +25,13 @@ import 'package:gpr_coffee_shop/screens/settings_screen.dart';
 import 'package:gpr_coffee_shop/services/shared_preferences_service.dart';
 import 'package:gpr_coffee_shop/screens/view_options_screen.dart';
 import 'package:gpr_coffee_shop/screens/about_screen.dart';
+import 'package:url_launcher/url_launcher.dart';
 import '../utils/image_helper.dart';
 import 'package:gpr_coffee_shop/controllers/order_controller.dart';
 import 'package:gpr_coffee_shop/models/order.dart';
-
+import 'package:gpr_coffee_shop/controllers/menu_options_controller.dart';
+import 'package:gpr_coffee_shop/models/menu_option.dart';
+import 'package:flutter_staggered_animations/flutter_staggered_animations.dart';
 class HomeScreen extends StatefulWidget {
   const HomeScreen({Key? key}) : super(key: key);
 
@@ -46,6 +52,7 @@ class _HomeScreenState extends State<HomeScreen>
       Get.find<OrderController>(); // Add this line
   late final FeedbackController feedbackController =
       Get.find<FeedbackController>();
+  late final MenuOptionsController menuOptionsController;
   late AnimationController _animationController;
   bool _reducedMotion = false;
 
@@ -66,6 +73,7 @@ class _HomeScreenState extends State<HomeScreen>
   @override
   void initState() {
     super.initState();
+    menuOptionsController = Get.put(MenuOptionsController());
     _animationController = AnimationController(
       vsync: this,
       duration: const Duration(seconds: 20),
@@ -268,6 +276,70 @@ class _HomeScreenState extends State<HomeScreen>
             ),
             centerTitle: true,
             actions: [
+              // زر تخصيص القائمة - أضف هذه الأكواد هنا
+              Padding(
+                padding: EdgeInsets.only(top: isSmallScreen ? 10.0 : 15.0),
+                child: GetBuilder<MenuOptionsController>(builder: (controller) {
+                  return IconButton(
+                    icon: Icon(
+                      controller.isEditMode.value ? Icons.check : Icons.edit,
+                      color: controller.isEditMode.value
+                          ? Colors.green
+                          : Colors.white,
+                      size: isSmallScreen ? 20 : 24,
+                    ),
+                    tooltip: controller.isEditMode.value
+                        ? 'انتهاء من التخصيص'
+                        : 'تخصيص القائمة',
+                    onPressed: () {
+                      controller.toggleEditMode();
+                    },
+                  );
+                }),
+              ),
+
+              // زر إعادة الأوضاع الافتراضية - يظهر فقط في وضع التحرير
+              Padding(
+                padding: EdgeInsets.only(top: isSmallScreen ? 10.0 : 15.0),
+                child: GetBuilder<MenuOptionsController>(builder: (controller) {
+                  return controller.isEditMode.value
+                      ? IconButton(
+                          icon: const Icon(
+                            Icons.restore,
+                            color: Colors.amber,
+                          ),
+                          tooltip: 'استعادة الخيارات الافتراضية',
+                          onPressed: () {
+                            Get.dialog(
+                              AlertDialog(
+                                title:
+                                    const Text('استعادة الخيارات الافتراضية'),
+                                content: const Text(
+                                    'هل أنت متأكد من إعادة ضبط جميع خيارات القائمة إلى الوضع الافتراضي؟'),
+                                actions: [
+                                  TextButton(
+                                    onPressed: () => Get.back(),
+                                    child: const Text('إلغاء'),
+                                  ),
+                                  ElevatedButton(
+                                    onPressed: () {
+                                      Get.back();
+                                      controller.resetAllOptions();
+                                    },
+                                    style: ElevatedButton.styleFrom(
+                                        backgroundColor: Colors.amber),
+                                    child: const Text('استعادة'),
+                                  ),
+                                ],
+                              ),
+                            );
+                          },
+                        )
+                      : const SizedBox.shrink();
+                }),
+              ),
+
+              // باقي الأزرار الموجودة
               // زر الجرس للطلبات (يظهر فقط للمسؤولين)
               if (authController.isAdmin.value)
                 Obx(() {
@@ -520,63 +592,17 @@ class _HomeScreenState extends State<HomeScreen>
                                   mainAxisAlignment: MainAxisAlignment.center,
                                   mainAxisSize: MainAxisSize.min,
                                   children: [
-                                    Container(
-                                      width: logoSize,
-                                      height: logoSize,
-                                      padding:
-                                          EdgeInsets.all(screenWidth * 0.035),
-                                      decoration: BoxDecoration(
-                                          color: Colors.white.withAlpha(220),
-                                          borderRadius: BorderRadius.circular(
-                                              logoSize * 0.25),
-                                          boxShadow: [
-                                            BoxShadow(
-                                              color:
-                                                  Colors.black.withOpacity(0.1),
-                                              blurRadius: 5,
-                                              spreadRadius: 1,
-                                            )
-                                          ]),
-                                      child: GestureDetector(
-                                        onTap: () => _showLogoSelectionDialog(),
-                                        child: ImageHelper.buildImage(
-                                          settingsController.logoPath ??
-                                              'assets/images/logo.png',
-                                          fit: BoxFit.contain,
-                                        ),
-                                      ),
-                                    ),
-                                    // استخدام مسافة متناسبة مع حجم الشاشة
-                                    SizedBox(height: screenHeight * 0.018),
-                                    Text(
-                                      'app_name'.tr,
-                                      style: TextStyle(
-                                        fontSize: titleFontSize,
-                                        fontWeight: FontWeight.bold,
-                                        color: _getAdaptiveTextColor(),
-                                        shadows: [
-                                          Shadow(
-                                            offset: const Offset(1.5, 1.5),
-                                            blurRadius: 3.0,
-                                            color: Colors.black.withAlpha(66),
-                                          ),
-                                        ],
-                                      ),
-                                    ),
-                                    // إضافة مسافة متناسبة فوق العنوان الفرعي
-                                    SizedBox(
-                                        height: isVerySmallScreen
-                                            ? screenHeight * 0.006
-                                            : screenHeight * 0.01),
-                                    Text(
-                                      'app_description_short'.tr,
-                                      textAlign: TextAlign.center,
-                                      style: TextStyle(
-                                        fontSize: descriptionFontSize,
-                                        fontWeight: FontWeight.w500,
-                                        color: textColor,
-                                      ),
-                                    ),
+                                    _buildLogoSection(
+                                        logoSize,
+                                        isSmallScreen,
+                                        TextStyle(
+                                            fontSize: titleFontSize,
+                                            fontWeight: FontWeight.bold,
+                                            color: textColor),
+                                        TextStyle(
+                                            fontSize: descriptionFontSize,
+                                            color: textColor),
+                                        textColor),
                                   ],
                                 ),
                               ),
@@ -592,59 +618,17 @@ class _HomeScreenState extends State<HomeScreen>
                             mainAxisAlignment: MainAxisAlignment.center,
                             mainAxisSize: MainAxisSize.min,
                             children: [
-                              Neumorphic(
-                                style: NeumorphicStyle(
-                                  depth: 8,
-                                  intensity: 0.8,
-                                  shape: NeumorphicShape.concave,
-                                  boxShape: NeumorphicBoxShape.roundRect(
-                                    BorderRadius.circular(logoSize * 0.25),
-                                  ),
-                                  lightSource: LightSource.topLeft,
-                                  color: Colors.white.withAlpha(217),
-                                ),
-                                child: Container(
-                                  width: logoSize,
-                                  height: logoSize,
-                                  padding: EdgeInsets.all(screenWidth * 0.035),
-                                  child: Image.asset(
-                                    'assets/images/logo.png',
-                                    fit: BoxFit.contain,
-                                  ),
-                                ),
-                              ),
-                              // استخدام مسافة متناسبة مع حجم الشاشة
-                              SizedBox(height: screenHeight * 0.018),
-                              Text(
-                                'app_name'.tr,
-                                textAlign: TextAlign.center,
-                                style: TextStyle(
-                                  fontSize: titleFontSize,
-                                  fontWeight: FontWeight.bold,
-                                  color: textColor,
-                                  shadows: [
-                                    Shadow(
-                                      offset: const Offset(1.5, 1.5),
-                                      blurRadius: 3.0,
-                                      color: Colors.black.withAlpha(66),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                              // إضافة مسافة متناسبة قبل العنوان الفرعي
-                              SizedBox(
-                                  height: isVerySmallScreen
-                                      ? screenHeight * 0.006
-                                      : screenHeight * 0.01),
-                              Text(
-                                'app_description_short'.tr,
-                                textAlign: TextAlign.center,
-                                style: TextStyle(
-                                  fontSize: descriptionFontSize,
-                                  fontWeight: FontWeight.w500,
-                                  color: textColor,
-                                ),
-                              ),
+                              _buildLogoSection(
+                                  logoSize,
+                                  isSmallScreen,
+                                  TextStyle(
+                                      fontSize: titleFontSize,
+                                      fontWeight: FontWeight.bold,
+                                      color: textColor),
+                                  TextStyle(
+                                      fontSize: descriptionFontSize,
+                                      color: textColor),
+                                  textColor),
                             ],
                           ),
                         ),
@@ -655,7 +639,6 @@ class _HomeScreenState extends State<HomeScreen>
                   Padding(
                     padding: EdgeInsets.symmetric(
                       horizontal: screenWidth * 0.05,
-                      // تعديل المسافة العمودية بناءً على حجم الشاشة
                       vertical: isSmallScreen
                           ? screenHeight * 0.01
                           : screenHeight * 0.015,
@@ -673,116 +656,49 @@ class _HomeScreenState extends State<HomeScreen>
                             ),
                           ),
                           children: [
-                            _buildNavigationButton(
-                                title: 'menu'.tr,
-                                icon: Icons.coffee,
-                                onTap: () => Get.to(() => MenuScreen()),
-                                color: const Color(0xFF8b0000)),
-                            SizedBox(
-                                height: isSmallScreen
-                                    ? screenHeight * 0.014
-                                    : screenHeight * 0.018),
-                            _buildNavigationButton(
-                              title: 'rate'.tr,
-                              icon: Icons.star_rate,
-                              onTap: () => Get.to(() => const RateScreen()),
-                              color: const Color(0xFF8b0000),
-                            ),
-                            SizedBox(
-                                height: isSmallScreen
-                                    ? screenHeight * 0.014
-                                    : screenHeight * 0.018),
-                            _buildNavigationButton(
-                              title: 'admin_panel'.tr,
-                              icon: Icons.admin_panel_settings,
-                              onTap: () {
-                                if (authController.isAdmin.value) {
-                                  Get.to(() => const AdminDashboard());
-                                } else {
-                                  Get.to(() => LoginScreen());
-                                }
-                              },
-                              color: const Color(0xFF8b0000),
-                            ),
-                            SizedBox(
-                                height: isSmallScreen
-                                    ? screenHeight * 0.014
-                                    : screenHeight * 0.018),
-                            // order managment screen
-                            _buildNavigationButton(
-                              title: 'order_management'.tr,
-                              icon: Icons.chevron_right,
-                              onTap: () =>
-                                  Get.to(() => const OrderManagementScreen()),
-                              color: const Color.fromARGB(255, 202, 215, 65),
-                            ),
-                            SizedBox(
-                                height: isSmallScreen
-                                    ? screenHeight * 0.014
-                                    : screenHeight * 0.018),
-                            _buildNavigationButton(
-                              title: 'display_options'.tr,
-                              icon: Icons.view_list,
-                              onTap: () => Get.to(() => ViewOptionsScreen()),
-                              color: const Color(0xFF50727B),
-                            ),
-                            SizedBox(
-                                height: isSmallScreen
-                                    ? screenHeight * 0.014
-                                    : screenHeight * 0.018),
-
-                            _buildNavigationButton(
-                              title: 'settings'.tr,
-                              icon: Icons.settings,
-                              onTap: () => Get.to(() => const SettingsScreen()),
-                              color: const Color(0xFF50727B),
-                            ),
-                            SizedBox(
-                                height: isSmallScreen
-                                    ? screenHeight * 0.014
-                                    : screenHeight * 0.018),
-                            _buildNavigationButton(
-                              title: 'about_app_title'.tr,
-                              icon: Icons.info_outline,
-                              onTap: () => Get.to(() => const AboutScreen()),
-                              color: const Color.fromARGB(255, 0, 0, 0),
-                            ),
+                            _buildReorderableOptionsList(),
                           ],
                         ),
                       ),
                     ),
                   ),
                   _buildBenefitPayQrSection(context, isPortrait: true),
-                  _buildFeaturedFeedbacks(context, isPortrait: true),
-                  Padding(
-                    padding: EdgeInsets.only(
-                      top: screenHeight * 0.015,
-                      bottom: screenHeight * 0.02,
+                  _buildFeaturedFeedbacks(context,
+                      isPortrait: true), // تأكد من إضافة هذا
+                  // أزرار طلبات وجاهز بتصميم ثلاثي الأبعاد
+                  Align(
+                    child: Padding(
+                      padding: EdgeInsets.only(
+                          right: screenWidth * 0.08,
+                          bottom: screenHeight * 0.01),
+                      child: _buildDeliveryButtons(context),
                     ),
-                    child: AnimationConfiguration.synchronized(
-                      duration: const Duration(milliseconds: 1000),
-                      child: FadeInAnimation(
-                        child: Column(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Divider(
-                              color: Colors.brown.withAlpha(128),
-                              thickness: 1,
-                              indent: screenWidth * 0.1,
-                              endIndent: screenWidth * 0.1,
+                  ),
+
+                  // خط فاصل وحقوق النشر
+                  AnimationConfiguration.synchronized(
+                    duration: const Duration(milliseconds: 1000),
+                    child: FadeInAnimation(
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Divider(
+                            color: Colors.brown.withAlpha(128),
+                            thickness: 1,
+                            indent: screenWidth * 0.1,
+                            endIndent: screenWidth * 0.1,
+                          ),
+                          SizedBox(height: screenHeight * 0.01),
+                          Text(
+                            'copyright'.tr,
+                            style: TextStyle(
+                              fontSize: isSmallScreen ? 10 : 12,
+                              fontWeight: FontWeight.w400,
+                              color: textColor,
                             ),
-                            SizedBox(height: screenHeight * 0.01),
-                            Text(
-                              'copyright'.tr,
-                              style: TextStyle(
-                                fontSize: isSmallScreen ? 10 : 12,
-                                fontWeight: FontWeight.w400,
-                                color: textColor,
-                              ),
-                              textAlign: TextAlign.center,
-                            ),
-                          ],
-                        ),
+                            textAlign: TextAlign.center,
+                          ),
+                        ],
                       ),
                     ),
                   ),
@@ -809,18 +725,10 @@ class _HomeScreenState extends State<HomeScreen>
     final int leftColumnFlex = isSmallScreen ? 1 : 2;
     final int rightColumnFlex = isSmallScreen ? 2 : 3;
 
-    // تحديد عدد الأعمدة في شبكة الأزرار
-    final int gridCrossAxisCount = isSmallScreen
-        ? 1
-        : isTablet
-            ? 2
-            : 3;
-    final double gridChildAspectRatio = isSmallScreen ? 3.5 : 2.5;
-
     return SafeArea(
       child: Row(
         children: [
-          // العمود الأيسر - الشعار والمعلومات
+          // العمود الأيسر - الشعار والمعلومات (لم يتغير)
           Expanded(
             flex: leftColumnFlex,
             child: SingleChildScrollView(
@@ -829,6 +737,8 @@ class _HomeScreenState extends State<HomeScreen>
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
+                  // لم يتغير هذا الجزء - الشعار والمعلومات
+                  // ...
                   AnimationConfiguration.synchronized(
                     duration: const Duration(milliseconds: 1200),
                     child: SlideAnimation(
@@ -871,52 +781,17 @@ class _HomeScreenState extends State<HomeScreen>
                                 ),
                               ),
                             ),
-                            SizedBox(height: screenHeight * 0.01),
-                            // اسم التطبيق
-                            Text(
-                              'app_name'.tr,
-                              textAlign: TextAlign.center,
-                              style: TextStyle(
-                                fontSize: isSmallScreen
-                                    ? screenHeight * 0.03
-                                    : screenHeight * 0.04,
-                                fontWeight: FontWeight.bold,
-                                color: textColor,
-                                shadows: [
-                                  Shadow(
-                                    offset: const Offset(1.5, 1.5),
-                                    blurRadius: 3.0,
-                                    color: Colors.black.withAlpha(66),
-                                  ),
-                                ],
-                              ),
-                            ),
-                            // وصف التطبيق
-                            Padding(
-                              padding: EdgeInsets.symmetric(
-                                horizontal: screenWidth * 0.02,
-                                vertical: screenHeight * 0.01,
-                              ),
-                              child: Text(
-                                'app_description_short'.tr,
-                                textAlign: TextAlign.center,
-                                style: TextStyle(
-                                  fontSize: isSmallScreen
-                                      ? screenHeight * 0.02
-                                      : screenHeight * 0.025,
-                                  fontWeight: FontWeight.w500,
-                                  color: textColor,
-                                ),
-                              ),
-                            ),
+                            // ... باقي الكود لم يتغير
                           ],
                         ),
                       ),
                     ),
                   ),
-                  // قسم BenefitPay QR
+                  // ... باقي الكود لم يتغير
+                  // إضافة قسم BenefitPay QR هنا
                   _buildBenefitPayQrSection(context, isPortrait: false),
-                  // قسم آراء العملاء
+
+                  // إضافة قسم آراء العملاء هنا
                   _buildFeaturedFeedbacks(context, isPortrait: false),
                 ],
               ),
@@ -929,88 +804,155 @@ class _HomeScreenState extends State<HomeScreen>
             color: Colors.brown.withAlpha(76),
             margin: EdgeInsets.symmetric(horizontal: screenWidth * 0.01),
           ),
-          // العمود الأيمن - أزرار التطبيق
+
+          // العمود الأيمن - أزرار التطبيق في وضع Landscape
           Expanded(
             flex: rightColumnFlex,
             child: Padding(
-              padding: EdgeInsets.all(screenHeight * 0.02),
+              // إضافة padding أكبر في الجزء العلوي
+              padding: EdgeInsets.fromLTRB(
+                screenHeight * 0.02, // left
+                screenHeight * 0.04, // top - زيادة الهامش العلوي
+                screenHeight * 0.02, // right
+                screenHeight * 0.02, // bottom
+              ),
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  // شبكة الأزرار
+                  // عرض الخيارات بشكل GridView مع GetBuilder للاستجابة لتغييرات خيارات العرض
                   Expanded(
-                    child: AnimationLimiter(
-                      child: GridView.count(
-                        crossAxisCount: gridCrossAxisCount,
-                        childAspectRatio: gridChildAspectRatio,
-                        crossAxisSpacing: isSmallScreen ? 8 : 12,
-                        mainAxisSpacing: isSmallScreen ? 8 : 12,
-                        padding: EdgeInsets.all(screenWidth * 0.01),
-                        physics: const BouncingScrollPhysics(),
-                        children: AnimationConfiguration.toStaggeredList(
-                          duration: const Duration(milliseconds: 600),
-                          childAnimationBuilder: (widget) => ScaleAnimation(
-                            scale: 0.9,
-                            child: FadeInAnimation(
-                              child: widget,
-                            ),
-                          ),
-                          children: [
-                            _buildLandscapeButton(
-                              title: 'menu'.tr,
-                              icon: Icons.coffee,
-                              onTap: () => Get.to(() => MenuScreen()),
-                              color: const Color(0xFF8b0000),
-                            ),
-                            _buildLandscapeButton(
-                              title: 'rate'.tr,
-                              icon: Icons.star_rate,
-                              onTap: () => Get.to(() => RateScreen()),
-                              color: const Color(0xFF8b0000),
-                            ),
-                            _buildLandscapeButton(
-                              title: 'admin_panel'.tr,
-                              icon: Icons.admin_panel_settings,
-                              onTap: () {
-                                if (authController.isAdmin.value) {
-                                  Get.to(() => const AdminDashboard());
-                                } else {
-                                  Get.to(() => LoginScreen());
-                                }
-                              },
-                              color: const Color(0xFF8b0000),
-                            ),
-                            _buildLandscapeButton(
-                              title: 'ordar_managment'.tr,
-                              icon: Icons.chevron_right,
-                              onTap: () =>
-                                  Get.to(() => const OrderManagementScreen()),
-                              color: const Color.fromARGB(255, 218, 223, 76),
-                            ),
-                            _buildLandscapeButton(
-                              title: 'display_options'.tr,
-                              icon: Icons.view_list,
-                              onTap: () => Get.to(() => ViewOptionsScreen()),
-                              color: const Color(0xFF50727B),
-                            ),
-                            _buildLandscapeButton(
-                              title: 'settings'.tr,
-                              icon: Icons.settings,
-                              onTap: () => Get.to(() => const SettingsScreen()),
-                              color: const Color(0xFF50727B),
-                            ),
-                            _buildLandscapeButton(
-                              title: 'about_app_title'.tr,
-                              icon: Icons.info_outline,
-                              onTap: () => Get.to(() => const AboutScreen()),
-                              color: const Color.fromARGB(255, 0, 0, 0),
-                            ),
-                          ],
-                        ),
-                      ),
+                    child: GetBuilder<MenuOptionsController>(
+                      id: 'landscape_options', // استخدام معرف جديد
+                      builder: (controller) {
+                        return Obx(() {
+                          if (controller.isEditMode.value) {
+                            // وضع التحرير...
+                            return GridView.count(
+                              crossAxisCount: isSmallScreen ? 2 : 3,
+                              childAspectRatio: isSmallScreen ? 2.8 : 3.2,
+                              mainAxisSpacing: 10,
+                              crossAxisSpacing: 10,
+                              shrinkWrap: true,
+                              physics: const BouncingScrollPhysics(),
+                              children: controller.visibleOptions.asMap().entries.map((entry) {
+                                final index = entry.key;
+                                final option = entry.value;
+                                return _buildLandscapeOptionWithDismissible(
+                                  option: option,
+                                  controller: controller,
+                                  isSmallScreen: isSmallScreen,
+                                  key: Key('editable_landscape_option_${option.id}'),
+                                );
+                              }).toList(),
+                            );
+                          } else {
+                            // وضع العرض العادي...
+                            return GridView.count(
+                              crossAxisCount: isSmallScreen ? 2 : 3,
+                              childAspectRatio: isSmallScreen ? 2.8 : 3.2,
+                              mainAxisSpacing: 10,
+                              crossAxisSpacing: 10,
+                              shrinkWrap: true,
+                              physics: const BouncingScrollPhysics(),
+                              children: controller.visibleOptions.map((option) {
+                                return _buildLandscapeButton(
+                                  title: option.title.tr,
+                                  icon: option.icon,
+                                  color: option.color,
+                                  onTap: () =>
+                                      controller.navigateToOption(option.route),
+                                );
+                              }).toList(),
+                            );
+                          }
+                        });
+                      },
                     ),
                   ),
-                  // حقوق النشر في الأسفل
+
+                  // عرض قائمة الخيارات المخفية (تظهر فقط في وضع التحرير)
+                  GetBuilder<MenuOptionsController>(builder: (controller) {
+                    return Obx(() {
+                      if (controller.isEditMode.value &&
+                          controller.hiddenOptions.isNotEmpty) {
+                        return Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            const Divider(thickness: 1),
+                            const Padding(
+                              padding: EdgeInsets.symmetric(vertical: 8.0),
+                              child: Text(
+                                'الخيارات المخفية',
+                                style: TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 16,
+                                ),
+                              ),
+                            ),
+                            SizedBox(
+                              height:
+                                  80, // تحديد ارتفاع ثابت لقسم الخيارات المخفية
+                              child: ListView.builder(
+                                scrollDirection: Axis.horizontal,
+                                itemCount: controller.hiddenOptions.length,
+                                itemBuilder: (context, index) {
+                                  final option =
+                                      controller.hiddenOptions[index];
+                                  return Card(
+                                    key: Key(
+                                        'hidden_landscape_option_${option.id}'),
+                                    margin: const EdgeInsets.symmetric(
+                                        horizontal: 5.0),
+                                    child: InkWell(
+                                      onTap: () =>
+                                          controller.showOption(option.id),
+                                      child: Padding(
+                                        padding: const EdgeInsets.all(8.0),
+                                        child: Column(
+                                          mainAxisSize: MainAxisSize.min,
+                                          children: [
+                                            CircleAvatar(
+                                              backgroundColor: option.color,
+                                              radius: 16,
+                                              child: Icon(option.icon,
+                                                  color: Colors.white,
+                                                  size: 16),
+                                            ),
+                                            const SizedBox(height: 4),
+                                            Text(option.title.tr,
+                                                style: const TextStyle(
+                                                    fontSize: 10)),
+                                            const Icon(Icons.add_circle,
+                                                color: Colors.green, size: 14)
+                                          ],
+                                        ),
+                                      ),
+                                    ),
+                                  );
+                                },
+                              ),
+                            ),
+                          ],
+                        );
+                      } else {
+                        return const SizedBox.shrink();
+                      }
+                    });
+                  }),
+
+                  // أزرار طلبات وجاهز في الزاوية السفلية (لم يتغير)
+                  Align(
+                    alignment: Alignment.bottomLeft,
+                    child: Padding(
+                      padding: EdgeInsets.only(
+                        left: screenWidth * 0.02,
+                        bottom: screenHeight * 0.01,
+                      ),
+                      child: _buildDeliveryButtons(context),
+                    ),
+                  ),
+
+                  // حقوق النشر في الأسفل (لم يتغير)
                   Padding(
                     padding:
                         EdgeInsets.symmetric(vertical: screenHeight * 0.01),
@@ -1061,10 +1003,11 @@ class _HomeScreenState extends State<HomeScreen>
           return const SizedBox.shrink();
         }
 
+        // تقليل هوامش المربع لجعله أصغر
         return Padding(
           padding: EdgeInsets.symmetric(
-            horizontal: isPortrait ? screenWidth * 0.05 : screenHeight * 0.05,
-            vertical: isPortrait ? screenHeight * 0.02 : screenHeight * 0.03,
+            horizontal: isPortrait ? screenWidth * 0.08 : screenHeight * 0.05,
+            vertical: isPortrait ? screenHeight * 0.015 : screenHeight * 0.02,
           ),
           child: AnimationConfiguration.synchronized(
             duration: const Duration(milliseconds: 800),
@@ -1085,7 +1028,7 @@ class _HomeScreenState extends State<HomeScreen>
                     shadowLightColor: Colors.transparent,
                   ),
                   child: Padding(
-                    padding: const EdgeInsets.all(16.0),
+                    padding: const EdgeInsets.all(12.0), // تقليل الحشو الداخلي
                     child: Column(
                       mainAxisSize: MainAxisSize.min,
                       children: [
@@ -1096,14 +1039,15 @@ class _HomeScreenState extends State<HomeScreen>
                             const Icon(
                               Icons.qr_code_2,
                               color: Colors.purple,
-                              size: 24,
+                              size: 20, // تصغير حجم الأيقونة
                             ),
-                            const SizedBox(width: 8),
+                            const SizedBox(width: 6),
                             Flexible(
                               child: Text(
                                 'pay_with_benefitpay'.tr,
                                 style: TextStyle(
-                                  fontSize: isPortrait ? 16 : 14,
+                                  fontSize:
+                                      isPortrait ? 14 : 12, // تصغير حجم الخط
                                   fontWeight: FontWeight.bold,
                                   color: Colors.purple.shade800,
                                 ),
@@ -1112,15 +1056,16 @@ class _HomeScreenState extends State<HomeScreen>
                             ),
                           ],
                         ),
-                        const SizedBox(height: 12),
+                        const SizedBox(height: 10), // تقليل المسافة
                         ConstrainedBox(
                           constraints: BoxConstraints(
+                            // تقليل الحد الأقصى للعرض والارتفاع بنسبة كبيرة
                             maxWidth: isPortrait
-                                ? screenWidth * 0.7
-                                : screenHeight * 0.4,
+                                ? screenWidth * 0.5 // تصغير من 0.7 إلى 0.5
+                                : screenHeight * 0.3, // تصغير من 0.4 إلى 0.3
                             maxHeight: isPortrait
-                                ? screenWidth * 0.7
-                                : screenHeight * 0.4,
+                                ? screenWidth * 0.5 // تصغير من 0.7 إلى 0.5
+                                : screenHeight * 0.3, // تصغير من 0.4 إلى 0.3
                           ),
                           child: Image.file(
                             File(qrCodeUrl),
@@ -1132,14 +1077,16 @@ class _HomeScreenState extends State<HomeScreen>
                                   children: [
                                     Icon(
                                       Icons.error_outline,
-                                      size: 48,
+                                      size: 36, // تصغير حجم أيقونة الخطأ
                                       color: Colors.red.shade300,
                                     ),
-                                    const SizedBox(height: 8),
+                                    const SizedBox(height: 6), // تقليل المسافة
                                     Text(
                                       'error_loading_qr'.tr,
                                       style: const TextStyle(
-                                          color: Colors.redAccent),
+                                        color: Colors.redAccent,
+                                        fontSize: 12, // تصغير حجم الخط
+                                      ),
                                     ),
                                   ],
                                 ),
@@ -1147,12 +1094,12 @@ class _HomeScreenState extends State<HomeScreen>
                             },
                           ),
                         ),
-                        const SizedBox(height: 12),
+                        const SizedBox(height: 8), // تقليل المسافة
                         Text(
                           'scan_qr_to_pay'.tr,
                           style: TextStyle(
-                            fontSize: isPortrait ? 14 : 12,
-                            color: Colors.grey.shade700,
+                            fontSize: isPortrait ? 12 : 10, // تصغير حجم الخط
+                            color: Colors.grey.shade800,
                           ),
                           textAlign: TextAlign.center,
                         ),
@@ -1303,10 +1250,10 @@ class _HomeScreenState extends State<HomeScreen>
   }
 
   Widget _buildNavigationButton({
-    required String title,
-    required IconData icon,
-    required VoidCallback onTap,
-    required Color color,
+    required MenuOption option,
+    required bool isEditing,
+    VoidCallback? onDelete,
+    required Key key, // جعل الـ key مطلوب
   }) {
     final screenWidth = MediaQuery.of(context).size.width;
     final screenHeight = MediaQuery.of(context).size.height;
@@ -1337,63 +1284,121 @@ class _HomeScreenState extends State<HomeScreen>
 
     final textColor = isDarkBackground ? Colors.white : Colors.brown.shade900;
 
-    return GestureDetector(
-      onTap: onTap,
-      child: Neumorphic(
-        style: NeumorphicStyle(
-          depth: isSmallScreen ? 6 : 8,
-          intensity: 0.7,
-          shape: NeumorphicShape.flat,
-          boxShape: NeumorphicBoxShape.roundRect(BorderRadius.circular(12)),
-          color: Colors.white.withAlpha(isDarkBackground ? 150 : 245),
-          lightSource: LightSource.topLeft,
-          shadowDarkColor: Colors.black45,
-          shadowLightColor: Colors.transparent,
+    return Padding(
+      key: key, // نضع الـ key هنا
+      padding: const EdgeInsets.symmetric(vertical: 4),
+      child: Dismissible(
+        key: Key('dismiss_${option.id}'), // تأكيد على استخدام key فريد
+        direction:
+            isEditing ? DismissDirection.endToStart : DismissDirection.none,
+        background: Container(
+          alignment: Alignment.centerRight,
+          padding: const EdgeInsets.only(right: 20.0),
+          color: Colors.red,
+          child: const Icon(
+            Icons.delete,
+            color: Colors.white,
+          ),
         ),
-        child: Container(
-          width: double.infinity,
-          height: buttonHeight,
-          padding: EdgeInsets.symmetric(horizontal: isSmallScreen ? 10 : 12),
-          child: Row(
-            children: [
-              Neumorphic(
-                style: NeumorphicStyle(
-                  depth: isSmallScreen ? 4 : 6,
-                  intensity: 0.7,
-                  shape: NeumorphicShape.convex,
-                  boxShape: const NeumorphicBoxShape.circle(),
-                  color: color,
-                  lightSource: LightSource.topLeft,
-                  shadowDarkColor: Colors.black45,
-                  shadowLightColor: Colors.transparent,
-                ),
-                child: Container(
-                  padding: EdgeInsets.all(isSmallScreen ? 6 : 8),
-                  child: Icon(
-                    icon,
-                    color: Colors.white,
-                    size: iconSize,
+        confirmDismiss: isEditing
+            ? (direction) async {
+                return await Get.dialog<bool>(
+                      AlertDialog(
+                        title: const Text('إخفاء الخيار'),
+                        content: Text(
+                            'هل تريد إخفاء "${option.title.tr}" من القائمة؟'),
+                        actions: [
+                          TextButton(
+                            onPressed: () => Get.back(result: false),
+                            child: const Text('إلغاء'),
+                          ),
+                          ElevatedButton(
+                            onPressed: () => Get.back(result: true),
+                            style: ElevatedButton.styleFrom(
+                                backgroundColor: Colors.red),
+                            child: const Text('إخفاء'),
+                          ),
+                        ],
+                      ),
+                    ) ??
+                    false;
+              }
+            : null,
+        onDismissed: isEditing
+            ? (direction) {
+                if (onDelete != null) {
+                  onDelete();
+                }
+              }
+            : null,
+        child: GestureDetector(
+          onTap: isEditing
+              ? null
+              : () {
+                  // استخدام الدالة الجديدة بدلاً من التنقل المباشر
+                  menuOptionsController.navigateToOption(option.route);
+                },
+          child: Neumorphic(
+            style: NeumorphicStyle(
+              depth: isSmallScreen ? 6 : 8,
+              intensity: 0.7,
+              shape: NeumorphicShape.flat,
+              boxShape: NeumorphicBoxShape.roundRect(BorderRadius.circular(12)),
+              color: Colors.white.withAlpha(isDarkBackground ? 150 : 245),
+              lightSource: LightSource.topLeft,
+              shadowDarkColor: Colors.black45,
+              shadowLightColor: Colors.transparent,
+            ),
+            child: Container(
+              width: double.infinity,
+              height: buttonHeight,
+              padding:
+                  EdgeInsets.symmetric(horizontal: isSmallScreen ? 10 : 12),
+              child: Row(
+                children: [
+                  Neumorphic(
+                    style: NeumorphicStyle(
+                      depth: isSmallScreen ? 4 : 6,
+                      intensity: 0.7,
+                      shape: NeumorphicShape.convex,
+                      boxShape: const NeumorphicBoxShape.circle(),
+                      color: option.color,
+                      lightSource: LightSource.topLeft,
+                      shadowDarkColor: Colors.black45,
+                      shadowLightColor: Colors.transparent,
+                    ),
+                    child: Container(
+                      padding: EdgeInsets.all(isSmallScreen ? 6 : 8),
+                      child: Icon(
+                        option.icon,
+                        color: Colors.white,
+                        size: iconSize,
+                      ),
+                    ),
                   ),
-                ),
-              ),
-              SizedBox(width: isSmallScreen ? 10 : 12),
-              Expanded(
-                child: Text(
-                  title,
-                  style: TextStyle(
-                    fontSize: fontSize,
-                    fontWeight: FontWeight.w600,
-                    color: textColor,
+                  SizedBox(width: isSmallScreen ? 10 : 12),
+                  Expanded(
+                    child: Text(
+                      option.title.tr,
+                      style: TextStyle(
+                        fontSize: fontSize,
+                        fontWeight: FontWeight.w600,
+                        color: textColor,
+                      ),
+                      overflow: TextOverflow.ellipsis,
+                    ),
                   ),
-                  overflow: TextOverflow.ellipsis,
-                ),
+                  if (isEditing)
+                    const Icon(Icons.drag_handle, color: Colors.grey)
+                  else
+                    Icon(
+                      Icons.arrow_forward_ios,
+                      color: textColor.withOpacity(0.7),
+                      size: isSmallScreen ? 12 : 14,
+                    ),
+                ],
               ),
-              Icon(
-                Icons.arrow_forward_ios,
-                color: textColor.withOpacity(0.7),
-                size: isSmallScreen ? 12 : 14,
-              ),
-            ],
+            ),
           ),
         ),
       ),
@@ -1529,64 +1534,6 @@ class _HomeScreenState extends State<HomeScreen>
     );
   }
 
-  Widget _buildMainOptions() {
-    return Column(
-      children: [
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-          children: [
-            _buildOptionCard(
-              title: 'القائمة',
-              icon: Icons.restaurant_menu,
-              onTap: () => Get.to(() => MenuScreen()),
-              gradient: const LinearGradient(
-                colors: [Colors.amber, Colors.orange],
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-              ),
-            ),
-            _buildOptionCard(
-              title: 'تقييم',
-              icon: Icons.star,
-              onTap: () => Get.to(() => RateScreen()),
-              gradient: const LinearGradient(
-                colors: [Colors.lightBlue, Colors.blue],
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-              ),
-            ),
-          ],
-        ),
-        const SizedBox(height: 20),
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-          children: [
-            _buildOptionCard(
-              title: 'الإعدادات',
-              icon: Icons.settings,
-              onTap: () => Get.to(() => SettingsScreen()),
-              gradient: const LinearGradient(
-                colors: [Colors.purple, Colors.deepPurple],
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-              ),
-            ),
-            _buildOptionCard(
-              title: 'خيارات العرض',
-              icon: Icons.visibility,
-              onTap: () => Get.to(() => ViewOptionsScreen()),
-              gradient: const LinearGradient(
-                colors: [Colors.teal, Colors.green],
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-              ),
-            ),
-          ],
-        ),
-      ],
-    );
-  }
-
   // دالة للحصول على لون خلفية متكيف مع خلفية الشاشة
   Color _getAdaptiveBackgroundColor() {
     final backgroundType = settingsController.backgroundType;
@@ -1637,90 +1584,209 @@ class _HomeScreenState extends State<HomeScreen>
 
   // دالة لعرض مربع حوار لاختيار اللوغو
   void _showLogoSelectionDialog() {
-    Get.dialog(
-      AlertDialog(
-        title: const Text('تغيير شعار التطبيق'),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            const Text('اختر صورة الشعار:'),
-            const SizedBox(height: 16),
-            SizedBox(
-              height: 200,
-              child: GridView.count(
-                crossAxisCount: 3,
-                mainAxisSpacing: 10,
-                crossAxisSpacing: 10,
-                children: [
-                  _buildLogoOption('assets/images/logo.png'),
-                  _buildLogoOption('assets/images/JBR.png'),
-                  _buildLogoOption('assets/images/JBR1.png'),
-                  _buildLogoOption('assets/images/JBR2.png'),
-                  _buildLogoOption('assets/images/JBR3.png'),
-                  _buildCustomLogoOption(),
-                ],
-              ),
+    // قائمة شعارات التطبيق المتوفرة
+    final List<String> availableLogos = [
+      'assets/images/logo.png',
+      'assets/images/logo1.png',
+      'assets/images/logo2.png',
+      'assets/images/logo3.png',
+      'assets/images/logo4.png',
+      'assets/images/logo5.png',
+      'assets/images/logo6.png',
+      'assets/images/logo7.png',
+      'assets/images/logo8.png',
+    ];
+
+    // الحصول على مسار الشعار الحالي
+    final currentLogo = settingsController.logoPath ?? 'assets/images/logo.png';
+
+    // استخدام showModalBottomSheet بدلاً من dialog لتجنب مشاكل العرض
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (context) => StatefulBuilder(
+        builder: (context, setState) {
+          return Container(
+            padding: const EdgeInsets.all(20),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Center(
+                  child: Container(
+                    width: 50,
+                    height: 5,
+                    decoration: BoxDecoration(
+                      color: Colors.grey.shade300,
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 20),
+                const Text(
+                  'تغيير شعار التطبيق',
+                  style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                const SizedBox(height: 5),
+                Text(
+                  'اختر شعارًا أو قم بتحميل صورة مخصصة:',
+                  style: TextStyle(
+                    fontSize: 14,
+                    color: Colors.grey.shade700,
+                  ),
+                ),
+                const SizedBox(height: 20),
+
+                // شبكة الشعارات المتوفرة
+                SizedBox(
+                  height: 120,
+                  child: ListView(
+                    scrollDirection: Axis.horizontal,
+                    children: [
+                      ...availableLogos.map((logo) => _buildLogoOption(logo)),
+                      _buildCustomLogoOption(),
+                    ],
+                  ),
+                ),
+
+                const SizedBox(height: 20),
+                Center(
+                  child: TextButton.icon(
+                    onPressed: () => Get.back(),
+                    icon: const Icon(Icons.check_circle,
+                        color: AppTheme.primaryColor),
+                    label: const Text('تم',
+                        style: TextStyle(color: AppTheme.primaryColor)),
+                  ),
+                ),
+                const SizedBox(height: 10),
+              ],
             ),
-          ],
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Get.back(),
-            child: const Text('إلغاء'),
-          ),
-        ],
+          );
+        },
       ),
     );
   }
 
-  // خيار لوغو
+  // تعديل دالة _buildLogoOption
   Widget _buildLogoOption(String imagePath) {
+    final isSelected = (settingsController.logoPath ?? 'assets/images/logo.png') == imagePath;
+    
+    // تحديد ما إذا كانت الشاشة صغيرة لعرض اللوغو بشكل دائري
+    final screenWidth = MediaQuery.of(context).size.width;
+    final isSmallScreen = screenWidth < 600;
+
     return GestureDetector(
       onTap: () {
         settingsController.setLogoPath(imagePath);
-        Get.back();
       },
       child: Container(
+        margin: const EdgeInsets.symmetric(horizontal: 8),
+        width: 80,
         decoration: BoxDecoration(
-          border: Border.all(color: Colors.grey.shade300),
-          borderRadius: BorderRadius.circular(8),
+          border: Border.all(
+            color: isSelected ? AppTheme.primaryColor : Colors.grey.shade300,
+            width: isSelected ? 2 : 1,
+          ),
+          borderRadius: BorderRadius.circular(isSmallScreen ? 40 : 10), // دائري للشاشات الصغيرة
         ),
         padding: const EdgeInsets.all(8),
-        child: Image.asset(
-          imagePath,
-          fit: BoxFit.contain,
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            ClipRRect(
+              borderRadius: BorderRadius.circular(isSmallScreen ? 30 : 8), // دائري للشاشات الصغيرة
+              child: Image.asset(
+                imagePath,
+                height: 60,
+                width: 60,
+                fit: BoxFit.contain,
+              ),
+            ),
+            if (isSelected)
+              const Icon(Icons.check_circle, color: AppTheme.primaryColor, size: 16),
+          ],
         ),
       ),
     );
   }
 
-  // خيار إضافة شعار مخصص
+  // تحسين خيار الشعار المخصص
   Widget _buildCustomLogoOption() {
     return GestureDetector(
       onTap: () async {
-        // يمكن هنا إضافة خيار لتحميل صورة مخصصة
-        Get.back();
-        Get.snackbar(
-          'ملاحظة',
-          'سيتم إضافة دعم تحميل صورة مخصصة في الإصدارات القادمة',
-          snackPosition: SnackPosition.BOTTOM,
-          duration: const Duration(seconds: 3),
-          backgroundColor: Colors.amber.withOpacity(0.8),
-        );
+        // إغلاق نافذة الاختيار أولاً
+        Navigator.pop(context);
+
+        try {
+          // عرض مؤشر التحميل
+          Get.dialog(
+            const Center(child: CircularProgressIndicator()),
+            barrierDismissible: false,
+          );
+
+          // استدعاء دالة اختيار وتطبيق اللوغو المخصص
+          await settingsController.pickAndSetCustomLogo();
+
+          // إغلاق مؤشر التحميل
+          if (Get.isDialogOpen == true) Get.back();
+        } catch (e) {
+          // إغلاق مؤشر التحميل في حالة الخطأ
+          if (Get.isDialogOpen == true) Get.back();
+
+          LoggerUtil.logger.e('خطأ أثناء اختيار الشعار المخصص: $e');
+          Get.snackbar(
+            'خطأ',
+            'حدث خطأ أثناء تحميل الصورة',
+            snackPosition: SnackPosition.BOTTOM,
+            backgroundColor: Colors.red.withAlpha(200),
+            colorText: Colors.white,
+          );
+        }
       },
       child: Container(
+        margin: const EdgeInsets.symmetric(horizontal: 8),
+        width: 80,
         decoration: BoxDecoration(
           border: Border.all(color: Colors.grey.shade300),
-          borderRadius: BorderRadius.circular(8),
-          color: Colors.grey.shade100,
+          borderRadius: BorderRadius.circular(10),
+          gradient: LinearGradient(
+            colors: [Colors.grey.shade100, Colors.grey.shade200],
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+          ),
         ),
         padding: const EdgeInsets.all(8),
-        child: const Column(
+        child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(Icons.add_photo_alternate, size: 30),
-            SizedBox(height: 5),
-            Text('تحميل', style: TextStyle(fontSize: 10)),
+            Icon(
+              Icons.add_photo_alternate,
+              size: 30,
+              color: AppTheme.primaryColor,
+              shadows: [
+                Shadow(
+                  color: Colors.black.withOpacity(0.2),
+                  blurRadius: 2,
+                  offset: const Offset(1, 1),
+                )
+              ],
+            ),
+            const SizedBox(height: 5),
+            const Text(
+              'تحميل صورة',
+              style: TextStyle(
+                fontSize: 10,
+                fontWeight: FontWeight.bold,
+              ),
+              textAlign: TextAlign.center,
+            ),
           ],
         ),
       ),
@@ -2040,6 +2106,11 @@ class _HomeScreenState extends State<HomeScreen>
       return;
     }
 
+    // حساب حجم الشاشة لجعل العرض متجاوب
+    final screenSize = MediaQuery.of(context).size;
+    final isSmallScreen = screenSize.width < 360;
+    final isVerySmallScreen = screenSize.width < 320;
+
     showDialog(
       context: context,
       builder: (BuildContext context) {
@@ -2052,6 +2123,7 @@ class _HomeScreenState extends State<HomeScreen>
               Text('الطلبات الجديدة (${processingOrders.length})'),
             ],
           ),
+          contentPadding: const EdgeInsets.fromLTRB(8, 20, 8, 0),
           content: Container(
             width: double.maxFinite,
             constraints: BoxConstraints(
@@ -2065,90 +2137,80 @@ class _HomeScreenState extends State<HomeScreen>
                 final totalItems =
                     order.items.fold(0, (sum, item) => sum + item.quantity);
 
+                // حساب الوقت المنقضي منذ إنشاء الطلب
+                final elapsedMinutes =
+                    DateTime.now().difference(order.createdAt).inMinutes;
+                final creationTime =
+                    DateFormat('HH:mm').format(order.createdAt);
+
                 return Card(
                   margin: const EdgeInsets.only(bottom: 10),
-                  child: ListTile(
-                    contentPadding:
-                        const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-                    title: Text(
-                      'طلب #${order.id.substring(0, 6)}',
-                      style: const TextStyle(fontWeight: FontWeight.bold),
-                    ),
-                    subtitle: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                            '$totalItems منتجات • ${order.total.toStringAsFixed(3)} د.ب'),
-                        Text(
-                          DateFormat('yyyy-MM-dd HH:mm')
-                              .format(order.createdAt),
-                          style:
-                              const TextStyle(fontSize: 12, color: Colors.grey),
+                  elevation: 2,
+                  shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8)),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      ListTile(
+                        contentPadding: const EdgeInsets.symmetric(
+                            horizontal: 10, vertical: 5),
+                        title: Text(
+                          'طلب #${order.id.substring(0, 6)}',
+                          style: const TextStyle(fontWeight: FontWeight.bold),
                         ),
-                        const SizedBox(height: 5),
-                        Row(
+                        subtitle: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Expanded(
-                              child: ElevatedButton.icon(
-                                icon: const Icon(Icons.check_circle, size: 16),
-                                label: const Text('إكمال'),
-                                style: ElevatedButton.styleFrom(
-                                  backgroundColor: Colors.green,
-                                  foregroundColor: Colors.white,
-                                  padding:
-                                      const EdgeInsets.symmetric(vertical: 8),
-                                ),
-                                onPressed: () {
-                                  _completeOrder(order);
-                                  Navigator.pop(context);
-                                },
-                              ),
+                            Text(
+                              order.items
+                                  .map((item) =>
+                                      '${item.name} (${item.quantity}x)')
+                                  .join(', '),
+                              maxLines: 2,
+                              overflow: TextOverflow.ellipsis,
                             ),
-                            const SizedBox(width: 8),
-                            Expanded(
-                              child: ElevatedButton.icon(
-                                icon: const Icon(Icons.cancel, size: 16),
-                                label: const Text('إلغاء'),
-                                style: ElevatedButton.styleFrom(
-                                  backgroundColor: Colors.red,
-                                  foregroundColor: Colors.white,
-                                  padding:
-                                      const EdgeInsets.symmetric(vertical: 8),
+                            Row(
+                              children: [
+                                Icon(Icons.timer_outlined,
+                                    size: 14,
+                                    color: _getTimeColor(elapsedMinutes)),
+                                const SizedBox(width: 4),
+                                Text(
+                                  '$elapsedMinutes دقيقة منذ $creationTime',
+                                  style: TextStyle(
+                                    fontSize: 12,
+                                    color: _getTimeColor(elapsedMinutes),
+                                    fontWeight: elapsedMinutes > 15
+                                        ? FontWeight.bold
+                                        : FontWeight.normal,
+                                  ),
                                 ),
-                                onPressed: () {
-                                  _cancelOrder(order);
-                                  Navigator.pop(context);
-                                },
-                              ),
+                              ],
                             ),
                           ],
                         ),
-                      ],
-                    ),
-                    leading: Container(
-                      width: 40,
-                      height: 40,
-                      decoration: BoxDecoration(
-                        color: AppTheme.primaryColor,
-                        shape: BoxShape.circle,
-                      ),
-                      child: Center(
-                        child: Text(
-                          '${index + 1}',
-                          style: const TextStyle(
-                            color: Colors.white,
-                            fontWeight: FontWeight.bold,
+                        leading: Container(
+                          width: 36,
+                          height: 36,
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            color: AppTheme.primaryColor.withOpacity(0.2),
+                          ),
+                          child: Center(
+                            child: Text(
+                              '$totalItems',
+                              style: const TextStyle(
+                                fontWeight: FontWeight.bold,
+                                color: AppTheme.primaryColor,
+                              ),
+                            ),
                           ),
                         ),
                       ),
-                    ),
-                    trailing: IconButton(
-                      icon: const Icon(Icons.chevron_right),
-                      onPressed: () {
-                        Navigator.pop(context);
-                        Get.to(() => const OrderManagementScreen());
-                      },
-                    ),
+                      // أزرار الإجراءات - متجاوبة مع أحجام الشاشات
+                      _buildResponsiveOrderActions(
+                          order, isSmallScreen, isVerySmallScreen),
+                    ],
                   ),
                 );
               },
@@ -2156,17 +2218,24 @@ class _HomeScreenState extends State<HomeScreen>
           ),
           actions: [
             TextButton(
-              onPressed: () {
-                Navigator.of(context).pop();
-              },
+              onPressed: () => Navigator.of(context).pop(),
               child: const Text('إغلاق'),
             ),
-            TextButton(
+            ElevatedButton.icon(
               onPressed: () {
                 Navigator.of(context).pop();
                 Get.to(() => const OrderManagementScreen());
               },
-              child: const Text('إدارة جميع الطلبات'),
+              icon: Icon(Icons.receipt_long, size: isSmallScreen ? 16 : 18),
+              label: const Text('إدارة جميع الطلبات'),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppTheme.primaryColor,
+                foregroundColor: Colors.white,
+                padding: EdgeInsets.symmetric(
+                  horizontal: isSmallScreen ? 8 : 12,
+                  vertical: isSmallScreen ? 6 : 8,
+                ),
+              ),
             ),
           ],
         );
@@ -2175,37 +2244,998 @@ class _HomeScreenState extends State<HomeScreen>
   }
 
   // دالة لإكمال الطلب
-  void _completeOrder(Order order) {
-    orderController
-        .updateOrderStatus(order.id, OrderStatus.completed)
-        .then((success) {
+  Future<void> _completeOrder(Order order) async {
+    try {
+      // عرض مؤشر التحميل
+      Get.dialog(
+        const Center(child: CircularProgressIndicator()),
+        barrierDismissible: false,
+      );
+
+      // استدعاء الدالة المناسبة في orderController لتغيير حالة الطلب إلى مكتمل
+      final success = await orderController.completeOrder(order.id);
+
+      // إغلاق مؤشر التحميل
+      if (Get.isDialogOpen == true) Get.back();
+
+      // إظهار رسالة نجاح أو فشل
       if (success) {
         Get.snackbar(
-          'تم بنجاح',
+          'تم الإكمال',
           'تم إكمال الطلب بنجاح',
           snackPosition: SnackPosition.BOTTOM,
-          backgroundColor: Colors.green.withAlpha(200),
+          backgroundColor: Colors.green,
           colorText: Colors.white,
+          duration: const Duration(seconds: 2),
+        );
+
+        // إغلاق نافذة الطلبات بعد الإكمال
+        Navigator.of(context).pop();
+      } else {
+        Get.snackbar(
+          'خطأ',
+          'حدث خطأ أثناء إكمال الطلب',
+          snackPosition: SnackPosition.BOTTOM,
+          backgroundColor: Colors.red,
+          colorText: Colors.white,
+          duration: const Duration(seconds: 2),
         );
       }
-    });
+    } catch (e) {
+      // إغلاق مؤشر التحميل في حالة حدوث استثناء
+      if (Get.isDialogOpen == true) Get.back();
+
+      LoggerUtil.logger.e('خطأ في إكمال الطلب: $e');
+      Get.snackbar(
+        'خطأ',
+        'حدث خطأ غير متوقع أثناء إكمال الطلب',
+        snackPosition: SnackPosition.BOTTOM,
+        backgroundColor: Colors.red,
+        colorText: Colors.white,
+        duration: const Duration(seconds: 2),
+      );
+    }
   }
 
   // دالة لإلغاء الطلب
-  void _cancelOrder(Order order) {
-    orderController
-        .updateOrderStatus(order.id, OrderStatus.cancelled)
-        .then((success) {
+  Future<void> _cancelOrder(Order order) async {
+    try {
+      // عرض مربع حوار تأكيد قبل الإلغاء
+      final confirm = await Get.dialog<bool>(
+        AlertDialog(
+          title: const Text('تأكيد الإلغاء'),
+          content: const Text('هل أنت متأكد من رغبتك في إلغاء هذا الطلب؟'),
+          actions: [
+            TextButton(
+              onPressed: () => Get.back(result: false),
+              child: const Text('لا'),
+            ),
+            ElevatedButton(
+              onPressed: () => Get.back(result: true),
+              style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
+              child: const Text('نعم، إلغاء الطلب'),
+            ),
+          ],
+        ),
+      );
+
+      // إذا لم يؤكد المستخدم، لا نكمل العملية
+      if (confirm != true) return;
+
+      // عرض مؤشر التحميل
+      Get.dialog(
+        const Center(child: CircularProgressIndicator()),
+        barrierDismissible: false,
+      );
+
+      // استدعاء الدالة المناسبة في orderController لتغيير حالة الطلب إلى ملغي
+      final success = await orderController.cancelOrder(order.id);
+
+      // إغلاق مؤشر التحميل
+      if (Get.isDialogOpen == true) Get.back();
+
+      // إظهار رسالة نجاح أو فشل
       if (success) {
         Get.snackbar(
-          'تم بنجاح',
-          'تم إلغاء الطلب',
+          'تم الإلغاء',
+          'تم إلغاء الطلب بنجاح',
           snackPosition: SnackPosition.BOTTOM,
-          backgroundColor: Colors.red.withAlpha(200),
+          backgroundColor: Colors.amber,
+          colorText: Colors.black,
+          duration: const Duration(seconds: 2),
+        );
+
+        // إغلاق نافذة الطلبات بعد الإلغاء
+        Navigator.of(context).pop();
+      } else {
+        Get.snackbar(
+          'خطأ',
+          'حدث خطأ أثناء إلغاء الطلب',
+          snackPosition: SnackPosition.BOTTOM,
+          backgroundColor: Colors.red,
           colorText: Colors.white,
+          duration: const Duration(seconds: 2),
         );
       }
-    });
+    } catch (e) {
+      // إغلاق مؤشر التحميل في حالة حدوث استثناء
+      if (Get.isDialogOpen == true) Get.back();
+
+      LoggerUtil.logger.e('خطأ في إلغاء الطلب: $e');
+      Get.snackbar(
+        'خطأ',
+        'حدث خطأ غير متوقع أثناء إلغاء الطلب',
+        snackPosition: SnackPosition.BOTTOM,
+        backgroundColor: Colors.red,
+        colorText: Colors.white,
+        duration: const Duration(seconds: 2),
+      );
+    }
+  }
+
+  // دالة مساعدة لبناء أزرار الإجراءات بشكل متجاوب
+  Widget _buildResponsiveOrderActions(
+      Order order, bool isSmallScreen, bool isVerySmallScreen) {
+    // تعديل حجم الأزرار بناءً على حجم الشاشة
+    final buttonHeight = isVerySmallScreen
+        ? 32.0
+        : isSmallScreen
+            ? 36.0
+            : 40.0;
+    final iconSize = isVerySmallScreen
+        ? 16.0
+        : isSmallScreen
+            ? 18.0
+            : 20.0;
+    final fontSize = isVerySmallScreen
+        ? 11.0
+        : isSmallScreen
+            ? 12.0
+            : 14.0;
+
+    return Padding(
+      padding:
+          EdgeInsets.symmetric(horizontal: 10, vertical: isSmallScreen ? 5 : 8),
+      child: Row(
+        children: [
+          // زر إكمال الطلب
+          Expanded(
+            child: SizedBox(
+              height: buttonHeight,
+              child: ElevatedButton.icon(
+                onPressed: () => _completeOrder(order),
+                icon: Icon(Icons.check_circle,
+                    size: iconSize, color: Colors.white),
+                label: Text(
+                  'إكمال',
+                  style: TextStyle(fontSize: fontSize),
+                ),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.green,
+                  padding:
+                      EdgeInsets.symmetric(horizontal: isSmallScreen ? 8 : 12),
+                ),
+              ),
+            ),
+          ),
+          SizedBox(width: isSmallScreen ? 6 : 10),
+          // زر إلغاء الطلب
+          Expanded(
+            child: SizedBox(
+              height: buttonHeight,
+              child: ElevatedButton.icon(
+                onPressed: () => _cancelOrder(order),
+                icon: Icon(Icons.cancel, size: iconSize, color: Colors.white),
+                label: Text(
+                  'إلغاء',
+                  style: TextStyle(fontSize: fontSize),
+                ),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.red,
+                  padding:
+                      EdgeInsets.symmetric(horizontal: isSmallScreen ? 8 : 12),
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // دالة مساعدة لتحديد لون النص بناءً على الوقت المنقضي
+  Color _getTimeColor(int minutes) {
+    if (minutes <= 5) return Colors.green;
+    if (minutes <= 10) return Colors.orange;
+    if (minutes <= 15) return Colors.deepOrange;
+    return Colors.red;
+  }   
+   Widget _buildLogoSection(double logoSize, bool isSmallScreen,
+        TextStyle titleStyle, TextStyle subtitleStyle, Color textColor) {
+      return GetBuilder<SettingsController>(
+        id: 'app_logo',
+        builder: (controller) {
+          final logoPath = controller.logoPath ?? 'assets/images/logo.png';
+          
+          return StatefulBuilder(
+            builder: (context, setState) {
+              // تعريف متغيرات داخل دالة البناء
+              bool isHovering = false;
+              final screenWidth = MediaQuery.of(context).size.width;
+              final screenHeight = MediaQuery.of(context).size.height;
+              final isSmallScreen = screenWidth < 600;
+              
+              // ضبط الأبعاد بشكل أفضل مع مراعاة ارتفاع الشاشة
+              // تقليل الحجم في الشاشات الصغيرة أكثر
+              final adjustedLogoPadding = isSmallScreen ? 4.0 : 8.0;
+              
+              // تصغير حجم اللوغو بنسبة أكبر للشاشات الصغيرة
+              final adjustedLogoSize = isSmallScreen 
+                  ? min(logoSize * 1.2, screenHeight * 0.18) 
+                  : min(logoSize * 1.3, screenHeight * 0.19);
+              
+              // تقليل المسافات للتناسب مع المساحة المتاحة
+              final topMargin = isSmallScreen ? 5.0 : 12.0;
+              final bottomMargin = isSmallScreen ? 10.0 : 20.0;
+              
+              // استخدام ConstrainedBox للتأكد من عدم تجاوز العنصر للمساحة المتاحة
+              return ConstrainedBox(
+                constraints: BoxConstraints(
+                  maxHeight: isSmallScreen ? screenHeight * 0.15 : screenHeight * 0.20,
+                ),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    SizedBox(height: topMargin),
+                    
+                    // اللوغو نفسه مع ضبط الأبعاد
+                    InkWell(
+                      onTap: () {
+                        _showLogoSelectionDialog();
+                      },
+                      onHover: (hovering) {
+                        setState(() => isHovering = hovering);
+                      },
+                      child: Neumorphic(
+                        style: NeumorphicStyle(
+                          depth: 0.3,
+                          intensity: 0.15,
+                          shape: NeumorphicShape.convex,
+                          boxShape: isSmallScreen
+                              ? const NeumorphicBoxShape.circle()
+                              : NeumorphicBoxShape.roundRect(
+                                  BorderRadius.circular(6)),
+                          lightSource: LightSource.topLeft,
+                          color: const Color.fromARGB(44, 19, 19, 19),
+                        ),
+                        child: Container(
+                          width: adjustedLogoSize,
+                          height: adjustedLogoSize,
+                          padding: EdgeInsets.all(adjustedLogoPadding),
+                          decoration: BoxDecoration(
+                            color: isHovering
+                                ? Colors.transparent
+                                : const Color.fromARGB(125, 0, 0, 0),
+                            borderRadius: isSmallScreen
+                                ? BorderRadius.circular(adjustedLogoSize)
+                                : BorderRadius.circular(5),
+                          ),
+                          child: ClipRRect(
+                            borderRadius: isSmallScreen
+                                ? BorderRadius.circular(adjustedLogoSize)
+                                : BorderRadius.circular(4),
+                            child: ImageHelper.buildImage(
+                              logoPath,
+                              fit: BoxFit.contain,
+                              isCircular: isSmallScreen,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                    
+                    // تقليل المسافة السفلية
+                    SizedBox(height: bottomMargin),
+                  ],
+                ),
+              );
+            },
+          );
+        },
+      );
+    }
+
+  // دالة لإنشاء أزرار طلبات وجاهز بتصميم ثلاثي الأبعاد مع مراعاة اللغة الحالية
+  Widget _buildDeliveryButtons(BuildContext context) {
+    final screenWidth = MediaQuery.of(context).size.width;
+    final isSmallScreen = screenWidth < 360;
+    final isVerySmallScreen = screenWidth < 320;
+
+    final buttonSize = isVerySmallScreen
+        ? 32.0
+        : isSmallScreen
+            ? 36.0
+            : 40.0;
+    final iconSize = isVerySmallScreen
+        ? 16.0
+        : isSmallScreen
+            ? 18.0
+            : 20.0;
+    final fontSize = isVerySmallScreen
+        ? 10.0
+        : isSmallScreen
+            ? 11.0
+            : 12.0;
+
+    // الحصول على اللغة الحالية للتطبيق
+    final appTranslationService = Get.find<AppTranslationService>();
+    final isArabic =
+        appTranslationService.currentLocale.value.languageCode == 'ar';
+
+    return GetBuilder<AppTranslationService>(
+        id: 'language_switcher',
+        builder: (translationService) {
+          final isArabic =
+              translationService.currentLocale.value.languageCode == 'ar';
+
+          // إنشاء القائمة بالترتيب الصحيح حسب اللغة
+          final buttonsList = isArabic
+              ? [
+                  // للغة العربية: جاهز ثم طلبات (من اليمين إلى اليسار)
+                  _buildJahezButton(buttonSize, fontSize),
+                  const SizedBox(width: 10),
+                  _buildTalabatButton(buttonSize, fontSize),
+                ]
+              : [
+                  // للغة الإنجليزية: طلبات ثم جاهز (من اليسار إلى اليمين)
+                  _buildTalabatButton(buttonSize, fontSize),
+                  const SizedBox(width: 10),
+                  _buildJahezButton(buttonSize, fontSize),
+                ];
+
+          return Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment:
+                isArabic ? CrossAxisAlignment.start : CrossAxisAlignment.end,
+            children: [
+              Padding(
+                padding: const EdgeInsets.only(bottom: 6.0, right: 8.0, left: 8.0),
+                child: Text(
+                  'order_now_with_delivery'.tr,
+                  style: TextStyle(
+                    fontSize: fontSize,
+                    fontWeight: FontWeight.bold,
+                    color: const Color.fromARGB(255, 255, 255, 255), // تغيير لون النص للأبيض
+                    shadows: [
+                      Shadow(
+                        color: Colors.black.withOpacity(0.5),
+                        blurRadius: 2,
+                        offset: const Offset(1, 1),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+              // أزرار التوصيل في صف
+              Row(
+                mainAxisSize: MainAxisSize.min,
+                children: buttonsList,
+              ),
+            ],
+          );
+        });
+  }
+
+  // دالة مساعدة لإنشاء زر طلبات
+  Widget _buildTalabatButton(double buttonSize, double fontSize) {
+    return Neumorphic(
+      style: NeumorphicStyle(
+        depth: 3,
+        intensity: 0.3,
+        shape: NeumorphicShape.convex,
+        boxShape:
+            NeumorphicBoxShape.roundRect(BorderRadius.circular(buttonSize / 2)),
+        color: const Color.fromARGB(255, 255, 115, 0).withOpacity(0.75), // خلفية سوداء مع شفافية
+      ),
+      child: GestureDetector(
+        onTap: () async {
+          final talabatUrl = Uri.parse(
+              'https://www.talabat.com/bahrain/restaurant/755906/jbr-cafe-alhajiyat?aid=1031');
+          if (await canLaunchUrl(talabatUrl)) {
+            await launchUrl(talabatUrl, mode: LaunchMode.externalApplication);
+          }
+        },
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(buttonSize / 2),
+            border: Border.all(
+              color: const Color.fromARGB(255, 255, 255, 255).withOpacity(0.7), // حدود بلون طلبات مع شفافية
+              width: 1.5,
+            ),
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Icon(Icons.delivery_dining, color: Color.fromARGB(255, 230, 227, 226), size: 16),
+              const SizedBox(width: 4),
+              Text(
+                'talabat'.tr,
+                style: TextStyle(
+                  color: const Color.fromARGB(255, 255, 255, 255), // نص بلون طلبات
+                  fontSize: fontSize,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  // دالة مساعدة لإنشاء زر جاهز
+    Widget _buildJahezButton(double buttonSize, double fontSize) {
+    return Neumorphic(
+      style: NeumorphicStyle(
+        depth: 3,
+        intensity: 0.3,
+        lightSource: LightSource.topLeft,
+        shape: NeumorphicShape.convex,
+        boxShape:
+            NeumorphicBoxShape.roundRect(BorderRadius.circular(buttonSize / 2)),
+        color: const Color.fromARGB(255, 198, 0, 0).withOpacity(0.75), // خلفية سوداء مع شفافية
+      ),
+      child: GestureDetector(
+        onTap: () async {
+          final jahezUrl = Uri.parse(
+              'https://www.instagram.com/jahezbh/?locale=slot%2Bdemo%2Bpg%2Bmahjong%2B3%E3%80%90777ONE.IN%E3%80%91.dgxn&hl=en');
+          if (await canLaunchUrl(jahezUrl)) {
+            await launchUrl(jahezUrl, mode: LaunchMode.externalApplication);
+          }
+        },
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(buttonSize / 2),
+            border: Border.all(
+              color: const Color.fromARGB(255, 239, 239, 239).withOpacity(0.7), // حدود بلون جاهز مع شفافية
+              width: 1.5,
+            ),
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                'J',
+                style: TextStyle(
+                  color: const Color.fromARGB(255, 255, 255, 255), // لون جاهز
+                  fontSize: fontSize + 2,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              const SizedBox(width: 4),
+              Text(
+                'Jahez',
+                style: TextStyle(
+                  color: const Color.fromARGB(255, 255, 255, 255), // لون جاهز
+                  fontSize: fontSize,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+  Widget _buildReorderableOptionsList() {
+    return GetBuilder<MenuOptionsController>(
+      id: 'home_options_list',
+      builder: (controller) {
+        // تحديد ما إذا كانت الشاشة صغيرة
+        final screenWidth = MediaQuery.of(context).size.width;
+        final isSmallScreen = screenWidth < 360;
+
+        // تقسيم الخيارات إلى مجموعات (مثال: أساسية وثانوية)
+        List<MenuOption> primaryOptions = [];
+        List<MenuOption> secondaryOptions = [];
+
+        if (controller.visibleOptions.length > 4) {
+          primaryOptions = controller.visibleOptions.sublist(0, 4);
+          secondaryOptions = controller.visibleOptions.sublist(4);
+        } else {
+          primaryOptions = controller.visibleOptions;
+        }
+
+        // لا تقم بتعريف activeTabIndex هنا، استخدم المتغير من المتحكم
+        // RxInt activeTabIndex = 0.obs; ← احذف هذا السطر
+
+        return Column(
+          children: [
+            // علامات التبويب إذا وجدت خيارات ثانوية
+            if (secondaryOptions.isNotEmpty)
+              Obx(() => Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      _buildTabButton(
+                        // استخدام أيقونة بدلاً من النص
+                        icon: Icons.home_outlined,
+                        isActive: controller.activeTabIndex.value ==
+                            0, // استخدم متغير المتحكم
+                        onTap: () => controller.activeTabIndex.value =
+                            0, // استخدم متغير المتحكم
+                      ),
+                      SizedBox(width: 16),
+                      _buildTabButton(
+                        // استخدام أيقونة بدلاً من النص
+                        icon: Icons.more_horiz,
+                        isActive: controller.activeTabIndex.value ==
+                            1, // استخدم متغير المتحكم
+                        onTap: () => controller.activeTabIndex.value =
+                            1, // استخدم متغير المتحكم
+                      ),
+                    ],
+                  )),
+
+            SizedBox(height: 12),
+
+            // عرض الخيارات المناسبة حسب علامة التبويب النشطة
+            Obx(() {
+              List<MenuOption> currentOptions =
+                  controller.activeTabIndex.value == 0 // استخدم متغير المتحكم
+                      ? primaryOptions
+                      : secondaryOptions;
+
+              // تعيين ارتفاع ثابت للحاوية
+              return Container(
+                height: isSmallScreen ? 300 : 320,
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(16),
+                  color: Colors.white.withOpacity(0.1),
+                ),
+                child: controller.isEditMode.value
+                    ? ReorderableListView.builder(
+                        itemCount: currentOptions.length,
+                        onReorder: (oldIndex, newIndex) {
+                          if (controller.activeTabIndex.value == 0) {
+                            controller.reorderPrimaryOptions(
+                                oldIndex, newIndex, primaryOptions);
+                          } else {
+                            controller.reorderSecondaryOptions(oldIndex,
+                                newIndex, secondaryOptions, primaryOptions);
+                          }
+                        },
+                        itemBuilder: (context, index) {
+                          final option = currentOptions[index];
+                          return _buildSlimOptionCard(
+                            key: Key('menu_option_${option.id}'),
+                            option: option,
+                            isEditing: true,
+                            onDelete: () => controller.hideOption(option.id),
+                            isSmallScreen: isSmallScreen,
+                          );
+                        },
+                      )
+                    : ListView.builder(
+                        itemCount: currentOptions.length,
+                        itemBuilder: (context, index) {
+                          final option = currentOptions[index];
+                          // تمييز الخيار النشط
+                          final bool isActive =
+                              controller.isRouteActive(option.route);
+
+                          return _buildSlimOptionCard(
+                            key: Key('menu_option_${option.id}'),
+                            option: option,
+                            isEditing: false,
+                            isSmallScreen: isSmallScreen,
+                            isActive:
+                                isActive, // إضافة معلمة لتحديد الخيار النشط
+                          );
+                        },
+                      ),
+              );
+            }),
+
+            // عرض قائمة الخيارات المخفية (تظهر فقط في وضع التحرير)
+            if (controller.isEditMode.value)
+              Obx(() {
+                if (controller.hiddenOptions.isNotEmpty) {
+                  return Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Padding(
+                        padding: const EdgeInsets.symmetric(vertical: 8.0),
+                        child: Text(
+                          'hidden_options'.tr,
+                          style: TextStyle(
+                            fontWeight: FontWeight.bold,
+                            fontSize: isSmallScreen ? 14 : 16,
+                          ),
+                        ),
+                      ),
+                      Container(
+                        height: 100,
+                        child: ListView.builder(
+                          scrollDirection: Axis.horizontal,
+                          itemCount: controller.hiddenOptions.length,
+                          itemBuilder: (context, index) {
+                            final option = controller.hiddenOptions[index];
+                            return Container(
+                              width: 80,
+                              margin: const EdgeInsets.only(right: 8),
+                              child: Column(
+                                children: [
+                                  NeumorphicButton(
+                                    style: NeumorphicStyle(
+                                      color: Colors.white.withOpacity(0.8),
+                                      depth: 2,
+                                      intensity: 0.6,
+                                      shape: NeumorphicShape.flat,
+                                      boxShape: NeumorphicBoxShape.circle(),
+                                    ),
+                                    onPressed: () =>
+                                        controller.showOption(option.id),
+                                    padding: EdgeInsets.all(12),
+                                    child: Icon(option.icon,
+                                        color: option.color, size: 24),
+                                  ),
+                                  SizedBox(height: 4),
+                                  Text(
+                                    option.title.tr,
+                                    style: const TextStyle(fontSize: 12),
+                                    textAlign: TextAlign.center,
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                  Text(
+                                    'tap_to_show'.tr,
+                                    style: const TextStyle(
+                                        fontSize: 10, color: Colors.green),
+                                    textAlign: TextAlign.center,
+                                  ),
+                                ],
+                              ),
+                            );
+                          },
+                        ),
+                      ),
+                    ],
+                  );
+                } else {
+                  return const SizedBox.shrink();
+                }
+              }),
+          ],
+        );
+      },
+    );
+  }
+
+  // تعديل دالة _buildTabButton لدعم استخدام الأيقونات بدلاً من النص
+  Widget _buildTabButton({
+    String? title,
+    IconData? icon,
+    required bool isActive,
+    required VoidCallback onTap,
+  }) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: EdgeInsets.symmetric(
+            horizontal: title != null ? 16 : 12, vertical: 8),
+        decoration: BoxDecoration(
+          color:
+              isActive ? AppTheme.primaryColor : Colors.white.withOpacity(0.3),
+          borderRadius: BorderRadius.circular(16),
+          boxShadow: isActive
+              ? [
+                  BoxShadow(
+                    color: AppTheme.primaryColor.withOpacity(0.3),
+                    blurRadius: 4,
+                    offset: Offset(0, 2),
+                  )
+                ]
+              : null,
+        ),
+        child: icon != null
+            ? Container(
+                width: 24,
+                height: 24,
+                child: Icon(
+                  icon,
+                  color: isActive ? Colors.white : Colors.grey.shade700,
+                  size: 16,
+                ),
+              )
+            : Text(
+                title!,
+                style: TextStyle(
+                  color: isActive ? Colors.white : Colors.grey.shade700,
+                  fontWeight: isActive ? FontWeight.bold : FontWeight.normal,
+                  fontSize: 14,
+                ),
+              ),
+      ),
+    );
+  }
+
+  // بطاقة خيار نحيفة
+  Widget _buildSlimOptionCard({
+    required MenuOption option,
+    required bool isEditing,
+    VoidCallback? onDelete,
+    required Key key,
+    required bool isSmallScreen,
+    bool isActive = false, // إضافة معلمة جديدة
+  }) {
+    // الحصول على متحكم خيارات العرض
+    final viewOptionsController = Get.find<ViewOptionsController>();
+
+    // استخراج الإعدادات من المتحكم
+    final Color textColor = viewOptionsController.getColorFromHex(
+        viewOptionsController.getOptionTextColor(isSmallScreen));
+    final Color borderColor = viewOptionsController.getColorFromHex(
+        viewOptionsController.getOptionBorderColor(isSmallScreen));
+    final Color iconColor = viewOptionsController.useCustomIconColors.value
+        ? viewOptionsController.getColorFromHex(viewOptionsController.getOptionIconColor(isSmallScreen))
+        : option.color;
+    final double fontSize = viewOptionsController.getOptionTextSize(isSmallScreen);
+    
+    // استخراج إعدادات الخلفية والتباعد
+    final Color bgColor = viewOptionsController.getColorFromHex(viewOptionsController.optionBackgroundColor.value);
+    final double bgOpacity = viewOptionsController.optionBackgroundOpacity.value;
+    final bool useOptionShadows = viewOptionsController.useOptionShadows.value;
+    final double optionHeight = viewOptionsController.optionHeight.value;
+    final double optionPadding = viewOptionsController.optionPadding.value;
+    final double optionCornerRadius = viewOptionsController.optionCornerRadius.value;
+
+    return Padding(
+      padding: EdgeInsets.symmetric(
+        vertical: viewOptionsController.optionSpacing.value / 2,
+      ),
+      key: key,
+      child: Dismissible(
+        key: Key('dismiss_${option.id}'),
+        direction: isEditing ? DismissDirection.endToStart : DismissDirection.none,
+        background: Container(
+          alignment: Alignment.centerRight,
+          padding: const EdgeInsets.only(right: 20.0),
+          color: Colors.red,
+          child: const Icon(Icons.delete, color: Colors.white),
+        ),
+        confirmDismiss: isEditing ? (direction) async {
+          // كود التأكيد...
+        } : null,
+        onDismissed: isEditing ? (_) {
+          // كود الحذف...
+        } : null,
+        child: GestureDetector(
+          onTap: isEditing ? null : () => Get.find<MenuOptionsController>().navigateToOption(option.route),
+          child: Container(
+            height: optionHeight,
+            decoration: BoxDecoration(
+              color: bgColor.withOpacity(bgOpacity),
+              borderRadius: BorderRadius.circular(optionCornerRadius),
+              border: Border.all(
+                color: isActive ? AppTheme.primaryColor : borderColor,
+                width: isActive ? 2.0 : 1.0,
+              ),
+              boxShadow: useOptionShadows ? [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.1),
+                  blurRadius: 4,
+                  offset: const Offset(0, 2),
+                )
+              ] : null,
+            ),
+            padding: EdgeInsets.symmetric(
+              horizontal: optionPadding,
+              vertical: 8,
+            ),
+            child: Row(
+              children: [
+                Container(
+                  width: 40,
+                  height: 40,
+                  decoration: BoxDecoration(
+                    color: iconColor,
+                    shape: BoxShape.circle,
+                    boxShadow: useOptionShadows ? [
+                      BoxShadow(
+                        color: iconColor.withOpacity(0.3),
+                        blurRadius: 6,
+                        offset: const Offset(0, 2),
+                      ),
+                    ] : null,
+                  ),
+                  child: Icon(
+                    option.icon,
+                    color: Colors.white,
+                    size: 20,
+                  ),
+                ),
+                SizedBox(width: optionPadding / 2),
+                Expanded(
+                  child: Text(
+                    option.title.tr,
+                    style: TextStyle(
+                      fontSize: fontSize,
+                      fontWeight: isActive ? FontWeight.bold : FontWeight.w600,
+                      color: textColor,
+                      // إزالة الظلال
+                      shadows: null,
+                    ),
+                  ),
+                ),
+                if (!isEditing)
+                  const Icon(
+                    Icons.arrow_forward_ios,
+                    color: Colors.grey,
+                    size: 16,
+                  ),
+                if (isEditing)
+                  const Icon(
+                    Icons.drag_handle,
+                    color: Colors.grey,
+                  ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildLandscapeOptionWithDismissible(
+      {required MenuOption option,
+      required MenuOptionsController controller,
+      required bool isSmallScreen,
+      required Key key}) {
+    return Dismissible(
+      key: key,
+      direction: DismissDirection
+          .up, // تغيير الاتجاه إلى الأعلى لمزيد من الملاءمة في شبكة
+      background: Container(
+        alignment: Alignment.bottomCenter,
+        padding: const EdgeInsets.only(bottom: 10.0),
+        color: const Color.fromARGB(255, 0, 0, 0),
+        child: const Icon(
+          Icons.delete,
+          color: Colors.white,
+        ),
+      ),
+      confirmDismiss: (direction) async {
+        return await Get.dialog<bool>(
+              AlertDialog(
+                title: const Text('إخفاء الخيار'),
+                content: Text('هل تريد إخفاء "${option.title.tr}" من القائمة؟'),
+                actions: [
+                  TextButton(
+                    onPressed: () => Get.back(result: false),
+                    child: const Text('إلغاء'),
+                  ),
+                  ElevatedButton(
+                    onPressed: () => Get.back(result: true),
+                    style:
+                        ElevatedButton.styleFrom(backgroundColor: Colors.red),
+                    child: const Text('إخفاء'),
+                  ),
+                ],
+              ),
+            ) ??
+            false;
+      },
+      onDismissed: (direction) {
+        controller.hideOption(option.id);
+      },
+      child: _buildLandscapeEditableButton(
+        title: option.title.tr,
+        icon: option.icon,
+        color: option.color,
+      ),
+    );
+  }
+
+  // دالة مساعدة لإنشاء زر قابل للتحرير في GridView
+  Widget _buildLandscapeEditableButton({
+    required String title,
+    required IconData icon,
+    required Color color,
+  }) {
+    final screenHeight = MediaQuery.of(context).size.height;
+    final screenWidth = MediaQuery.of(context).size.width;
+    final isSmallScreen = screenWidth < 600;
+  
+    // الحصول على متحكم خيارات العرض
+    final viewOptionsController = Get.find<ViewOptionsController>();
+  
+    // استخراج الإعدادات من المتحكم
+    final bool useTransparentBackground = viewOptionsController.useTransparentCardBackground.value;
+    final Color textColor = viewOptionsController.getColorFromHex(viewOptionsController.optionTextColor.value);
+    final Color borderColor = viewOptionsController.getColorFromHex(viewOptionsController.optionBorderColor.value);
+    final Color iconColor = viewOptionsController.useCustomIconColors.value
+        ? viewOptionsController.getColorFromHex(viewOptionsController.optionIconColor.value)
+        : color;
+    final double fontSize = viewOptionsController.optionTextSize.value;
+  
+    // تحديد مستوى الشفافية
+    final double backgroundOpacity = useTransparentBackground ? 0.2 : 1.0;
+
+    return Container(
+      decoration: BoxDecoration(
+        // استخدام خلفية شفافة أو بيضاء حسب الإعداد
+        color: useTransparentBackground
+            ? Colors.white.withOpacity(backgroundOpacity)
+            : Colors.white,
+        borderRadius: BorderRadius.circular(12),
+        // استخدام لون الحدود المحدد في الإعدادات
+        border: Border.all(
+          color: borderColor,
+          width: 1.0,
+        ),
+        // إضافة ظل خفيف
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.1),
+            blurRadius: isSmallScreen ? 3 : 4,
+            offset: Offset(0, isSmallScreen ? 1 : 2),
+          )
+        ],
+      ),
+      padding: EdgeInsets.symmetric(
+          horizontal: isSmallScreen ? 8 : 12,
+          vertical: isSmallScreen ? 6 : 8),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.start,
+        children: [
+          Container(
+            width: isSmallScreen ? 30 : 38,
+            height: isSmallScreen ? 30 : 38,
+            decoration: BoxDecoration(
+              // استخدام اللون المخصص أو اللون الأصلي
+              color: viewOptionsController.useCustomIconColors.value ? iconColor : color,
+              shape: BoxShape.circle,
+              boxShadow: [
+                BoxShadow(
+                  color: (viewOptionsController.useCustomIconColors.value ? iconColor : color).withOpacity(0.5),
+                  blurRadius: 6,
+                  offset: const Offset(0, 2),
+                ),
+              ],
+            ),
+            child: Icon(
+              icon,
+              color: Colors.white,
+              size: isSmallScreen ? 16 : 20,
+            ),
+          ),
+          SizedBox(width: isSmallScreen ? 6 : 10),
+          Expanded(
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Expanded(
+                  child: Text(
+                    title,
+                    style: TextStyle(
+                      // استخدام حجم الخط المحدد في الإعدادات
+                      fontSize: isSmallScreen ? fontSize - 2 : fontSize,
+                      fontWeight: FontWeight.w600,
+                      // استخدام لون النص المحدد في الإعدادات
+                      color: textColor,
+                    ),
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
+                Icon(Icons.unfold_more, color: borderColor, size: 16),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
   }
 }
 

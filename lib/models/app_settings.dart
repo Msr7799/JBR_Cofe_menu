@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'dart:io';
 import 'package:hive/hive.dart';
 
 part 'app_settings.g.dart';
@@ -39,6 +39,10 @@ class AppSettings {
   @HiveField(8)
   String menuViewMode;
 
+  // إضافة خاصية لوغو التطبيق
+  @HiveField(9)
+  String? _logoPath;
+
   // إعدادات الخلفية
   @HiveField(7)
   BackgroundSettings backgroundSettings;
@@ -51,8 +55,10 @@ class AppSettings {
     this.appName = 'JBR Coffee Shop',
     this.benefitPayQrCodeUrl,
     this.menuViewMode = 'grid',
+    String? logoPath,
     BackgroundSettings? backgroundSettings,
-  }) : backgroundSettings =
+  })  : _logoPath = logoPath,
+        backgroundSettings =
             backgroundSettings ?? BackgroundSettings.defaultSettings();
 
   // إعدادات افتراضية
@@ -65,6 +71,7 @@ class AppSettings {
       appName: 'JBR Coffee Shop',
       benefitPayQrCodeUrl: null,
       menuViewMode: 'grid',
+      logoPath: 'assets/images/logo.png',
       backgroundSettings: BackgroundSettings.defaultSettings(),
     );
   }
@@ -79,6 +86,7 @@ class AppSettings {
       appName: json['appName'] as String? ?? 'JBR Coffee Shop',
       benefitPayQrCodeUrl: json['benefitPayQrCodeUrl'] as String?,
       menuViewMode: json['menuViewMode'] as String? ?? 'grid',
+      logoPath: json['logoPath'] as String? ?? 'assets/images/logo.png',
       backgroundSettings: json['backgroundSettings'] != null
           ? BackgroundSettings.fromJson(
               json['backgroundSettings'] as Map<String, dynamic>)
@@ -86,9 +94,26 @@ class AppSettings {
     );
   }
 
-  String? get logoPath => null;
+  // getter لمسار الشعار
+  String? get logoPath => _logoPath ?? 'assets/images/logo.png';
 
-  set logoPath(String? logoPath) {}
+  // setter آمن لمسار الشعار - تنظيف المسار القديم إذا كان مخصصًا
+  set logoPath(String? path) {
+    // عند تعيين شعار مخصص جديد، نحتاج إلى تنظيف الشعار المخصص السابق
+    if (_logoPath != null &&
+        path != _logoPath &&
+        !_logoPath!.startsWith('assets/') &&
+        File(_logoPath!).existsSync()) {
+      try {
+        // محاولة حذف الصورة القديمة بشكل غير متزامن
+        File(_logoPath!).deleteSync();
+      } catch (e) {
+        // تجاهل أي أخطاء قد تحدث أثناء عملية الحذف
+        print('خطأ عند محاولة حذف الشعار المخصص السابق: $e');
+      }
+    }
+    _logoPath = path;
+  }
 
   // تحويل إلى JSON
   Map<String, dynamic> toJson() {
@@ -100,6 +125,7 @@ class AppSettings {
       'appName': appName,
       'benefitPayQrCodeUrl': benefitPayQrCodeUrl,
       'menuViewMode': menuViewMode,
+      'logoPath': _logoPath,
       'backgroundSettings': backgroundSettings.toJson(),
     };
   }

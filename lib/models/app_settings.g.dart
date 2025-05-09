@@ -24,14 +24,15 @@ class AppSettingsAdapter extends TypeAdapter<AppSettings> {
       appName: fields[4] as String,
       benefitPayQrCodeUrl: fields[6] as String?,
       menuViewMode: fields[8] as String,
-      backgroundSettings: fields[7] as BackgroundSettings?,
+      logoPath: fields[9] as String?,
+      backgroundSettings: fields[7] as BackgroundSettings,
     );
   }
 
   @override
   void write(BinaryWriter writer, AppSettings obj) {
     writer
-      ..writeByte(8)
+      ..writeByte(9)
       ..writeByte(0)
       ..write(obj.themeMode)
       ..writeByte(1)
@@ -46,6 +47,8 @@ class AppSettingsAdapter extends TypeAdapter<AppSettings> {
       ..write(obj.benefitPayQrCodeUrl)
       ..writeByte(8)
       ..write(obj.menuViewMode)
+      ..writeByte(9)
+      ..write(obj._logoPath)
       ..writeByte(7)
       ..write(obj.backgroundSettings);
   }

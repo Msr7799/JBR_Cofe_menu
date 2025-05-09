@@ -5,6 +5,7 @@ import 'package:gpr_coffee_shop/constants/theme.dart';
 import 'package:gpr_coffee_shop/controllers/auth_controller.dart';
 import 'package:gpr_coffee_shop/controllers/category_controller.dart';
 import 'package:gpr_coffee_shop/controllers/feedback_controller.dart';
+import 'package:gpr_coffee_shop/controllers/menu_options_controller.dart';
 import 'package:gpr_coffee_shop/controllers/order_controller.dart';
 import 'package:gpr_coffee_shop/controllers/product_controller.dart';
 import 'package:gpr_coffee_shop/controllers/settings_controller.dart';
@@ -29,10 +30,11 @@ import 'package:gpr_coffee_shop/services/app_translation_service.dart';
 import 'package:gpr_coffee_shop/services/notification_service.dart';
 import 'package:gpr_coffee_shop/screens/admin/benefit_pay_qr_management.dart';
 import 'package:gpr_coffee_shop/screens/view_options_screen.dart';
-import 'package:gpr_coffee_shop/utils/hive_reset_util.dart';
 import 'package:gpr_coffee_shop/utils/logger_util.dart';
-import 'package:gpr_coffee_shop/utils/rendering_helper.dart'; // Add this import
+import 'package:gpr_coffee_shop/utils/rendering_helper.dart';
 import 'package:hive_flutter/hive_flutter.dart';
+import 'package:gpr_coffee_shop/screens/about_screen.dart';
+import 'package:gpr_coffee_shop/screens/admin/order_management_screen.dart';
 
 import 'dart:io';
 import 'package:flutter/foundation.dart' show kDebugMode, kIsWeb;
@@ -62,17 +64,12 @@ Future<void> _registerHiveAdapters() async {
     Hive.registerAdapter(PaymentTypeAdapter());
 
     if (kDebugMode) {
-
-
-
-
-
-
-
       print("✅ All Hive adapters registered successfully");
     }
   } catch (e) {
-    print("⚠️ Error registering Hive adapters: $e");
+    if (kDebugMode) {
+      print("⚠️ Error registering Hive adapters: $e");
+    }
     // Continue execution as some adapters might already be registered
   }
 }
@@ -118,6 +115,8 @@ void main() async {
   Get.put(SettingsController());
   Get.put(FeedbackController());
   Get.put(ViewOptionsController()); // إضافة ViewOptionsController هنا
+  Get.put(
+      MenuOptionsController()); // في مكان مناسب في دالة main أو في وظيفة إعداد المتحكمات
 
   // For web platform, add any web-specific initializations here
   if (kIsWeb) {
@@ -156,7 +155,6 @@ class MyApp extends StatelessWidget {
         final themeMode = _getThemeMode(controller.themeMode);
 
         return GetMaterialApp(
-          key: UniqueKey(), // مفتاح فريد لكل بناء جديد (اختياري)
           title: 'app_name'.tr,
           theme: AppTheme.lightTheme,
           darkTheme: AppTheme.darkTheme,
@@ -170,12 +168,34 @@ class MyApp extends StatelessWidget {
           defaultTransition: Transition.fade,
           navigatorKey: Get.key,
           getPages: [
-            GetPage(name: '/', page: () => const HomeScreen()),
+            // الروت الرئيسي مع تحديث البايندنج
+            GetPage(
+              name: '/',
+              page: () => const HomeScreen(),
+              binding: BindingsBuilder(() {
+                Get.lazyPut(() => MenuOptionsController(), fenix: true);
+              }),
+            ),
+
+            // باقي الروتات الموجودة
             GetPage(name: '/splash', page: () => const SplashScreen()),
             GetPage(name: '/menu', page: () => MenuScreen()),
             GetPage(name: '/settings', page: () => const SettingsScreen()),
             GetPage(name: '/location', page: () => const LocationScreen()),
+            GetPage(name: '/view-options', page: () => ViewOptionsScreen()),
             GetPage(name: '/rate', page: () => const RateScreen()),
+
+            // إضافة روت جديد
+            GetPage(name: '/about', page: () => const AboutScreen()),
+
+            // إضافة روت جديد مع المحافظة على الميدلويرز
+            GetPage(
+              name: '/order-management',
+              page: () => const OrderManagementScreen(),
+              middlewares: [AuthMiddleware()],
+            ),
+
+            // الروتات الموجودة بالفعل مع الميدلويرز
             GetPage(
               name: '/login',
               page: () => LoginScreen(),
@@ -190,7 +210,6 @@ class MyApp extends StatelessWidget {
               page: () => const BenefitPayQrManagement(),
               middlewares: [AuthMiddleware()],
             ),
-            GetPage(name: '/view-options', page: () => ViewOptionsScreen()),
           ],
           popGesture: true,
         );

@@ -1,4 +1,3 @@
-import 'package:flutter/material.dart';
 import 'package:flutter_neumorphic_plus/flutter_neumorphic.dart';
 import 'package:get/get.dart';
 import 'package:gpr_coffee_shop/constants/theme.dart';
@@ -21,6 +20,13 @@ class CategoryManagement extends StatelessWidget {
       appBar: AppBar(
         title: const Text('إدارة الفئات'),
         backgroundColor: AppTheme.primaryColor,
+        centerTitle: true,
+        elevation: 0,
+        shape: const RoundedRectangleBorder(
+          borderRadius: BorderRadius.vertical(
+            bottom: Radius.circular(16),
+          ),
+        ),
         actions: [
           IconButton(
             icon: const Icon(Icons.refresh),
@@ -29,49 +35,99 @@ class CategoryManagement extends StatelessWidget {
           ),
           IconButton(
             icon: const Icon(Icons.add),
+            tooltip: 'إضافة فئة جديدة',
             onPressed: () => _showAddEditCategoryDialog(context),
           ),
         ],
       ),
-      body: Obx(
-        () => categoryController.isLoading.value
-            ? const Center(child: CircularProgressIndicator())
-            : categoryController.categories.isEmpty
-                ? Center(
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        const Icon(
-                          Icons.category_outlined,
-                          size: 80,
-                          color: Colors.grey,
-                        ),
-                        const SizedBox(height: 16),
-                        const Text(
-                          'لا توجد فئات حاليًا',
-                          style: TextStyle(fontSize: 18),
-                        ),
-                        const SizedBox(height: 16),
-                        ElevatedButton(
-                          onPressed: () => _showAddEditCategoryDialog(context),
-                          child: const Text('إضافة فئة جديدة'),
-                        ),
-                      ],
+      body: Container(
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+            colors: [
+              Colors.grey.shade50,
+              Colors.white,
+            ],
+          ),
+        ),
+        child: Obx(
+          () => categoryController.isLoading.value
+              ? const Center(
+                  child:
+                      CircularProgressIndicator(color: AppTheme.primaryColor))
+              : categoryController.categories.isEmpty
+                  ? Center(
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Container(
+                            padding: const EdgeInsets.all(20),
+                            decoration: BoxDecoration(
+                              color: AppTheme.primaryColor.withOpacity(0.1),
+                              shape: BoxShape.circle,
+                            ),
+                            child: const Icon(
+                              Icons.category_outlined,
+                              size: 60,
+                              color: AppTheme.primaryColor,
+                            ),
+                          ),
+                          const SizedBox(height: 16),
+                          const Text(
+                            'لا توجد فئات حاليًا',
+                            style: TextStyle(
+                                fontSize: 18, fontWeight: FontWeight.bold),
+                          ),
+                          const SizedBox(height: 8),
+                          const Text(
+                            'قم بإضافة فئات جديدة لتصنيف المنتجات',
+                            style: TextStyle(fontSize: 14, color: Colors.grey),
+                          ),
+                          const SizedBox(height: 24),
+                          NeumorphicButton(
+                            style: const NeumorphicStyle(
+                              color: AppTheme.primaryColor,
+                              depth: 3,
+                            ),
+                            onPressed: () =>
+                                _showAddEditCategoryDialog(context),
+                            child: const Padding(
+                              padding: EdgeInsets.symmetric(
+                                  horizontal: 16, vertical: 8),
+                              child: Text(
+                                'إضافة فئة جديدة',
+                                style: TextStyle(
+                                    color: Colors.white,
+                                    fontWeight: FontWeight.bold),
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    )
+                  : Padding(
+                      padding: const EdgeInsets.all(16),
+                      child: ListView.builder(
+                        physics: const BouncingScrollPhysics(),
+                        itemCount: categoryController.categories.length,
+                        itemBuilder: (context, index) {
+                          final category = categoryController.categories[index];
+                          return _buildCategoryCard(context, category);
+                        },
+                      ),
                     ),
-                  )
-                : ListView.builder(
-                    padding: const EdgeInsets.all(16),
-                    itemCount: categoryController.categories.length,
-                    itemBuilder: (context, index) {
-                      final category = categoryController.categories[index];
-                      return _buildCategoryCard(context, category);
-                    },
-                  ),
+        ),
       ),
-      floatingActionButton: FloatingActionButton(
-        backgroundColor: AppTheme.primaryColor,
-        child: const Icon(Icons.add),
-        onPressed: () => _showAddEditCategoryDialog(context),
+      floatingActionButton: Obx(
+        () => categoryController.categories.isNotEmpty
+            ? FloatingActionButton(
+                backgroundColor: AppTheme.primaryColor,
+                elevation: 4,
+                onPressed: () => _showAddEditCategoryDialog(context),
+                child: const Icon(Icons.add),
+              )
+            : const SizedBox.shrink(),
       ),
     );
   }
@@ -143,7 +199,9 @@ class CategoryManagement extends StatelessWidget {
   // Helper method to determine if the image is an asset or a file
   Widget _buildCategoryImage(String path) {
     // Check if the path is a local file path
-    if (path.startsWith('C:') || path.startsWith('/') || path.contains('Documents')) {
+    if (path.startsWith('C:') ||
+        path.startsWith('/') ||
+        path.contains('Documents')) {
       return Image.file(
         File(path),
         fit: BoxFit.cover,
@@ -165,6 +223,7 @@ class CategoryManagement extends StatelessWidget {
     }
   }
 
+  // استبدل دالة _showAddEditCategoryDialog بهذه الدالة المحسنة
   void _showAddEditCategoryDialog(BuildContext context, [Category? category]) {
     final isEditing = category != null;
     final nameController =
@@ -177,217 +236,370 @@ class CategoryManagement extends StatelessWidget {
         TextEditingController(text: isEditing ? category.descriptionEn : '');
     final formKey = GlobalKey<FormState>();
     String? selectedImagePath = isEditing ? category.iconPath : null;
-    
+
     // Use RxString to trigger UI updates when image changes
-    final Rx<String?> rxSelectedImagePath = (isEditing ? category.iconPath : null).obs;
+    final Rx<String?> rxSelectedImagePath =
+        (isEditing ? category.iconPath : null).obs;
 
     Get.dialog(
       Dialog(
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(16),
         ),
-        child: Padding(
-          padding: const EdgeInsets.all(16),
+        child: Container(
+          width: MediaQuery.of(context).size.width * 0.85, // صغرنا العرض قليلاً
+          constraints: BoxConstraints(
+            maxHeight: MediaQuery.of(context).size.height *
+                0.75, // تحديد الارتفاع الأقصى
+          ),
           child: Form(
             key: formKey,
-            child: SingleChildScrollView(
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Text(
-                    isEditing ? 'تعديل فئة' : 'إضافة فئة جديدة',
-                    style: const TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                // رأس النافذة مع زر إغلاق
+                Container(
+                  decoration: const BoxDecoration(
+                    color: AppTheme.primaryColor,
+                    borderRadius: BorderRadius.only(
+                      topLeft: Radius.circular(16),
+                      topRight: Radius.circular(16),
                     ),
                   ),
-                  const SizedBox(height: 16),
-
-                  // إضافة صورة للفئة
-                  GestureDetector(
-                    onTap: () async {
-                      final pickedImage = await _pickImage();
-                      if (pickedImage != null) {
-                        selectedImagePath = pickedImage;
-                        rxSelectedImagePath.value = pickedImage;
-                      }
-                    },
-                    child: Container(
-                      width: 100,
-                      height: 100,
-                      decoration: BoxDecoration(
-                        color: Colors.grey[200],
-                        borderRadius: BorderRadius.circular(8),
-                        border: Border.all(color: Colors.grey),
-                      ),
-                      child: Center(
-                        child: Obx(() => rxSelectedImagePath.value != null
-                            ? _buildCategoryImage(rxSelectedImagePath.value!)
-                            : const Icon(Icons.add_photo_alternate, size: 40)),
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 10),
-                  const Text('اضغط لإضافة صورة',
-                      style: TextStyle(fontSize: 12)),
-
-                  const SizedBox(height: 16),
-                  // اسم بالعربية
-                  Neumorphic(
-                    style: const NeumorphicStyle(
-                      depth: -3,
-                      intensity: 0.7,
-                    ),
-                    child: Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 16),
-                      child: TextFormField(
-                        controller: nameController,
-                        decoration: const InputDecoration(
-                          labelText: 'اسم الفئة (عربي)',
-                          border: InputBorder.none,
-                        ),
-                        validator: (value) {
-                          if (value == null || value.isEmpty) {
-                            return 'يرجى إدخال اسم الفئة بالعربية';
-                          }
-                          return null;
-                        },
-                      ),
-                    ),
-                  ),
-
-                  const SizedBox(height: 16),
-                  // اسم بالإنجليزية
-                  Neumorphic(
-                    style: const NeumorphicStyle(
-                      depth: -3,
-                      intensity: 0.7,
-                    ),
-                    child: Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 16),
-                      child: TextFormField(
-                        controller: nameEnController,
-                        decoration: const InputDecoration(
-                          labelText: 'اسم الفئة (إنجليزي)',
-                          border: InputBorder.none,
-                        ),
-                        validator: (value) {
-                          if (value == null || value.isEmpty) {
-                            return 'يرجى إدخال اسم الفئة بالإنجليزية';
-                          }
-                          return null;
-                        },
-                      ),
-                    ),
-                  ),
-
-                  const SizedBox(height: 16),
-                  // وصف بالعربية
-                  Neumorphic(
-                    style: const NeumorphicStyle(
-                      depth: -3,
-                      intensity: 0.7,
-                    ),
-                    child: Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 16),
-                      child: TextFormField(
-                        controller: descriptionController,
-                        decoration: const InputDecoration(
-                          labelText: 'وصف الفئة (عربي)',
-                          border: InputBorder.none,
-                        ),
-                        maxLines: 2,
-                      ),
-                    ),
-                  ),
-
-                  const SizedBox(height: 16),
-                  // وصف بالإنجليزية
-                  Neumorphic(
-                    style: const NeumorphicStyle(
-                      depth: -3,
-                      intensity: 0.7,
-                    ),
-                    child: Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 16),
-                      child: TextFormField(
-                        controller: descriptionEnController,
-                        decoration: const InputDecoration(
-                          labelText: 'وصف الفئة (إنجليزي)',
-                          border: InputBorder.none,
-                        ),
-                        maxLines: 2,
-                      ),
-                    ),
-                  ),
-
-                  const SizedBox(height: 24),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.end,
+                  padding:
+                      const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      TextButton(
+                      Text(
+                        isEditing ? 'تعديل فئة' : 'إضافة فئة جديدة',
+                        style: const TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.white,
+                        ),
+                      ),
+                      IconButton(
+                        icon: const Icon(Icons.close, color: Colors.white),
                         onPressed: () => Get.back(),
-                        child: const Text('إلغاء'),
+                        padding: EdgeInsets.zero,
+                        constraints: const BoxConstraints(),
+                      ),
+                    ],
+                  ),
+                ),
+
+                // محتوى النموذج
+                Flexible(
+                  child: SingleChildScrollView(
+                    padding: const EdgeInsets.all(16),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        // صورة الفئة - مع تحسين المعاينة
+                        Center(
+                          child: Stack(
+                            alignment: Alignment.bottomRight,
+                            children: [
+                              GestureDetector(
+                                onTap: () async {
+                                  final pickedImage = await _pickImage();
+                                  if (pickedImage != null) {
+                                    selectedImagePath = pickedImage;
+                                    rxSelectedImagePath.value = pickedImage;
+                                  }
+                                },
+                                child: Container(
+                                  height: 100,
+                                  width: 100,
+                                  decoration: BoxDecoration(
+                                    color: Colors.grey[200],
+                                    borderRadius: BorderRadius.circular(12),
+                                    boxShadow: [
+                                      BoxShadow(
+                                        color: Colors.black.withOpacity(0.1),
+                                        blurRadius: 5,
+                                        offset: const Offset(0, 2),
+                                      ),
+                                    ],
+                                  ),
+                                  child: Obx(
+                                    () => rxSelectedImagePath.value != null
+                                        ? ClipRRect(
+                                            borderRadius:
+                                                BorderRadius.circular(12),
+                                            child: _buildCategoryImage(
+                                                rxSelectedImagePath.value!),
+                                          )
+                                        : const Column(
+                                            mainAxisAlignment:
+                                                MainAxisAlignment.center,
+                                            children: [
+                                              Icon(
+                                                Icons.add_photo_alternate,
+                                                size: 40,
+                                                color: Colors.grey,
+                                              ),
+                                              SizedBox(height: 8),
+                                              Text(
+                                                'إضافة صورة',
+                                                style: TextStyle(
+                                                    color: Colors.grey),
+                                              ),
+                                            ],
+                                          ),
+                                  ),
+                                ),
+                              ),
+                              Obx(
+                                () => rxSelectedImagePath.value != null
+                                    ? Positioned(
+                                        bottom: 0,
+                                        right: 0,
+                                        child: Container(
+                                          decoration: BoxDecoration(
+                                            color: AppTheme.primaryColor,
+                                            shape: BoxShape.circle,
+                                          ),
+                                          child: IconButton(
+                                            icon: const Icon(Icons.edit,
+                                                size: 20, color: Colors.white),
+                                            onPressed: () async {
+                                              final pickedImage =
+                                                  await _pickImage();
+                                              if (pickedImage != null) {
+                                                selectedImagePath = pickedImage;
+                                                rxSelectedImagePath.value =
+                                                    pickedImage;
+                                              }
+                                            },
+                                            constraints: const BoxConstraints(
+                                              minWidth: 36,
+                                              minHeight: 36,
+                                            ),
+                                            padding: EdgeInsets.zero,
+                                          ),
+                                        ),
+                                      )
+                                    : const SizedBox.shrink(),
+                              ),
+                            ],
+                          ),
+                        ),
+                        const SizedBox(height: 20),
+
+                        // اسم بالعربية
+                        const Text(
+                          'اسم الفئة (عربي) *',
+                          style: TextStyle(fontWeight: FontWeight.bold),
+                        ),
+                        const SizedBox(height: 4),
+                        Neumorphic(
+                          style: const NeumorphicStyle(
+                            depth: -3,
+                            intensity: 0.7,
+                            color: Colors.white,
+                          ),
+                          child: TextFormField(
+                            controller: nameController,
+                            decoration: const InputDecoration(
+                              border: InputBorder.none,
+                              contentPadding: EdgeInsets.symmetric(
+                                  horizontal: 16, vertical: 12),
+                              hintText: 'أدخل اسم الفئة بالعربية',
+                            ),
+                            validator: (value) {
+                              if (value == null || value.isEmpty) {
+                                return 'يرجى إدخال اسم الفئة بالعربية';
+                              }
+                              return null;
+                            },
+                          ),
+                        ),
+                        const SizedBox(height: 16),
+
+                        // اسم بالإنجليزية
+                        const Text(
+                          'اسم الفئة (إنجليزي) *',
+                          style: TextStyle(fontWeight: FontWeight.bold),
+                        ),
+                        const SizedBox(height: 4),
+                        Neumorphic(
+                          style: const NeumorphicStyle(
+                            depth: -3,
+                            intensity: 0.7,
+                            color: Colors.white,
+                          ),
+                          child: TextFormField(
+                            controller: nameEnController,
+                            decoration: const InputDecoration(
+                              border: InputBorder.none,
+                              contentPadding: EdgeInsets.symmetric(
+                                  horizontal: 16, vertical: 12),
+                              hintText: 'أدخل اسم الفئة بالإنجليزية',
+                            ),
+                            validator: (value) {
+                              if (value == null || value.isEmpty) {
+                                return 'يرجى إدخال اسم الفئة بالإنجليزية';
+                              }
+                              return null;
+                            },
+                          ),
+                        ),
+                        const SizedBox(height: 16),
+
+                        // وصف بالعربية
+                        const Text(
+                          'وصف الفئة (عربي)',
+                          style: TextStyle(fontWeight: FontWeight.bold),
+                        ),
+                        const SizedBox(height: 4),
+                        Neumorphic(
+                          style: const NeumorphicStyle(
+                            depth: -3,
+                            intensity: 0.7,
+                            color: Colors.white,
+                          ),
+                          child: TextFormField(
+                            controller: descriptionController,
+                            decoration: const InputDecoration(
+                              border: InputBorder.none,
+                              contentPadding: EdgeInsets.symmetric(
+                                  horizontal: 16, vertical: 12),
+                              hintText: 'أدخل وصف الفئة بالعربية (اختياري)',
+                            ),
+                            maxLines: 2,
+                          ),
+                        ),
+                        const SizedBox(height: 16),
+
+                        // وصف بالإنجليزية
+                        const Text(
+                          'وصف الفئة (إنجليزي)',
+                          style: TextStyle(fontWeight: FontWeight.bold),
+                        ),
+                        const SizedBox(height: 4),
+                        Neumorphic(
+                          style: const NeumorphicStyle(
+                            depth: -3,
+                            intensity: 0.7,
+                            color: Colors.white,
+                          ),
+                          child: TextFormField(
+                            controller: descriptionEnController,
+                            decoration: const InputDecoration(
+                              border: InputBorder.none,
+                              contentPadding: EdgeInsets.symmetric(
+                                  horizontal: 16, vertical: 12),
+                              hintText: 'أدخل وصف الفئة بالإنجليزية (اختياري)',
+                            ),
+                            maxLines: 2,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+
+                // أزرار الإغلاق والحفظ
+                Container(
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: Colors.grey[100],
+                    borderRadius: const BorderRadius.only(
+                      bottomLeft: Radius.circular(16),
+                      bottomRight: Radius.circular(16),
+                    ),
+                  ),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                    children: [
+                      Expanded(
+                        child: NeumorphicButton(
+                          style: const NeumorphicStyle(
+                            color: Colors.white,
+                            depth: 2,
+                          ),
+                          onPressed: () => Get.back(),
+                          child: const Center(
+                            child: Text(
+                              'إلغاء',
+                              style: TextStyle(fontWeight: FontWeight.bold),
+                            ),
+                          ),
+                        ),
                       ),
                       const SizedBox(width: 16),
-                      NeumorphicButton(
-                        style: const NeumorphicStyle(
-                          color: AppTheme.primaryColor,
-                        ),
-                        onPressed: () {
-                          if (formKey.currentState!.validate()) {
-                            if (isEditing) {
-                              final updatedCategory = Category(
-                                id: category.id,
-                                name: nameController.text,
-                                nameEn: nameEnController.text,
-                                description: descriptionController.text,
-                                descriptionEn: descriptionEnController.text,
-                                iconPath: selectedImagePath ??
-                                    category.iconPath ??
-                                    'assets/images/placeholder.png',
-                                order: category.order,
-                                isActive: category.isActive,
+                      Expanded(
+                        child: NeumorphicButton(
+                          style: const NeumorphicStyle(
+                            color: AppTheme.primaryColor,
+                            depth: 2,
+                          ),
+                          onPressed: () {
+                            if (formKey.currentState!.validate()) {
+                              if (isEditing) {
+                                final updatedCategory = Category(
+                                  id: category.id,
+                                  name: nameController.text,
+                                  nameEn: nameEnController.text,
+                                  description: descriptionController.text,
+                                  descriptionEn: descriptionEnController.text,
+                                  iconPath: selectedImagePath ??
+                                      category.iconPath ??
+                                      'assets/images/placeholder.png',
+                                  order: category.order,
+                                  isActive: category.isActive,
+                                );
+                                categoryController
+                                    .updateCategory(updatedCategory);
+                              } else {
+                                final newCategory = Category(
+                                  id: DateTime.now()
+                                      .millisecondsSinceEpoch
+                                      .toString(),
+                                  name: nameController.text,
+                                  nameEn: nameEnController.text,
+                                  description: descriptionController.text,
+                                  descriptionEn: descriptionEnController.text,
+                                  iconPath: selectedImagePath ??
+                                      'assets/images/placeholder.png',
+                                  order: categoryController.categories.length,
+                                  isActive: true,
+                                );
+                                categoryController.addCategory(newCategory);
+                              }
+                              Get.back();
+                              Get.snackbar(
+                                'تم بنجاح',
+                                isEditing ? 'تم تحديث الفئة' : 'تم إضافة الفئة',
+                                snackPosition: SnackPosition.BOTTOM,
+                                backgroundColor: Colors.green,
+                                colorText: Colors.white,
                               );
-                              categoryController
-                                  .updateCategory(updatedCategory);
-                            } else {
-                              final newCategory = Category(
-                                id: DateTime.now()
-                                    .millisecondsSinceEpoch
-                                    .toString(),
-                                name: nameController.text,
-                                nameEn: nameEnController.text,
-                                description: descriptionController.text,
-                                descriptionEn: descriptionEnController.text,
-                                iconPath: selectedImagePath ??
-                                    'assets/images/placeholder.png',
-                                order: categoryController.categories.length,
-                                isActive: true,
-                              );
-                              categoryController.addCategory(newCategory);
                             }
-                            Get.back();
-                            Get.snackbar(
-                              'تم بنجاح',
-                              isEditing ? 'تم تحديث الفئة' : 'تم إضافة الفئة',
-                              snackPosition: SnackPosition.BOTTOM,
-                            );
-                          }
-                        },
-                        child: Text(
-                          isEditing ? 'حفظ التعديلات' : 'إضافة',
-                          style: const TextStyle(color: Colors.white),
+                          },
+                          child: Center(
+                            child: Text(
+                              isEditing ? 'حفظ التعديلات' : 'إضافة',
+                              style: const TextStyle(
+                                color: Colors.white,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ),
                         ),
                       ),
                     ],
                   ),
-                ],
-              ),
+                ),
+              ],
             ),
           ),
         ),
       ),
+      barrierDismissible: false,
     );
   }
 
