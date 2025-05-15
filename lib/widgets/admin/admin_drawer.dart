@@ -26,20 +26,20 @@ class AdminDrawer extends StatelessWidget {
         children: [
           // رأس القائمة الجانبية
           Container(
-            color: AppTheme.primaryColor,
+            color: Theme.of(context).colorScheme.primary,
             padding: const EdgeInsets.symmetric(vertical: 24, horizontal: 16),
             width: double.infinity,
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 const SizedBox(height: 30),
-                const CircleAvatar(
+                CircleAvatar(
                   radius: 30,
-                  backgroundColor: Colors.white,
+                  backgroundColor: Theme.of(context).colorScheme.onPrimary,
                   child: Icon(
                     Icons.person,
                     size: 40,
-                    color: AppTheme.primaryColor,
+                    color: Theme.of(context).colorScheme.primary,
                   ),
                 ),
                 const SizedBox(height: 12),
@@ -49,20 +49,21 @@ class AdminDrawer extends StatelessWidget {
                     authController.isAdmin.value
                         ? 'admin'.tr
                         : 'not_logged_in'.tr,
-                    style: const TextStyle(
-                      color: Colors.white,
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                    ),
+                    style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                          color: Theme.of(context).colorScheme.onPrimary,
+                          fontWeight: FontWeight.bold,
+                        ),
                   ),
                 ),
                 const SizedBox(height: 4),
                 Text(
                   'system_admin'.tr,
-                  style: const TextStyle(
-                    color: Colors.white70,
-                    fontSize: 14,
-                  ),
+                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                        color: Theme.of(context)
+                            .colorScheme
+                            .onPrimary
+                            .withOpacity(0.7),
+                      ),
                 ),
               ],
             ),

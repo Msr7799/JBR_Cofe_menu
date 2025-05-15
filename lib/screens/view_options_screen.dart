@@ -10,7 +10,7 @@ import 'package:flutter_colorpicker/flutter_colorpicker.dart';
 class ViewOptionsScreen extends StatelessWidget {
   final ViewOptionsController controller = Get.find<ViewOptionsController>();
 
-  // متغيرات خيارات عرض المنتجات
+  // Product display options variables
   final RxString viewMode = ViewOptionsHelper.getViewMode().obs;
   final RxBool showImages = ViewOptionsHelper.getShowImages().obs;
   final RxBool useAnimations = ViewOptionsHelper.getUseAnimations().obs;
@@ -20,7 +20,7 @@ class ViewOptionsScreen extends StatelessWidget {
   final RxInt selectedPriceColor = ViewOptionsHelper.getPriceColor().obs;
   final RxString displayMode = ViewOptionsHelper.getDisplayMode().obs;
 
-  // إضافة متغير لخيارات الهوم سكرين
+  // Home screen options variables
   final RxBool useTransparentCardBackground = RxBool(true);
   final RxString optionTextColor = RxString('#000000');
   final RxString optionIconColor = RxString('#546E7A');
@@ -29,7 +29,7 @@ class ViewOptionsScreen extends StatelessWidget {
   final RxBool useCustomIconColors = RxBool(false);
   final RxBool useSmallScreenSettings = RxBool(false);
 
-  // خيارات حجم النص
+  // Text size options
   final RxDouble productTitleFontSize =
       ViewOptionsHelper.getProductTitleFontSize().obs;
   final RxDouble productPriceFontSize =
@@ -37,7 +37,7 @@ class ViewOptionsScreen extends StatelessWidget {
   final RxDouble productButtonFontSize =
       ViewOptionsHelper.getProductButtonFontSize().obs;
 
-  // خيارات حجم البطاقة
+  // Card size options
   final RxDouble productCardWidth = ViewOptionsHelper.getProductCardWidth().obs;
   final RxDouble productCardHeight =
       ViewOptionsHelper.getProductCardHeight().obs;
@@ -45,7 +45,7 @@ class ViewOptionsScreen extends StatelessWidget {
       ViewOptionsHelper.getProductImageHeight().obs;
   final RxBool isLargeScreen = ViewOptionsHelper.getIsLargeScreen().obs;
 
-  // قائمة الألوان المتاحة للاختيار
+  // Available colors list
   final List<Color> availableColors = [
     Colors.black,
     AppTheme.primaryColor,
@@ -80,7 +80,7 @@ class ViewOptionsScreen extends StatelessWidget {
 
     return Scaffold(
       appBar: AppBar(
-        title: Text('خيارات العرض'.tr),
+        title: Text('view_options'.tr),
         backgroundColor: AppTheme.primaryColor,
         elevation: 0,
       ),
@@ -96,10 +96,10 @@ class ViewOptionsScreen extends StatelessWidget {
                 labelColor: Colors.white,
                 unselectedLabelColor: Colors.white70,
                 tabs: [
-                  Tab(text: 'خيارات القائمة الرئيسية'.tr),
-                  Tab(text: 'طريقة العرض'.tr),
-                  Tab(text: 'أبعاد البطاقات'.tr),
-                  Tab(text: 'الألوان والخطوط'.tr),
+                  Tab(text: 'home_screen_options'.tr),
+                  Tab(text: 'view_mode'.tr),
+                  Tab(text: 'card_dimensions'.tr),
+                  Tab(text: 'text_colors'.tr),
                 ],
               ),
             ),
@@ -111,34 +111,32 @@ class ViewOptionsScreen extends StatelessWidget {
                     padding: EdgeInsets.all(isSmallScreen ? 12.0 : 16.0),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
+                      mainAxisSize:
+                          MainAxisSize.min, // To avoid unbounded height issues
                       children: [
-                        _buildSectionHeader('مظهر القائمة الرئيسية'.tr),
+                        _buildSectionHeader('menu_options_appearance'.tr),
                         _buildHomeScreenOptionsIntegrated(),
-                        
                         const SizedBox(height: 20),
-                        
-                        _buildSectionHeader('أبعاد وتباعد الخيارات'.tr),
+                        _buildSectionHeader('option_dimensions'.tr),
                         _buildMenuOptionsSize(),
-                        
                         const SizedBox(height: 20),
-                        
-                        _buildSectionHeader('خلفية وظلال الخيارات'.tr),
+                        _buildSectionHeader('background_and_shadows'.tr),
                         _buildBackgroundAndShadowOptions(),
-                        
                         const SizedBox(height: 20),
-                        
-                        _buildSectionHeader('معاينة'.tr),
+                        _buildSectionHeader('preview_menu_options'.tr),
                         _buildHomeScreenPreview(),
                       ],
                     ),
                   ),
-                  
+
                   // باقي التبويبات
                   // طريقة العرض
                   SingleChildScrollView(
                     padding: EdgeInsets.all(isSmallScreen ? 12.0 : 16.0),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
+                      mainAxisSize:
+                          MainAxisSize.min, // To avoid unbounded height issues
                       children: [
                         _buildSectionHeader('طريقة عرض القائمة'.tr),
                         _buildDisplayModeSetting(),
@@ -151,12 +149,14 @@ class ViewOptionsScreen extends StatelessWidget {
                       ],
                     ),
                   ),
-                  
+
                   // أبعاد البطاقات
                   SingleChildScrollView(
                     padding: EdgeInsets.all(isSmallScreen ? 12.0 : 16.0),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
+                      mainAxisSize:
+                          MainAxisSize.min, // To avoid unbounded height issues
                       children: [
                         _buildSectionHeader('حجم الشاشة المستهدف'.tr),
                         _buildScreenSizeSelector(),
@@ -166,12 +166,14 @@ class ViewOptionsScreen extends StatelessWidget {
                       ],
                     ),
                   ),
-                  
+
                   // الألوان والخطوط
                   SingleChildScrollView(
                     padding: EdgeInsets.all(isSmallScreen ? 12.0 : 16.0),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
+                      mainAxisSize:
+                          MainAxisSize.min, // To avoid unbounded height issues
                       children: [
                         _buildSectionHeader('ألوان النصوص'.tr),
                         _buildTextColorSelector(),
@@ -515,7 +517,7 @@ class ViewOptionsScreen extends StatelessWidget {
                       ),
                       Text(
                         '${productCardWidth.value.toStringAsFixed(0)} px',
-                        style: TextStyle(
+                        style: const TextStyle(
                           color: AppTheme.primaryColor,
                           fontWeight: FontWeight.bold,
                         ),
@@ -551,7 +553,7 @@ class ViewOptionsScreen extends StatelessWidget {
                       ),
                       Text(
                         '${productCardHeight.value.toStringAsFixed(0)} px',
-                        style: TextStyle(
+                        style: const TextStyle(
                           color: AppTheme.primaryColor,
                           fontWeight: FontWeight.bold,
                         ),
@@ -587,7 +589,7 @@ class ViewOptionsScreen extends StatelessWidget {
                       ),
                       Text(
                         '${productImageHeight.value.toStringAsFixed(0)} px',
-                        style: TextStyle(
+                        style: const TextStyle(
                           color: AppTheme.primaryColor,
                           fontWeight: FontWeight.bold,
                         ),
@@ -778,7 +780,7 @@ class ViewOptionsScreen extends StatelessWidget {
                       ),
                       Text(
                         productTitleFontSize.value.toStringAsFixed(1),
-                        style: TextStyle(
+                        style: const TextStyle(
                           color: AppTheme.primaryColor,
                           fontWeight: FontWeight.bold,
                         ),
@@ -814,7 +816,7 @@ class ViewOptionsScreen extends StatelessWidget {
                       ),
                       Text(
                         productPriceFontSize.value.toStringAsFixed(1),
-                        style: TextStyle(
+                        style: const TextStyle(
                           color: AppTheme.primaryColor,
                           fontWeight: FontWeight.bold,
                         ),
@@ -850,7 +852,7 @@ class ViewOptionsScreen extends StatelessWidget {
                       ),
                       Text(
                         productButtonFontSize.value.toStringAsFixed(1),
-                        style: TextStyle(
+                        style: const TextStyle(
                           color: AppTheme.primaryColor,
                           fontWeight: FontWeight.bold,
                         ),
@@ -984,7 +986,7 @@ class ViewOptionsScreen extends StatelessWidget {
                       ),
                       Text(
                         optionTextSize.value.toStringAsFixed(1),
-                        style: TextStyle(
+                        style: const TextStyle(
                           color: AppTheme.primaryColor,
                           fontWeight: FontWeight.bold,
                         ),
@@ -1039,37 +1041,46 @@ class ViewOptionsScreen extends StatelessWidget {
               style: TextStyle(fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 16),
-            
+
             // معاينة خيار من القائمة الرئيسية
             Obx(() {
               // استخراج الألوان والإعدادات
-              Color bgColor = controller.getColorFromHex(controller.optionBackgroundColor.value);
-              Color textColor = controller.getColorFromHex(controller.optionTextColor.value);
-              Color borderColor = controller.getColorFromHex(controller.optionBorderColor.value);
-              Color iconColor = controller.useCustomIconColors.value ? 
-                controller.getColorFromHex(controller.optionIconColor.value) : 
-                AppTheme.primaryColor;
-              
+              Color bgColor = controller
+                  .getColorFromHex(controller.optionBackgroundColor.value);
+              Color textColor =
+                  controller.getColorFromHex(controller.optionTextColor.value);
+              Color borderColor = controller
+                  .getColorFromHex(controller.optionBorderColor.value);
+              Color iconColor = controller.useCustomIconColors.value
+                  ? controller.getColorFromHex(controller.optionIconColor.value)
+                  : AppTheme.primaryColor;
+
               return Column(
                 children: [
                   // معاينة خيار القائمة
                   Container(
-                    width: double.infinity,
+                    width: controller.optionWidth.value > 0
+                        ? controller.optionWidth.value
+                        : double.infinity,
                     height: controller.optionHeight.value,
                     decoration: BoxDecoration(
-                      color: bgColor.withOpacity(controller.optionBackgroundOpacity.value),
-                      borderRadius: BorderRadius.circular(controller.optionCornerRadius.value),
+                      color: bgColor.withOpacity(
+                          controller.optionBackgroundOpacity.value),
+                      borderRadius: BorderRadius.circular(
+                          controller.optionCornerRadius.value),
                       border: Border.all(
                         color: borderColor,
                         width: 1.0,
                       ),
-                      boxShadow: controller.useOptionShadows.value ? [
-                        BoxShadow(
-                          color: Colors.black.withOpacity(0.1),
-                          blurRadius: 4,
-                          offset: const Offset(0, 2),
-                        )
-                      ] : null,
+                      boxShadow: controller.useOptionShadows.value
+                          ? [
+                              BoxShadow(
+                                color: Colors.black.withOpacity(0.1),
+                                blurRadius: 4,
+                                offset: const Offset(0, 2),
+                              )
+                            ]
+                          : null,
                     ),
                     padding: EdgeInsets.symmetric(
                       horizontal: controller.optionPadding.value,
@@ -1083,13 +1094,15 @@ class ViewOptionsScreen extends StatelessWidget {
                           decoration: BoxDecoration(
                             color: iconColor,
                             shape: BoxShape.circle,
-                            boxShadow: controller.useOptionShadows.value ? [
-                              BoxShadow(
-                                color: iconColor.withOpacity(0.3),
-                                blurRadius: 6,
-                                offset: const Offset(0, 2),
-                              ),
-                            ] : null,
+                            boxShadow: controller.useOptionShadows.value
+                                ? [
+                                    BoxShadow(
+                                      color: iconColor.withOpacity(0.3),
+                                      blurRadius: 6,
+                                      offset: const Offset(0, 2),
+                                    ),
+                                  ]
+                                : null,
                           ),
                           child: const Icon(
                             Icons.coffee,
@@ -1116,28 +1129,34 @@ class ViewOptionsScreen extends StatelessWidget {
                       ],
                     ),
                   ),
-                  
+
                   // مسافة بين الخيارات في المعاينة
                   SizedBox(height: controller.optionSpacing.value),
-                  
+
                   // معاينة خيار آخر
                   Container(
-                    width: double.infinity,
+                    width: controller.optionWidth.value > 0
+                        ? controller.optionWidth.value
+                        : double.infinity,
                     height: controller.optionHeight.value,
                     decoration: BoxDecoration(
-                      color: bgColor.withOpacity(controller.optionBackgroundOpacity.value),
-                      borderRadius: BorderRadius.circular(controller.optionCornerRadius.value),
+                      color: bgColor.withOpacity(
+                          controller.optionBackgroundOpacity.value),
+                      borderRadius: BorderRadius.circular(
+                          controller.optionCornerRadius.value),
                       border: Border.all(
                         color: borderColor,
                         width: 1.0,
                       ),
-                      boxShadow: controller.useOptionShadows.value ? [
-                        BoxShadow(
-                          color: Colors.black.withOpacity(0.1),
-                          blurRadius: 4,
-                          offset: const Offset(0, 2),
-                        )
-                      ] : null,
+                      boxShadow: controller.useOptionShadows.value
+                          ? [
+                              BoxShadow(
+                                color: Colors.black.withOpacity(0.1),
+                                blurRadius: 4,
+                                offset: const Offset(0, 2),
+                              )
+                            ]
+                          : null,
                     ),
                     padding: EdgeInsets.symmetric(
                       horizontal: controller.optionPadding.value,
@@ -1151,13 +1170,15 @@ class ViewOptionsScreen extends StatelessWidget {
                           decoration: BoxDecoration(
                             color: iconColor,
                             shape: BoxShape.circle,
-                            boxShadow: controller.useOptionShadows.value ? [
-                              BoxShadow(
-                                color: iconColor.withOpacity(0.3),
-                                blurRadius: 6,
-                                offset: const Offset(0, 2),
-                              ),
-                            ] : null,
+                            boxShadow: controller.useOptionShadows.value
+                                ? [
+                                    BoxShadow(
+                                      color: iconColor.withOpacity(0.3),
+                                      blurRadius: 6,
+                                      offset: const Offset(0, 2),
+                                    ),
+                                  ]
+                                : null,
                           ),
                           child: const Icon(
                             Icons.settings,
@@ -1187,16 +1208,60 @@ class ViewOptionsScreen extends StatelessWidget {
                 ],
               );
             }),
-            
-            // شرح لشفافية الخلفية
+
+            // شرح للإعدادات المستخدمة
             const SizedBox(height: 16),
-            Obx(() => Text(
-              'شفافية الخلفية: ${(controller.optionBackgroundOpacity.value * 100).toInt()}%',
-              style: TextStyle(
-                fontSize: 12,
-                color: Colors.grey.shade700,
-              ),
-            )),
+            Obx(() => Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'شفافية الخلفية: ${(controller.optionBackgroundOpacity.value * 100).toInt()}%',
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: Colors.grey.shade700,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      'ارتفاع الخيارات: ${controller.optionHeight.value.toInt()} بكسل',
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: Colors.grey.shade700,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      'المسافة بين الخيارات: ${controller.optionSpacing.value.toInt()} بكسل',
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: Colors.grey.shade700,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      'حجم الخط: ${controller.optionTextSize.value.toStringAsFixed(1)} نقطة',
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: Colors.grey.shade700,
+                      ),
+                    ),
+                    controller.optionWidth.value > 0
+                        ? Text(
+                            'عرض الخيارات: ${controller.optionWidth.value.toInt()} بكسل',
+                            style: TextStyle(
+                              fontSize: 12,
+                              color: Colors.grey.shade700,
+                            ),
+                          )
+                        : Text(
+                            'عرض الخيارات: تلقائي',
+                            style: TextStyle(
+                              fontSize: 12,
+                              color: Colors.grey.shade700,
+                            ),
+                          ),
+                  ],
+                )),
           ],
         ),
       ),
@@ -1374,7 +1439,6 @@ class ViewOptionsScreen extends StatelessWidget {
               },
             ),
             ElevatedButton(
-              child: Text('اختيار'.tr),
               style: ElevatedButton.styleFrom(
                 backgroundColor: AppTheme.primaryColor,
               ),
@@ -1382,6 +1446,7 @@ class ViewOptionsScreen extends StatelessWidget {
                 onColorSelected(pickedColor);
                 Navigator.of(context).pop();
               },
+              child: Text('اختيار'.tr),
             ),
           ],
         );
@@ -1413,20 +1478,25 @@ class ViewOptionsScreen extends StatelessWidget {
     ViewOptionsHelper.saveProductButtonFontSize(productButtonFontSize.value);
 
     // حفظ إعدادات الهوم سكرين
-    controller.saveCardBackgroundType(true); // نستخدم قيمة true دائمًا لأننا نستخدم شفافية متغيرة بدلاً من التبديل
-    controller.saveOptionBackgroundOpacity(controller.optionBackgroundOpacity.value);
+    controller.saveCardBackgroundType(
+        true); // نستخدم قيمة true دائمًا لأننا نستخدم شفافية متغيرة بدلاً من التبديل
+    controller
+        .saveOptionBackgroundOpacity(controller.optionBackgroundOpacity.value);
     controller.saveOptionTextColor(controller.optionTextColor.value);
     controller.saveOptionIconColor(controller.optionIconColor.value);
     controller.saveOptionBorderColor(controller.optionBorderColor.value);
     controller.saveOptionTextSize(controller.optionTextSize.value);
     controller.saveUseCustomIconColors(controller.useCustomIconColors.value);
     controller.saveUseOptionShadows(controller.useOptionShadows.value);
+    controller.saveOptionWidth(controller.optionWidth.value);
     controller.saveOptionHeight(controller.optionHeight.value);
     controller.saveOptionSpacing(controller.optionSpacing.value);
     controller.saveOptionPadding(controller.optionPadding.value);
     controller.saveOptionCornerRadius(controller.optionCornerRadius.value);
-    controller.saveOptionBackgroundColor(controller.optionBackgroundColor.value);
-    controller.saveUseSmallScreenSettings(controller.useSmallScreenSettings.value);
+    controller
+        .saveOptionBackgroundColor(controller.optionBackgroundColor.value);
+    controller
+        .saveUseSmallScreenSettings(controller.useSmallScreenSettings.value);
 
     // تحديث واجهة المستخدم
     Get.find<MenuOptionsController>()
@@ -1487,7 +1557,7 @@ class ViewOptionsScreen extends StatelessWidget {
                           style: const TextStyle(fontWeight: FontWeight.w500)),
                       Text(
                         '${(optionBgOpacity.value * 100).toInt()}%',
-                        style: TextStyle(
+                        style: const TextStyle(
                           color: AppTheme.primaryColor,
                           fontWeight: FontWeight.bold,
                         ),
@@ -1531,6 +1601,54 @@ class ViewOptionsScreen extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          // عرض الخيارات
+          Obx(() => Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text('عرض الخيارات'.tr,
+                          style: const TextStyle(fontWeight: FontWeight.w500)),
+                      Text(
+                        controller.optionWidth.value > 0
+                            ? '${controller.optionWidth.value.toInt()} px'
+                            : 'تلقائي'.tr,
+                        style: const TextStyle(
+                          color: AppTheme.primaryColor,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 8),
+                  Slider(
+                    value: controller.optionWidth.value,
+                    min: 0.0,
+                    max: 300.0,
+                    divisions: 30,
+                    activeColor: AppTheme.primaryColor,
+                    onChanged: (value) {
+                      controller.optionWidth.value = value;
+                    },
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 16),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text('تلقائي'.tr,
+                            style: const TextStyle(color: Colors.grey)),
+                        Text('300 px',
+                            style: const TextStyle(color: Colors.grey)),
+                      ],
+                    ),
+                  ),
+                ],
+              )),
+
+          const Divider(height: 24),
+
           // ارتفاع الخيارات
           Obx(() => Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -1542,7 +1660,7 @@ class ViewOptionsScreen extends StatelessWidget {
                           style: const TextStyle(fontWeight: FontWeight.w500)),
                       Text(
                         '${controller.optionHeight.value.toInt()} px',
-                        style: TextStyle(
+                        style: const TextStyle(
                           color: AppTheme.primaryColor,
                           fontWeight: FontWeight.bold,
                         ),
@@ -1552,13 +1670,25 @@ class ViewOptionsScreen extends StatelessWidget {
                   const SizedBox(height: 8),
                   Slider(
                     value: controller.optionHeight.value,
-                    min: 40.0,
-                    max: 90.0,
-                    divisions: 10,
+                    min: 30.0,
+                    max: 120.0,
+                    divisions: 18,
                     activeColor: AppTheme.primaryColor,
                     onChanged: (value) {
                       controller.optionHeight.value = value;
                     },
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 16),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text('30 px',
+                            style: const TextStyle(color: Colors.grey)),
+                        Text('120 px',
+                            style: const TextStyle(color: Colors.grey)),
+                      ],
+                    ),
                   ),
                 ],
               )),
@@ -1576,7 +1706,7 @@ class ViewOptionsScreen extends StatelessWidget {
                           style: const TextStyle(fontWeight: FontWeight.w500)),
                       Text(
                         '${controller.optionSpacing.value.toInt()} px',
-                        style: TextStyle(
+                        style: const TextStyle(
                           color: AppTheme.primaryColor,
                           fontWeight: FontWeight.bold,
                         ),
@@ -1587,12 +1717,24 @@ class ViewOptionsScreen extends StatelessWidget {
                   Slider(
                     value: controller.optionSpacing.value,
                     min: 0.0,
-                    max: 24.0,
-                    divisions: 12,
+                    max: 40.0,
+                    divisions: 20,
                     activeColor: AppTheme.primaryColor,
                     onChanged: (value) {
                       controller.optionSpacing.value = value;
                     },
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 16),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text('0 px',
+                            style: const TextStyle(color: Colors.grey)),
+                        Text('40 px',
+                            style: const TextStyle(color: Colors.grey)),
+                      ],
+                    ),
                   ),
                 ],
               )),
@@ -1610,7 +1752,7 @@ class ViewOptionsScreen extends StatelessWidget {
                           style: const TextStyle(fontWeight: FontWeight.w500)),
                       Text(
                         '${controller.optionPadding.value.toInt()} px',
-                        style: TextStyle(
+                        style: const TextStyle(
                           color: AppTheme.primaryColor,
                           fontWeight: FontWeight.bold,
                         ),
@@ -1620,13 +1762,25 @@ class ViewOptionsScreen extends StatelessWidget {
                   const SizedBox(height: 8),
                   Slider(
                     value: controller.optionPadding.value,
-                    min: 8.0,
-                    max: 24.0,
-                    divisions: 8,
+                    min: 4.0,
+                    max: 32.0,
+                    divisions: 14,
                     activeColor: AppTheme.primaryColor,
                     onChanged: (value) {
                       controller.optionPadding.value = value;
                     },
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 16),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text('4 px',
+                            style: const TextStyle(color: Colors.grey)),
+                        Text('32 px',
+                            style: const TextStyle(color: Colors.grey)),
+                      ],
+                    ),
                   ),
                 ],
               )),
@@ -1644,7 +1798,7 @@ class ViewOptionsScreen extends StatelessWidget {
                           style: const TextStyle(fontWeight: FontWeight.w500)),
                       Text(
                         '${controller.optionCornerRadius.value.toInt()} px',
-                        style: TextStyle(
+                        style: const TextStyle(
                           color: AppTheme.primaryColor,
                           fontWeight: FontWeight.bold,
                         ),
@@ -1661,6 +1815,66 @@ class ViewOptionsScreen extends StatelessWidget {
                     onChanged: (value) {
                       controller.optionCornerRadius.value = value;
                     },
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 16),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text('0 px',
+                            style: const TextStyle(color: Colors.grey)),
+                        Text('24 px',
+                            style: const TextStyle(color: Colors.grey)),
+                      ],
+                    ),
+                  ),
+                ],
+              )),
+
+          const Divider(height: 24),
+
+          // عرض الخيارات
+          Obx(() => Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text('عرض الخيارات'.tr,
+                          style: const TextStyle(fontWeight: FontWeight.w500)),
+                      Text(
+                        controller.optionWidth.value == 0
+                            ? 'تلقائي'
+                            : '${controller.optionWidth.value.toInt()} px',
+                        style: const TextStyle(
+                          color: AppTheme.primaryColor,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 8),
+                  Slider(
+                    value: controller.optionWidth.value,
+                    min: 0.0,
+                    max: 300.0,
+                    divisions: 30,
+                    activeColor: AppTheme.primaryColor,
+                    onChanged: (value) {
+                      controller.optionWidth.value = value;
+                    },
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 16),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text('تلقائي (0)',
+                            style: const TextStyle(color: Colors.grey)),
+                        Text('300 px',
+                            style: const TextStyle(color: Colors.grey)),
+                      ],
+                    ),
                   ),
                 ],
               )),
@@ -1695,6 +1909,30 @@ class ViewOptionsScreen extends StatelessWidget {
             ),
             const SizedBox(height: 16),
 
+            // عرض الإعدادات الحالية
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text('الإعدادات الحالية:',
+                    style: TextStyle(fontWeight: FontWeight.w500)),
+                SizedBox(height: 8),
+                Text(
+                    'العرض: ${optionWidth.value == 0 ? "تلقائي" : "${optionWidth.value.toInt()} بكسل"}',
+                    style: TextStyle(fontSize: 12, color: Colors.grey[700])),
+                Text('الارتفاع: ${optionHeight.value.toInt()} بكسل',
+                    style: TextStyle(fontSize: 12, color: Colors.grey[700])),
+                Text(
+                    'المسافة بين الخيارات: ${optionSpacing.value.toInt()} بكسل',
+                    style: TextStyle(fontSize: 12, color: Colors.grey[700])),
+                Text('التباعد الداخلي: ${optionPadding.value.toInt()} بكسل',
+                    style: TextStyle(fontSize: 12, color: Colors.grey[700])),
+                Text(
+                    'استدارة الزوايا: ${optionCornerRadius.value.toInt()} بكسل',
+                    style: TextStyle(fontSize: 12, color: Colors.grey[700])),
+              ],
+            ),
+            const SizedBox(height: 16),
+
             // معاينة خيار من القائمة الرئيسية
             Obx(() {
               Color bgColor = controller.getColorFromHex(optionBgColor.value);
@@ -1710,7 +1948,9 @@ class ViewOptionsScreen extends StatelessWidget {
                 children: [
                   // معاينة خيار القائمة
                   Container(
-                    width: double.infinity,
+                    width: optionWidth.value > 0
+                        ? optionWidth.value
+                        : double.infinity,
                     height: optionHeight.value,
                     decoration: BoxDecoration(
                       color: bgColor.withOpacity(optionBgOpacity.value),
@@ -1849,111 +2089,134 @@ class ViewOptionsScreen extends StatelessWidget {
           // الألوان
           Padding(
             padding: const EdgeInsets.symmetric(vertical: 8.0),
-            child: Text('لون نص الخيارات'.tr, style: const TextStyle(fontWeight: FontWeight.w500)),
+            child: Text('لون نص الخيارات'.tr,
+                style: const TextStyle(fontWeight: FontWeight.w500)),
           ),
           Obx(() => _buildColorSelector(
-            selectedColor: controller.getColorFromHex(controller.optionTextColor.value),
-            onColorChanged: (color) {
-              controller.optionTextColor.value = '#${color.value.toRadixString(16).substring(2).toUpperCase()}';
-            },
-            title: 'اختيار لون النص'.tr,
-          )),
-          
+                selectedColor: controller
+                    .getColorFromHex(controller.optionTextColor.value),
+                onColorChanged: (color) {
+                  controller.optionTextColor.value =
+                      '#${color.value.toRadixString(16).substring(2).toUpperCase()}';
+                },
+                title: 'اختيار لون النص'.tr,
+              )),
+
           const Divider(height: 24),
-  
+
           // استخدام ألوان مخصصة للأيقونات
           Obx(() => SwitchListTile(
-            title: Text('استخدام ألوان مخصصة للأيقونات'.tr),
-            subtitle: Text('تجاوز الألوان الأصلية للأيقونات'.tr),
-            value: controller.useCustomIconColors.value,
-            activeColor: AppTheme.primaryColor,
-            onChanged: (value) {
-              controller.useCustomIconColors.value = value;
-            },
-          )),
-          
-          // لون أيقونة الخيارات (يظهر فقط عند تفعيل الألوان المخصصة)
-          Obx(() => controller.useCustomIconColors.value ? Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              const SizedBox(height: 16),
-              Padding(
-                padding: const EdgeInsets.symmetric(vertical: 8.0),
-                child: Text('لون أيقونة الخيارات'.tr, style: const TextStyle(fontWeight: FontWeight.w500)),
-              ),
-              _buildColorSelector(
-                selectedColor: controller.getColorFromHex(controller.optionIconColor.value),
-                onColorChanged: (color) {
-                  controller.optionIconColor.value = '#${color.value.toRadixString(16).substring(2).toUpperCase()}';
+                title: Text('استخدام ألوان مخصصة للأيقونات'.tr),
+                subtitle: Text('تجاوز الألوان الأصلية للأيقونات'.tr),
+                value: controller.useCustomIconColors.value,
+                activeColor: AppTheme.primaryColor,
+                onChanged: (value) {
+                  controller.useCustomIconColors.value = value;
                 },
-                title: 'اختيار لون الأيقونة'.tr,
-              ),
-            ],
-          ) : const SizedBox.shrink()),
-          
+              )),
+
+          // لون أيقونة الخيارات (يظهر فقط عند تفعيل الألوان المخصصة)
+          Obx(() => controller.useCustomIconColors.value
+              ? Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const SizedBox(height: 16),
+                    Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 8.0),
+                      child: Text('لون أيقونة الخيارات'.tr,
+                          style: const TextStyle(fontWeight: FontWeight.w500)),
+                    ),
+                    _buildColorSelector(
+                      selectedColor: controller
+                          .getColorFromHex(controller.optionIconColor.value),
+                      onColorChanged: (color) {
+                        controller.optionIconColor.value =
+                            '#${color.value.toRadixString(16).substring(2).toUpperCase()}';
+                      },
+                      title: 'اختيار لون الأيقونة'.tr,
+                    ),
+                  ],
+                )
+              : const SizedBox.shrink()),
+
           const Divider(height: 24),
-          
+
           // لون حدود الخيارات
           Padding(
             padding: const EdgeInsets.symmetric(vertical: 8.0),
-            child: Text('لون حدود الخيارات'.tr, style: const TextStyle(fontWeight: FontWeight.w500)),
+            child: Text('لون حدود الخيارات'.tr,
+                style: const TextStyle(fontWeight: FontWeight.w500)),
           ),
           Obx(() => _buildColorSelector(
-            selectedColor: controller.getColorFromHex(controller.optionBorderColor.value),
-            onColorChanged: (color) {
-              controller.optionBorderColor.value = '#${color.value.toRadixString(16).substring(2).toUpperCase()}';
-            },
-            title: 'اختيار لون الحدود'.tr,
-          )),
-          
+                selectedColor: controller
+                    .getColorFromHex(controller.optionBorderColor.value),
+                onColorChanged: (color) {
+                  controller.optionBorderColor.value =
+                      '#${color.value.toRadixString(16).substring(2).toUpperCase()}';
+                },
+                title: 'اختيار لون الحدود'.tr,
+              )),
+
           const Divider(height: 24),
-          
+
           // حجم خط الخيارات
           Obx(() => Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(
-                    'حجم خط الخيارات'.tr,
-                    style: const TextStyle(fontWeight: FontWeight.w500),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(
+                        'حجم خط الخيارات'.tr,
+                        style: const TextStyle(fontWeight: FontWeight.w500),
+                      ),
+                      Text(
+                        controller.optionTextSize.value.toStringAsFixed(1),
+                        style: const TextStyle(
+                          color: AppTheme.primaryColor,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ],
                   ),
-                  Text(
-                    controller.optionTextSize.value.toStringAsFixed(1),
-                    style: TextStyle(
-                      color: AppTheme.primaryColor,
-                      fontWeight: FontWeight.bold,
+                  const SizedBox(height: 8),
+                  Slider(
+                    value: controller.optionTextSize.value,
+                    min: 10.0,
+                    max: 28.0,
+                    divisions: 18,
+                    activeColor: AppTheme.primaryColor,
+                    onChanged: (value) {
+                      controller.optionTextSize.value = value;
+                    },
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 16),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text('10 pt',
+                            style: const TextStyle(color: Colors.grey)),
+                        Text('28 pt',
+                            style: const TextStyle(color: Colors.grey)),
+                      ],
                     ),
                   ),
                 ],
-              ),
-              const SizedBox(height: 8),
-              Slider(
-                value: controller.optionTextSize.value,
-                min: 12.0,
-                max: 20.0,
-                divisions: 8,
-                activeColor: AppTheme.primaryColor,
-                onChanged: (value) {
-                  controller.optionTextSize.value = value;
-                },
-              ),
-            ],
-          )),
-          
+              )),
+
           const Divider(height: 24),
-          
+
           // إعدادات الشاشات الصغيرة
           Obx(() => SwitchListTile(
-            title: Text('تفعيل إعدادات الشاشات الصغيرة'.tr),
-            subtitle: Text('تطبيق إعدادات خاصة للشاشات الصغيرة'.tr),
-            value: controller.useSmallScreenSettings.value,
-            activeColor: AppTheme.primaryColor,
-            onChanged: (value) {
-              controller.useSmallScreenSettings.value = value;
-            },
-          )),
+                title: Text('تفعيل إعدادات الشاشات الصغيرة'.tr),
+                subtitle: Text('تطبيق إعدادات خاصة للشاشات الصغيرة'.tr),
+                value: controller.useSmallScreenSettings.value,
+                activeColor: AppTheme.primaryColor,
+                onChanged: (value) {
+                  controller.useSmallScreenSettings.value = value;
+                },
+              )),
         ],
       ),
     );
@@ -1967,69 +2230,73 @@ class ViewOptionsScreen extends StatelessWidget {
           // لون خلفية الخيارات
           Padding(
             padding: const EdgeInsets.symmetric(vertical: 8.0),
-            child: Text('لون خلفية الخيارات'.tr, style: const TextStyle(fontWeight: FontWeight.w500)),
+            child: Text('لون خلفية الخيارات'.tr,
+                style: const TextStyle(fontWeight: FontWeight.w500)),
           ),
           Obx(() => _buildColorSelector(
-            selectedColor: controller.getColorFromHex(controller.optionBackgroundColor.value),
-            onColorChanged: (color) {
-              controller.optionBackgroundColor.value = '#${color.value.toRadixString(16).substring(2).toUpperCase()}';
-            },
-            title: 'اختيار لون الخلفية'.tr,
-          )),
-          
+                selectedColor: controller
+                    .getColorFromHex(controller.optionBackgroundColor.value),
+                onColorChanged: (color) {
+                  controller.optionBackgroundColor.value =
+                      '#${color.value.toRadixString(16).substring(2).toUpperCase()}';
+                },
+                title: 'اختيار لون الخلفية'.tr,
+              )),
+
           const SizedBox(height: 24),
-          
+
           // شفافية خلفية الخيارات
           Obx(() => Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text('شفافية الخلفية'.tr, style: const TextStyle(fontWeight: FontWeight.w500)),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text('شفافية الخلفية'.tr,
+                          style: const TextStyle(fontWeight: FontWeight.w500)),
+                      Text(
+                        '${(controller.optionBackgroundOpacity.value * 100).toInt()}%',
+                        style: const TextStyle(
+                          color: AppTheme.primaryColor,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 8),
+                  Slider(
+                    value: controller.optionBackgroundOpacity.value,
+                    min: 0.0,
+                    max: 1.0,
+                    divisions: 20,
+                    activeColor: AppTheme.primaryColor,
+                    onChanged: (value) {
+                      controller.optionBackgroundOpacity.value = value;
+                    },
+                  ),
                   Text(
-                    '${(controller.optionBackgroundOpacity.value * 100).toInt()}%',
+                    '0% = خلفية شفافة تماماً، 100% = خلفية معتمة تماماً'.tr,
                     style: TextStyle(
-                      color: AppTheme.primaryColor,
-                      fontWeight: FontWeight.bold,
+                      fontSize: 12,
+                      color: Colors.grey.shade600,
+                      fontStyle: FontStyle.italic,
                     ),
                   ),
                 ],
-              ),
-              const SizedBox(height: 8),
-              Slider(
-                value: controller.optionBackgroundOpacity.value,
-                min: 0.0,
-                max: 1.0,
-                divisions: 20,
-                activeColor: AppTheme.primaryColor,
-                onChanged: (value) {
-                  controller.optionBackgroundOpacity.value = value;
-                },
-              ),
-              Text(
-                '0% = خلفية شفافة تماماً، 100% = خلفية معتمة تماماً'.tr,
-                style: TextStyle(
-                  fontSize: 12,
-                  color: Colors.grey.shade600,
-                  fontStyle: FontStyle.italic,
-                ),
-              ),
-            ],
-          )),
-          
+              )),
+
           const SizedBox(height: 16),
-          
+
           // تفعيل/إلغاء ظلال الخيارات
           Obx(() => SwitchListTile(
-            title: Text('تفعيل ظلال الخيارات'.tr),
-            subtitle: Text('إضافة ظلال خفيفة وراء الخيارات'.tr),
-            value: controller.useOptionShadows.value,
-            activeColor: AppTheme.primaryColor,
-            onChanged: (value) {
-              controller.useOptionShadows.value = value;
-            },
-          )),
+                title: Text('تفعيل ظلال الخيارات'.tr),
+                subtitle: Text('إضافة ظلال خفيفة وراء الخيارات'.tr),
+                value: controller.useOptionShadows.value,
+                activeColor: AppTheme.primaryColor,
+                onChanged: (value) {
+                  controller.useOptionShadows.value = value;
+                },
+              )),
         ],
       ),
     );

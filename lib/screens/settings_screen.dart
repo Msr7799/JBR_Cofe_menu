@@ -1,5 +1,4 @@
 import 'dart:io';
-import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:gpr_coffee_shop/constants/theme.dart';
 import 'package:gpr_coffee_shop/controllers/settings_controller.dart';
@@ -8,8 +7,8 @@ import 'package:flutter_neumorphic_plus/flutter_neumorphic.dart';
 import 'package:gpr_coffee_shop/screens/admin/login_screen.dart';
 import 'package:gpr_coffee_shop/screens/home_screen.dart';
 import 'package:gpr_coffee_shop/models/app_settings.dart';
-import 'package:gpr_coffee_shop/utils/image_helper.dart';
 import 'package:flutter_colorpicker/flutter_colorpicker.dart';
+
 class SettingsScreen extends StatefulWidget {
   const SettingsScreen({Key? key}) : super(key: key);
 
@@ -50,6 +49,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
             padding: const EdgeInsets.all(16.0),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize:
+                  MainAxisSize.min, // To avoid unbounded height issues
               children: [
                 // App appearance section
                 _buildSectionHeader('appearance'.tr),
@@ -66,7 +67,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 const SizedBox(height: 24),
 
                 // Logo settings section - New section for logo selection
-                _buildSectionHeader('شعار التطبيق'),
+                _buildSectionHeader('app_logo'.tr),
                 _buildCard(
                   child: _buildLogoSelector(),
                 ),
@@ -74,10 +75,16 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 const SizedBox(height: 24),
 
                 // Background settings section
-                _buildSectionHeader('خلفية الشاشة الرئيسية'),
+                _buildSectionHeader('home_background'.tr),
                 _buildCard(
                   child: _buildBackgroundSettings(),
                 ),
+
+                const SizedBox(height: 24),
+
+                // قسم لون الخط في التطبيق
+                _buildSectionHeader('text_color'.tr),
+                _buildFontColorSelector(),
 
                 const SizedBox(height: 24),
 
@@ -89,20 +96,20 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     title: Text('adminPanel'.tr),
                     subtitle: Text('accessAdmin'.tr),
                     trailing: const Icon(Icons.arrow_forward_ios, size: 16),
-                    onTap: () => Get.to(() => LoginScreen()),
+                    onTap: () => Get.to(() => const LoginScreen()),
                   ),
                 ),
 
                 const SizedBox(height: 24),
 
                 // View options section
-                _buildSectionHeader('خيارات العرض'),
+                _buildSectionHeader('view_options'.tr),
                 _buildCard(
                   child: ListTile(
                     leading: const Icon(Icons.visibility,
                         color: AppTheme.primaryColor),
-                    title: Text('خيارات العرض'.tr),
-                    subtitle: Text('تخصيص طريقة عرض قائمة المنتجات'.tr),
+                    title: Text('view_options'.tr),
+                    subtitle: Text('customize_display'.tr),
                     trailing: const Icon(Icons.arrow_forward_ios),
                     onTap: () => Get.toNamed('/view-options'),
                   ),
@@ -131,7 +138,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       const Divider(height: 1),
                       ListTile(
                         leading: const Icon(Icons.email),
-                        title: const Text('تواصل مع المطور'),
+                        title: Text('contact_developer'.tr),
                         subtitle: const Text('alromaihi2224@gmail.com'),
                         onTap: () =>
                             _launchURL('mailto:alromaihi2224@gmail.com'),
@@ -204,9 +211,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
           shrinkWrap: true,
           physics: const NeverScrollableScrollPhysics(),
           gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-            crossAxisCount:
-                4,
-                            childAspectRatio: 0.7,
+            crossAxisCount: 4,
+            childAspectRatio: 0.7,
             crossAxisSpacing: 6,
             mainAxisSpacing: 6,
           ),
@@ -233,51 +239,42 @@ class _SettingsScreenState extends State<SettingsScreen> {
     Color primaryColor;
     Color backgroundColor;
     Color accentColor;
+    Color textColor;
 
-    // تحديد ألوان مصغرة لكل ثيم
+    // تحديد ألوان مصغرة لكل ثيم - تبسيط إلى 4 ثيمات فقط
     switch (themeKey) {
-      case 'classic':
-        primaryColor = AppTheme.primaryColor;
-        backgroundColor = AppTheme.backgroundColor;
-        accentColor = AppTheme.accentColor;
-        break;
-      case 'modern':
-        primaryColor = const Color(0xFF1A237E); // أزرق داكن
-        backgroundColor = const Color(0xFFF5F7FA); // رمادي فاتح جداً
-        accentColor = const Color(0xFF42A5F5); // أزرق فاتح
-        break;
-      case 'green':
-        primaryColor = const Color(0xFF2E7D32); // أخضر داكن
-        backgroundColor = const Color(0xFFF1F8E9); // أخضر فاتح جداً
-        accentColor = const Color(0xFFFFD54F); // ذهبي
+      case 'light':
+        primaryColor = AppTheme.lightPrimaryColor;
+        backgroundColor = AppTheme.lightBackgroundColor;
+        accentColor = AppTheme.lightAccentColor;
+        textColor = AppTheme.textPrimaryColor; // لون داكن
         break;
       case 'dark':
-        primaryColor = const Color(0xFF263238); // رمادي غامق
-        backgroundColor = const Color(0xFF121212); // أسود غامق
-        accentColor = const Color(0xFF4FC3F7); // أزرق فاتح
+        primaryColor = AppTheme.darkPrimaryColor;
+        backgroundColor = AppTheme.darkBackgroundColor;
+        accentColor = AppTheme.darkAccentColor;
+        textColor = AppTheme.textLightColor; // لون فاتح
         break;
-      // حالات الثيمات القديمة إذا كنت ستحتفظ بها
-      case 'light':
-        primaryColor = AppTheme.primaryColor;
-        backgroundColor = AppTheme.backgroundColor;
-        accentColor = AppTheme.accentColor;
+      case 'grey':
+        primaryColor = AppTheme.greyPrimaryColor;
+        backgroundColor = AppTheme.greyBackgroundColor;
+        accentColor = AppTheme.greyAccentColor;
+        textColor = AppTheme.textLightColor; // لون فاتح
         break;
-      case 'coffee':
-        primaryColor = AppTheme.coffeePrimaryColor;
-        backgroundColor = AppTheme.coffeeBackgroundColor;
-        accentColor = AppTheme.coffeeAccentColor;
-        break;
-      case 'sweet':
-        primaryColor = AppTheme.sweetPrimaryColor;
-        backgroundColor = AppTheme.sweetBackgroundColor;
-        accentColor = AppTheme.sweetAccentColor;
+      case 'maroon':
+        primaryColor = AppTheme.maroonPrimaryColor;
+        backgroundColor = AppTheme.maroonBackgroundColor;
+        accentColor = AppTheme.maroonAccentColor;
+        textColor = AppTheme.textPrimaryColor; // لون داكن
         break;
       default:
-        primaryColor = AppTheme.primaryColor;
-        backgroundColor = AppTheme.backgroundColor;
-        accentColor = AppTheme.accentColor;
+        primaryColor = AppTheme.lightPrimaryColor;
+        backgroundColor = AppTheme.lightBackgroundColor;
+        accentColor = AppTheme.lightAccentColor;
+        textColor = AppTheme.textPrimaryColor;
     }
 
+    // تحديث طريقة العرض لاستخدام textColor المناسب
     return GestureDetector(
       onTap: () => settingsController.setThemeMode(themeKey),
       child: AnimatedContainer(
@@ -289,14 +286,17 @@ class _SettingsScreenState extends State<SettingsScreen> {
             color: isSelected
                 ? primaryColor
                 : Colors.grey
-                    .withAlpha(76), // Fixed: Changed from withOpacity(0.3)
+                    .withValues(alpha: 76, red: 158, green: 158, blue: 158),
             width: isSelected ? 2 : 1,
           ),
           boxShadow: isSelected
               ? [
                   BoxShadow(
-                    color: primaryColor
-                        .withAlpha(76), // Fixed: Changed from withOpacity(0.3)
+                    color: primaryColor.withValues(
+                        alpha: 76,
+                        red: primaryColor.r.toDouble(),
+                        green: primaryColor.g.toDouble(),
+                        blue: primaryColor.b.toDouble()),
                     blurRadius: 8,
                     spreadRadius: 1,
                   )
@@ -311,17 +311,17 @@ class _SettingsScreenState extends State<SettingsScreen> {
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 Container(
-                  width: 20, // Reduced from 30
-                  height: 20, // Reduced from 30
+                  width: 20,
+                  height: 20,
                   decoration: BoxDecoration(
                     color: primaryColor,
                     shape: BoxShape.circle,
                   ),
                 ),
-                const SizedBox(width: 6), // Reduced from 8
+                const SizedBox(width: 6),
                 Container(
-                  width: 20, // Reduced from 30
-                  height: 20, // Reduced from 30
+                  width: 20,
+                  height: 20,
                   decoration: BoxDecoration(
                     color: accentColor,
                     shape: BoxShape.circle,
@@ -329,24 +329,30 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 ),
               ],
             ),
-            const SizedBox(height: 6), // Reduced from 8
+            const SizedBox(height: 6),
             Text(
               title,
               style: TextStyle(
-                fontSize: 12, // Reduced from 14
+                fontSize: 12,
                 fontWeight: FontWeight.bold,
-                color: themeKey == 'dark' ? Colors.white : Colors.black87,
+                // استخدام textColor المناسب لكل ثيم
+                color: themeKey == 'dark' || themeKey == 'grey'
+                    ? Colors.white
+                    : Colors.black87,
               ),
               textAlign: TextAlign.center,
               maxLines: 2,
               overflow: TextOverflow.ellipsis,
             ),
-            const SizedBox(height: 3), // Reduced from 4
+            const SizedBox(height: 3),
             if (isSelected)
               Icon(
                 Icons.check_circle,
-                color: primaryColor,
-                size: 16, // Reduced from 20
+                // استخدام لون متوافق مع الثيم
+                color: themeKey == 'dark' || themeKey == 'grey'
+                    ? Colors.white70
+                    : primaryColor,
+                size: 16,
               ),
           ],
         ),
@@ -406,7 +412,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
           margin: const EdgeInsets.only(bottom: 16),
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(12),
-            border: Border.all(color: Colors.grey.withAlpha(100)),
+            border: Border.all(
+                color: Colors.grey
+                    .withValues(alpha: 100, red: 158, green: 158, blue: 158)),
           ),
           child: ClipRRect(
             borderRadius: BorderRadius.circular(12),
@@ -423,16 +431,19 @@ class _SettingsScreenState extends State<SettingsScreen> {
             children: [
               ChoiceChip(
                 label: const Text('افتراضي'),
-                selected: settingsController.backgroundType == BackgroundType.default_bg,
+                selected: settingsController.backgroundType ==
+                    BackgroundType.default_bg,
                 onSelected: (selected) {
                   if (selected) {
-                    settingsController.setBackgroundType(BackgroundType.default_bg);
+                    settingsController
+                        .setBackgroundType(BackgroundType.default_bg);
                   }
                 },
               ),
               ChoiceChip(
                 label: const Text('لون'),
-                selected: settingsController.backgroundType == BackgroundType.color,
+                selected:
+                    settingsController.backgroundType == BackgroundType.color,
                 onSelected: (selected) {
                   if (selected) {
                     settingsController.setBackgroundType(BackgroundType.color);
@@ -441,11 +452,13 @@ class _SettingsScreenState extends State<SettingsScreen> {
               ),
               ChoiceChip(
                 label: const Text('صورة'),
-                selected: settingsController.backgroundType == BackgroundType.image,
+                selected:
+                    settingsController.backgroundType == BackgroundType.image,
                 onSelected: (selected) {
                   // تحديد خلفية صورة، إذا لم تكن الصورة موجودة، سيُطلب من المستخدم اختيار صورة
-                  if (settingsController.backgroundImagePath == null || 
-                      !File(settingsController.backgroundImagePath!).existsSync()) {
+                  if (settingsController.backgroundImagePath == null ||
+                      !File(settingsController.backgroundImagePath!)
+                          .existsSync()) {
                     settingsController.pickAndSetBackgroundImage();
                   } else {
                     settingsController.setBackgroundType(BackgroundType.image);
@@ -461,14 +474,14 @@ class _SettingsScreenState extends State<SettingsScreen> {
         // The content changes based on the selected background type
         if (settingsController.backgroundType == BackgroundType.color) ...[
           // Color selection with Color Picker
-          Text(
+          const Text(
             'اختر لوناً للخلفية',
-            style: const TextStyle(fontWeight: FontWeight.w500),
+            style: TextStyle(fontWeight: FontWeight.w500),
           ),
           const SizedBox(height: 12),
-          
+
           Center(
-            child: InkWell(
+            child: GestureDetector(
               onTap: () => _showColorPickerDialog(
                 context: context,
                 currentColor: settingsController.backgroundColor,
@@ -484,9 +497,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   color: settingsController.backgroundColor,
                   shape: BoxShape.circle,
                   border: Border.all(color: Colors.grey.shade300),
-                  boxShadow: [
+                  boxShadow: const [
                     BoxShadow(
-                      color: Colors.black.withOpacity(0.1),
+                      color: Color.fromRGBO(0, 0, 0, 0.1),
                       blurRadius: 4,
                       spreadRadius: 1,
                     ),
@@ -509,7 +522,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
               label: Text('اختر صورة أخرى'.tr),
               onPressed: () => settingsController.pickAndSetBackgroundImage(),
               style: ElevatedButton.styleFrom(
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
                 backgroundColor: AppTheme.primaryColor,
                 foregroundColor: Colors.white,
               ),
@@ -552,17 +566,19 @@ class _SettingsScreenState extends State<SettingsScreen> {
         Opacity(
           opacity: settingsController.autoTextColor ? 0.5 : 1.0,
           child: Center(
-            child: InkWell(
-              onTap: settingsController.autoTextColor ? null : () => _showColorPickerDialog(
-                context: context,
-                currentColor: settingsController.textColor,
-                onColorChanged: (Color color) {
-                  if (!settingsController.autoTextColor) {
-                    settingsController.setTextColor(color, false);
-                  }
-                },
-                title: 'اختر لون النص',
-              ),
+            child: GestureDetector(
+              onTap: settingsController.autoTextColor
+                  ? null
+                  : () => _showColorPickerDialog(
+                        context: context,
+                        currentColor: settingsController.textColor,
+                        onColorChanged: (Color color) {
+                          if (!settingsController.autoTextColor) {
+                            settingsController.setTextColor(color, false);
+                          }
+                        },
+                        title: 'اختر لون النص',
+                      ),
               child: Container(
                 width: 60,
                 height: 60,
@@ -581,7 +597,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 ),
                 child: Icon(
                   Icons.format_color_text,
-                  color: settingsController.textColor.computeLuminance() > 0.5 ? Colors.black : Colors.white,
+                  color: settingsController.textColor.computeLuminance() > 0.5
+                      ? Colors.black
+                      : Colors.white,
                   size: 24,
                 ),
               ),
@@ -603,7 +621,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
     );
   }
 
-  // إضافة دالة لعرض مربع حوار اختيار اللون
+  // إضافة دالة لعرض مربع حوار اختيار اللون - مع إصلاح مشكلة الـ GlobalKey
   void _showColorPickerDialog({
     required BuildContext context,
     required Color currentColor,
@@ -612,43 +630,52 @@ class _SettingsScreenState extends State<SettingsScreen> {
   }) {
     Color pickerColor = currentColor;
 
+    // استخدم Builder لإنشاء سياق جديد لكل مربع حوار لتجنب مشكلة GlobalKey
     showDialog(
       context: context,
-      builder: (BuildContext context) {
+      builder: (BuildContext dialogContext) {
+        // استخدام Builder لتوفير سياق جديد لـ ColorPicker
         return AlertDialog(
           title: Text(title),
-          content: SingleChildScrollView(
-            child: ColorPicker(
-              pickerColor: pickerColor,
-              onColorChanged: (color) {
-                pickerColor = color;
-              },
-              pickerAreaHeightPercent: 0.8,
-              enableAlpha: true,
-              displayThumbColor: true,
-              paletteType: PaletteType.hsvWithHue,
-              labelTypes: const [
-                ColorLabelType.rgb,
-                ColorLabelType.hsv,
-                ColorLabelType.hsl,
-                ColorLabelType.hex,
-              ],
-              pickerAreaBorderRadius: const BorderRadius.all(Radius.circular(10)),
-              hexInputBar: true,
-              portraitOnly: true,
-            ),
+          content: Builder(
+            builder: (BuildContext pickerContext) {
+              return SingleChildScrollView(
+                // استخدام key فريد لكل مثيل من ColorPicker
+                key: UniqueKey(),
+                child: ColorPicker(
+                  pickerColor: pickerColor,
+                  onColorChanged: (color) {
+                    pickerColor = color;
+                  },
+                  pickerAreaHeightPercent: 0.8,
+                  enableAlpha: true,
+                  displayThumbColor: true,
+                  paletteType: PaletteType.hsvWithHue,
+                  labelTypes: const [
+                    ColorLabelType.rgb,
+                    ColorLabelType.hsv,
+                    ColorLabelType.hsl,
+                    ColorLabelType.hex,
+                  ],
+                  pickerAreaBorderRadius:
+                      const BorderRadius.all(Radius.circular(10)),
+                  hexInputBar: true,
+                  portraitOnly: true,
+                ),
+              );
+            },
           ),
           actions: [
             TextButton(
               onPressed: () {
-                Navigator.of(context).pop();
+                Navigator.of(dialogContext).pop();
               },
               child: const Text('إلغاء'),
             ),
             ElevatedButton(
               onPressed: () {
                 onColorChanged(pickerColor);
-                Navigator.of(context).pop();
+                Navigator.of(dialogContext).pop();
               },
               style: ElevatedButton.styleFrom(
                 backgroundColor: AppTheme.primaryColor,
@@ -746,7 +773,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   padding:
                       const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                   decoration: BoxDecoration(
-                    color: Colors.black.withAlpha(150),
+                    color: Colors.black
+                        .withValues(alpha: 150, red: 0, green: 0, blue: 0),
                     borderRadius: BorderRadius.circular(4),
                   ),
                   child: Text(
@@ -788,7 +816,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
     ];
 
     // استخدام متغير currentLogo بدلاً من إعادة استعلامه عدة مرات
-    final String currentLogo = settingsController.logoPath ?? 'assets/images/logo.png';
+    final String currentLogo =
+        settingsController.logoPath ?? 'assets/images/logo.png';
     final bool isCustomLogo = !currentLogo.startsWith('assets/');
 
     return Column(
@@ -807,15 +836,16 @@ class _SettingsScreenState extends State<SettingsScreen> {
         // معاينة الشعار الحالي
         Center(
           child: Neumorphic(
-            style: NeumorphicStyle(
+            style: const NeumorphicStyle(
               depth: 8,
               intensity: 0.7,
-              boxShape: const NeumorphicBoxShape.circle(),
+              boxShape: NeumorphicBoxShape.circle(),
               lightSource: LightSource.topLeft,
               color: Colors.white,
             ),
-            child: InkWell(
-              onTap: () => _showLogoSelectionDialog(availableLogos, currentLogo),
+            child: GestureDetector(
+              onTap: () =>
+                  _showLogoSelectionDialog(availableLogos, currentLogo),
               child: Container(
                 width: 100,
                 height: 100,
@@ -826,7 +856,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     // للصور المخصصة من نظام الملفات
                     final file = File(currentLogo);
                     if (!file.existsSync()) {
-                      return Image.asset('assets/images/logo.png', fit: BoxFit.contain);
+                      return Image.asset('assets/images/logo.png',
+                          fit: BoxFit.contain);
                     }
                     return ClipRRect(
                       borderRadius: BorderRadius.circular(50),
@@ -834,7 +865,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
                         file,
                         fit: BoxFit.contain,
                         errorBuilder: (context, error, stackTrace) {
-                          return Image.asset('assets/images/logo.png', fit: BoxFit.contain);
+                          return Image.asset('assets/images/logo.png',
+                              fit: BoxFit.contain);
                         },
                       ),
                     );
@@ -846,7 +878,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
                         currentLogo,
                         fit: BoxFit.contain,
                         errorBuilder: (context, error, stackTrace) {
-                          return Image.asset('assets/images/logo.png', fit: BoxFit.contain);
+                          return Image.asset('assets/images/logo.png',
+                              fit: BoxFit.contain);
                         },
                       ),
                     );
@@ -856,7 +889,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
             ),
           ),
         ),
-        
+
         const SizedBox(height: 8),
         Center(
           child: Column(
@@ -916,7 +949,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
   }
 
   // إضافة دالة لعرض نافذة اختيار اللوغو
-  void _showLogoSelectionDialog(List<String> availableLogos, String currentLogo) {
+  void _showLogoSelectionDialog(
+      List<String> availableLogos, String currentLogo) {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
@@ -964,20 +998,23 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 // شبكة الشعارات المتوفرة
                 Expanded(
                   child: GridView.builder(
-                    gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                    gridDelegate:
+                        const SliverGridDelegateWithFixedCrossAxisCount(
                       crossAxisCount: 3,
                       childAspectRatio: 1.0,
                       crossAxisSpacing: 10,
                       mainAxisSpacing: 10,
                     ),
-                    itemCount: availableLogos.length + 1, // +1 لزر التحميل المخصص
+                    itemCount:
+                        availableLogos.length + 1, // +1 لزر التحميل المخصص
                     itemBuilder: (context, index) {
                       if (index == availableLogos.length) {
                         // خيار تحميل شعار مخصص
                         return GestureDetector(
                           onTap: () async {
                             Navigator.pop(context);
-                            await Future.delayed(const Duration(milliseconds: 300));
+                            await Future.delayed(
+                                const Duration(milliseconds: 300));
                             await settingsController.pickAndSetCustomLogo();
                           },
                           child: Container(
@@ -1022,7 +1059,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
                             color: Colors.white,
                             borderRadius: BorderRadius.circular(12),
                             border: Border.all(
-                              color: isSelected ? AppTheme.primaryColor : Colors.grey.shade300,
+                              color: isSelected
+                                  ? AppTheme.primaryColor
+                                  : Colors.grey.shade300,
                               width: isSelected ? 2 : 1,
                             ),
                           ),
@@ -1058,7 +1097,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     },
                   ),
                 ),
-                
+
                 const SizedBox(height: 10),
                 Center(
                   child: TextButton.icon(
@@ -1167,16 +1206,25 @@ class _SettingsScreenState extends State<SettingsScreen> {
             Get.dialog(
               AlertDialog(
                 title: Text(title),
-                content: SingleChildScrollView(
-                  child: ColorPicker(
-                    pickerColor: currentColor,
-                    onColorChanged: onColorChanged,
-                    pickerAreaHeightPercent: 0.8,
-                    enableAlpha: true,
-                    displayThumbColor: true,
-                    showLabel: true,
-                    paletteType: PaletteType.hsv,
-                  ),
+                content: Builder(
+                  builder: (BuildContext pickerContext) {
+                    return SingleChildScrollView(
+                      key:
+                          UniqueKey(), // استخدام key فريد لكل مثيل من ColorPicker
+                      child: ColorPicker(
+                        pickerColor: currentColor,
+                        onColorChanged: onColorChanged,
+                        pickerAreaHeightPercent: 0.8,
+                        enableAlpha: true,
+                        displayThumbColor: true,
+                        labelTypes: const [
+                          ColorLabelType.rgb,
+                          ColorLabelType.hex
+                        ],
+                        paletteType: PaletteType.hsv,
+                      ),
+                    );
+                  },
                 ),
                 actions: <Widget>[
                   TextButton(
@@ -1190,6 +1238,91 @@ class _SettingsScreenState extends State<SettingsScreen> {
             );
           },
         ),
+      ),
+    );
+  }
+
+  // إضافة قسم جديد في دالة build للكلاس _SettingsScreenState
+  Widget _buildFontColorSelector() {
+    return _buildCard(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Text(
+            'لون الخطوط في التطبيق',
+            style: TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+          const SizedBox(height: 16),
+
+          // عرض اللون الحالي
+          Row(
+            children: [
+              const Text(
+                'لون الخط الحالي: ',
+                style: TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+              const SizedBox(width: 8),
+              Container(
+                width: 36,
+                height: 36,
+                decoration: BoxDecoration(
+                  color: settingsController.textColor,
+                  shape: BoxShape.circle,
+                  border: Border.all(color: Colors.grey.shade300),
+                  boxShadow: const [
+                    BoxShadow(
+                      color: Color.fromRGBO(0, 0, 0, 0.1),
+                      blurRadius: 4,
+                      offset: Offset(0, 2),
+                    )
+                  ],
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 16),
+
+          // زر لفتح منتقي الألوان
+          Center(
+            child: ElevatedButton.icon(
+              icon: const Icon(Icons.color_lens),
+              label: const Text('تغيير لون الخط'),
+              onPressed: () => _showColorPickerDialog(
+                context: context,
+                currentColor: settingsController.textColor,
+                onColorChanged: (Color color) {
+                  settingsController.setTextColor(color, false);
+                },
+                title: 'اختر لون الخط',
+              ),
+              style: ElevatedButton.styleFrom(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                backgroundColor: AppTheme.primaryColor,
+                foregroundColor: Colors.white,
+              ),
+            ),
+          ),
+
+          const SizedBox(height: 12),
+
+          // نص تنبيهي للمستخدم
+          Text(
+            'ملاحظة: هذا التغيير سيطبق على جميع شاشات التطبيق ماعدا الشاشة الرئيسية.',
+            style: TextStyle(
+              fontSize: 12,
+              color: Colors.grey.shade600,
+              fontStyle: FontStyle.italic,
+            ),
+            textAlign: TextAlign.center,
+          ),
+        ],
       ),
     );
   }

@@ -14,7 +14,7 @@ class _AdminNotesState extends State<AdminNotes> {
   final _notes = <Note>[].obs;
   final _textController = TextEditingController();
   final _formKey = GlobalKey<FormState>();
-  
+
   // متغيرات للتعديل
   String? _editingNoteId;
   bool _isEditing = false;
@@ -70,10 +70,10 @@ class _AdminNotesState extends State<AdminNotes> {
           text: _textController.text,
           date: DateTime.now(), // تحديث التاريخ عند التعديل
         );
-        
+
         _notes[index] = updatedNote;
         _notes.sort((a, b) => b.date.compareTo(a.date)); // إعادة ترتيب القائمة
-        
+
         // إعادة تعيين حالة التحرير
         _exitEditingMode();
         _saveNotes();
@@ -156,14 +156,16 @@ class _AdminNotesState extends State<AdminNotes> {
                 controller: _textController,
                 maxLines: 3,
                 decoration: InputDecoration(
-                  hintText: _isEditing ? 'تعديل الملاحظة...' : 'أضف ملاحظة جديدة...',
+                  hintText:
+                      _isEditing ? 'تعديل الملاحظة...' : 'أضف ملاحظة جديدة...',
                   border: const OutlineInputBorder(),
                   // إضافة رمز يدل على وضع التحرير
-                  prefixIcon: _isEditing 
-                    ? Icon(Icons.edit, color: AppTheme.primaryColor) 
-                    : null,
-                  focusedBorder: OutlineInputBorder(
-                    borderSide: BorderSide(color: AppTheme.primaryColor, width: 2),
+                  prefixIcon: _isEditing
+                      ? const Icon(Icons.edit, color: AppTheme.primaryColor)
+                      : null,
+                  focusedBorder: const OutlineInputBorder(
+                    borderSide:
+                        BorderSide(color: AppTheme.primaryColor, width: 2),
                   ),
                 ),
                 validator: (value) {
@@ -184,7 +186,9 @@ class _AdminNotesState extends State<AdminNotes> {
                       style: NeumorphicStyle(
                         depth: 4,
                         intensity: 0.8,
-                        color: _isEditing ? AppTheme.primaryColor.withOpacity(0.1) : AppTheme.primaryColor,
+                        color: _isEditing
+                            ? AppTheme.primaryColor.withOpacity(0.1)
+                            : AppTheme.primaryColor,
                       ),
                       child: Text(
                         _isEditing ? 'تحديث' : 'إضافة',
@@ -193,7 +197,8 @@ class _AdminNotesState extends State<AdminNotes> {
                           fontSize: 16,
                           fontWeight: FontWeight.bold,
                           fontFamily: 'Cairo',
-                          color: _isEditing ? AppTheme.primaryColor : Colors.white,
+                          color:
+                              _isEditing ? AppTheme.primaryColor : Colors.white,
                         ),
                       ),
                     ),
@@ -279,13 +284,15 @@ class _AdminNotesState extends State<AdminNotes> {
   Widget _buildNoteCard(Note note) {
     // تحديد ما إذا كانت هذه الملاحظة قيد التحرير
     final bool isCurrentlyEditing = _editingNoteId == note.id;
-    
+
     return Neumorphic(
       margin: const EdgeInsets.only(bottom: 16),
       style: NeumorphicStyle(
         depth: 4,
         intensity: 0.8,
-        color: isCurrentlyEditing ? AppTheme.primaryColor.withOpacity(0.1) : Colors.white,
+        color: isCurrentlyEditing
+            ? AppTheme.primaryColor.withOpacity(0.1)
+            : Colors.white,
         boxShape: NeumorphicBoxShape.roundRect(BorderRadius.circular(12)),
       ),
       child: Padding(
@@ -309,7 +316,9 @@ class _AdminNotesState extends State<AdminNotes> {
                     IconButton(
                       icon: Icon(
                         Icons.edit_outlined,
-                        color: isCurrentlyEditing ? AppTheme.primaryColor : Colors.grey[600],
+                        color: isCurrentlyEditing
+                            ? AppTheme.primaryColor
+                            : Colors.grey[600],
                       ),
                       onPressed: () {
                         // منع بدء تحرير جديد إذا كان هناك تحرير قائم لملاحظة أخرى
@@ -323,7 +332,7 @@ class _AdminNotesState extends State<AdminNotes> {
                           );
                           return;
                         }
-                        
+
                         // بدء أو إلغاء التحرير
                         if (!isCurrentlyEditing) {
                           _startEditing(note);
@@ -350,7 +359,8 @@ class _AdminNotesState extends State<AdminNotes> {
                 fontSize: 16,
                 fontFamily: 'Cairo',
                 // تمييز الملاحظة قيد التحرير
-                fontWeight: isCurrentlyEditing ? FontWeight.bold : FontWeight.normal,
+                fontWeight:
+                    isCurrentlyEditing ? FontWeight.bold : FontWeight.normal,
                 color: Colors.black87, // تغيير لون النص
               ),
             ),
@@ -359,7 +369,7 @@ class _AdminNotesState extends State<AdminNotes> {
       ),
     );
   }
-  
+
   // إضافة مربع حوار لتأكيد الحذف
   void _showDeleteConfirmDialog(Note note) {
     Get.dialog(
@@ -372,7 +382,7 @@ class _AdminNotesState extends State<AdminNotes> {
             onPressed: () => Get.back(),
           ),
           TextButton(
-            child: Text('حذف', style: TextStyle(color: Colors.red)),
+            child: const Text('حذف', style: TextStyle(color: Colors.red)),
             onPressed: () {
               Get.back();
               _deleteNote(note.id);

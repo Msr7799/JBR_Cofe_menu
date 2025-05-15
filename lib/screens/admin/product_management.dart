@@ -1,5 +1,4 @@
 import 'dart:io';
-import 'package:flutter/material.dart';
 import 'package:flutter_neumorphic_plus/flutter_neumorphic.dart';
 import 'package:get/get.dart';
 import 'package:image_picker/image_picker.dart';
@@ -420,7 +419,7 @@ class _ProductManagementState extends State<ProductManagement> {
 
     // استخدام Rx للتحديث التلقائي للواجهة عند تغيير الصورة
     final Rx<String?> rxSelectedImage =
-        (isEditing ? product?.imageUrl : null).obs;
+        (isEditing ? product.imageUrl : null).obs;
 
     await Get.dialog(
       Dialog(

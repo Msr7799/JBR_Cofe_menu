@@ -6,7 +6,7 @@ import 'package:gpr_coffee_shop/controllers/category_controller.dart';
 import 'package:gpr_coffee_shop/controllers/order_controller.dart';
 import 'package:gpr_coffee_shop/models/product.dart';
 import 'package:gpr_coffee_shop/models/order.dart';
-import 'package:gpr_coffee_shop/models/category.dart'; // Añadido para solucionar el error
+import 'package:gpr_coffee_shop/models/category.dart';
 import 'package:gpr_coffee_shop/utils/view_options_helper.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:gpr_coffee_shop/utils/image_helper.dart';
@@ -36,7 +36,7 @@ class _EnhancedProductCardState extends State<EnhancedProductCard>
     with SingleTickerProviderStateMixin {
   // متغيرات الحالة
   late AnimationController _animController;
-  late Animation<double> _scaleAnimation;
+  // تعيين الكمية الافتراضية إلى 1 بدلاً من 0
   int _quantity = 1;
   bool _isHovering = false;
 
@@ -44,9 +44,7 @@ class _EnhancedProductCardState extends State<EnhancedProductCard>
   String _categoryName = '';
 
   // متغيرات التخصيص من خيارات العرض
-  late double _cardSize;
   late bool _showImages;
-  late bool _useAnimations;
   late bool _showOrderButton;
   late double _titleFontSize;
   late double _priceFontSize;
@@ -56,7 +54,7 @@ class _EnhancedProductCardState extends State<EnhancedProductCard>
   late double _cardWidth;
   late double _cardHeight;
   late double _imageHeight;
-
+  
   @override
   void initState() {
     super.initState();
@@ -64,9 +62,6 @@ class _EnhancedProductCardState extends State<EnhancedProductCard>
     _animController = AnimationController(
       duration: const Duration(milliseconds: 300),
       vsync: this,
-    );
-    _scaleAnimation = Tween<double>(begin: 1.0, end: 1.05).animate(
-      CurvedAnimation(parent: _animController, curve: Curves.easeInOut),
     );
 
     // تحميل معلومات الفئة
@@ -105,7 +100,7 @@ class _EnhancedProductCardState extends State<EnhancedProductCard>
           descriptionEn: '',
           iconPath: '',
           order: 0,
-        ), // تصحيح الخطأ: إرجاع كائن Category بدلاً من null
+        ),
       );
 
       setState(() {
@@ -117,11 +112,8 @@ class _EnhancedProductCardState extends State<EnhancedProductCard>
     }
   }
 
-  // تعديل دالة _loadViewOptions لزيادة ارتفاع الصورة الافتراضي إذا كانت القيمة المستردة منخفضة
   void _loadViewOptions() {
-    _cardSize = ViewOptionsHelper.getCardSize();
     _showImages = ViewOptionsHelper.getShowImages();
-    _useAnimations = ViewOptionsHelper.getUseAnimations();
     _showOrderButton = ViewOptionsHelper.getShowOrderButton();
     _titleFontSize = ViewOptionsHelper.getProductTitleFontSize();
     _priceFontSize = ViewOptionsHelper.getProductPriceFontSize();
@@ -131,8 +123,8 @@ class _EnhancedProductCardState extends State<EnhancedProductCard>
     _cardWidth = ViewOptionsHelper.getProductCardWidth();
     _cardHeight = ViewOptionsHelper.getProductCardHeight();
 
-    // زيادة ارتفاع الصورة بنسبة 1.5
-    _imageHeight = ViewOptionsHelper.getProductImageHeight() * 1.5;
+    // زيادة ارتفاع الصورة بنسبة معقولة
+    _imageHeight = ViewOptionsHelper.getProductImageHeight() * 1.3;
   }
 
   // بناء البطاقة
@@ -150,19 +142,17 @@ class _EnhancedProductCardState extends State<EnhancedProductCard>
             ? _cardWidth * 0.9
             : _cardWidth;
 
-    // زيادة ارتفاع البطاقة لاستيعاب الصورة الأكبر
     final calculatedCardHeight = isSmallScreen
         ? _cardHeight * 1.05
         : isMediumScreen
             ? _cardHeight * 1.1
             : _cardHeight * 1.2;
 
-    // زيادة ارتفاع الصورة بشكل أكبر (زيادة بنسبة 40-60%)
     final calculatedImageHeight = isSmallScreen
         ? _imageHeight * 1.0
         : isMediumScreen
-            ? _imageHeight * 1.3
-            : _imageHeight * 1.5;
+            ? _imageHeight * 1.2
+            : _imageHeight * 1.3;
 
     final calculatedTitleSize = isSmallScreen
         ? _titleFontSize * 0.85
@@ -189,7 +179,6 @@ class _EnhancedProductCardState extends State<EnhancedProductCard>
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 200),
         width: calculatedCardWidth,
-        // منع تحديد ارتفاع ثابت لتجنب مشكلة الفائض
         constraints: BoxConstraints(
           minHeight: calculatedCardHeight,
         ),
@@ -211,105 +200,113 @@ class _EnhancedProductCardState extends State<EnhancedProductCard>
             color: Colors.transparent,
             child: InkWell(
               onTap: widget.onTap,
-              child: Padding(
-                padding: const EdgeInsets.all(8.0),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  mainAxisSize: MainAxisSize.min,
-                  textDirection: TextDirection.rtl,
-                  children: [
-                    // قسم الصورة مع زيادة الارتفاع
-                    if (_showImages) _buildProductImage(calculatedImageHeight),
-
-                    // مسافة أقل بعد الصورة
-                    const SizedBox(height: 4),
-
-                    // معلومات المنتج في قسم منفصل
-                    Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 4.0),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  // قسم الصورة
+                  if (_showImages) _buildProductImage(calculatedImageHeight),
+                  
+                  // إضافة مساحة بين الصورة والعنوان
+                  const SizedBox(height: 12),
+                  
+                  // معلومات المنتج
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 12.0),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      textDirection: TextDirection.rtl,
+                      children: [
+                        // اسم المنتج
+                        Text(
+                          widget.product.name,
+                          style: TextStyle(
+                            fontSize: calculatedTitleSize,
+                            fontWeight: FontWeight.bold,
+                            color: _textColor,
+                          ),
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                          textAlign: TextAlign.right,
+                        ),
+                        
+                        // مساحة بين الاسم والسعر
+                        const SizedBox(height: 6),
+                        
+                        // السعر
+                        Text(
+                          '${widget.product.price} د.ب',
+                          style: TextStyle(
+                            fontSize: calculatedPriceSize,
+                            fontWeight: FontWeight.w700,
+                            color: _priceColor,
+                          ),
+                          textAlign: TextAlign.right,
+                        ),
+                        
+                        // مساحة بين السعر والوصف
+                        const SizedBox(height: 4),
+                        
+                        // وصف المنتج (إذا كان مطلوبًا عرض التفاصيل)
+                        if (widget.showDetails && widget.product.description.isNotEmpty)
                           Text(
-                            widget.product.name,
+                            widget.product.description,
                             style: TextStyle(
-                              fontSize: calculatedTitleSize,
-                              fontWeight: FontWeight.bold,
-                              color: _textColor,
+                              fontSize: calculatedTitleSize * 0.8,
+                              color: _textColor.withOpacity(0.7),
                             ),
+                            maxLines: 2,
                             overflow: TextOverflow.ellipsis,
-                            maxLines: 1,
+                            textAlign: TextAlign.right,
                           ),
-                          if (_categoryName.isNotEmpty) ...[
-                            const SizedBox(height: 2),
-                            Text(
-                              _categoryName,
-                              style: TextStyle(
-                                fontSize: calculatedTitleSize * 0.7,
-                                color: Colors.grey.shade700,
+                          
+                        // مساحة قبل زر الطلب
+                        const SizedBox(height: 12),
+                        
+                        // زر الطلب
+                        if (_showOrderButton)
+                          Row(
+                            children: [
+                              // زر إضافة للطلب
+                              Expanded(
+                                flex: 3,
+                                child: ElevatedButton.icon(
+                                  onPressed: widget.product.isAvailable
+                                      ? _placeOrder
+                                      : null,
+                                  style: ElevatedButton.styleFrom(
+                                    backgroundColor: AppTheme.primaryColor,
+                                    foregroundColor: Colors.black,
+                                    padding: const EdgeInsets.symmetric(
+                                      vertical: 8,
+                                    ),
+                                    textStyle: TextStyle(
+                                      fontSize: calculatedButtonSize,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                  icon: const Icon(Icons.add_shopping_cart),
+                                  label: const Text('طلب'),
+                                ),
                               ),
-                              overflow: TextOverflow.ellipsis,
-                              maxLines: 1,
-                            ),
-                          ],
-                          const SizedBox(height: 2),
-                          Text(
-                            '${widget.product.price.toStringAsFixed(3)} د.ب',
-                            style: TextStyle(
-                              fontSize: calculatedPriceSize,
-                              fontWeight: FontWeight.bold,
-                              color: _priceColor,
-                            ),
+                              
+                              // مساحة بين الزر والتحكم بالكمية
+                              const SizedBox(width: 8),
+                              
+                              // التحكم بالكمية
+                              Expanded(
+                                flex: 2,
+                                child: _buildQuantityControls(calculatedButtonSize),
+                              ),
+                            ],
                           ),
-                        ],
-                      ),
+                      ],
                     ),
-
-                    // إضافة Spacer لدفع الأزرار إلى الأسفل
-                    const Spacer(),
-
-                    // أزرار الطلب وتغيير الكمية في أسفل البطاقة
-                    if (widget.showDetails && _showOrderButton) ...[
-                      const SizedBox(height: 4),
-                      Container(
-                        width: double.infinity,
-                        padding: const EdgeInsets.symmetric(vertical: 6),
-                        decoration: BoxDecoration(
-                          color: Colors.grey.shade50,
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                        child: Column(
-                          children: [
-                            // عرض زر اختيار الكمية في الأعلى
-                            _buildQuantityControls(calculatedButtonSize),
-                            const SizedBox(height: 6),
-                            // زر الطلب بعرض كامل
-                            SizedBox(
-                              width: double.infinity,
-                              child: ElevatedButton(
-                                onPressed: _placeOrder,
-                                style: ElevatedButton.styleFrom(
-                                  backgroundColor: const Color.fromARGB(255, 45, 57, 132),
-                                  padding: const EdgeInsets.symmetric(
-                                    vertical: 6,
-                                  ),
-                                ),
-                                child: Text(
-                                  'طلب',
-                                  style: TextStyle(
-                                    fontSize: calculatedButtonSize,
-                                    color: Colors.white,
-                                  ),
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ],
-                  ],
-                ),
+                  ),
+                  
+                  // مساحة أسفل البطاقة
+                  const SizedBox(height: 10),
+                ],
               ),
             ),
           ),
@@ -318,11 +315,8 @@ class _EnhancedProductCardState extends State<EnhancedProductCard>
     );
   }
 
-  // تعديل طريقة بناء الصورة لاستخدام الارتفاع المزيد
+  // تعديل طريقة بناء الصورة
   Widget _buildProductImage(double height) {
-    // استخدام القيمة المزيدة للصورة
-    double imageHeight = height;
-
     String? imageUrl = widget.product.imageUrl;
     Widget errorWidget = Container(
       height: height,
@@ -361,134 +355,131 @@ class _EnhancedProductCardState extends State<EnhancedProductCard>
 
     return Hero(
       tag: heroTagToUse,
-      child: SizedBox(
-        height: height, // استخدم القيمة المحسوبة المرسلة من الخارج
-        child: ClipRRect(
-          borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
-          child: Stack(
-            fit: StackFit.expand,
-            children: [
-              // صورة المنتج مع استخدام ImageHelper
-              ImageHelper.buildImage(
-                imageUrl,
-                fit: BoxFit
-                    .cover, // استخدام BoxFit.cover لتناسب الصورة بشكل أفضل
-                width: double.infinity,
-                height: height,
-              ),
-
-              // تأثير الضغط على الصورة
-              if (_isHovering)
-                Container(
-                  color: Colors.black.withOpacity(0.1),
-                  child: Center(
-                    child: Icon(
-                      Icons.zoom_in,
-                      color: Colors.white,
-                      size: height * 0.2,
-                    ),
-                  ),
+      child: GestureDetector(
+        onTap: () {
+          // عند الضغط على الصورة، عرض الصورة المكبرة
+          _showEnlargedImage(context);
+        },
+        child: SizedBox(
+          height: height,
+          width: double.infinity,
+          child: ClipRRect(
+            borderRadius: const BorderRadius.vertical(top: Radius.circular(12)),
+            child: Stack(
+              fit: StackFit.expand,
+              children: [
+                // صورة المنتج
+                ImageHelper.buildImage(
+                  imageUrl,
+                  fit: BoxFit.cover,
+                  width: double.infinity,
+                  height: height,
                 ),
 
-              // شارة "غير متوفر" إذا لزم الأمر
-              if (!widget.product.isAvailable)
-                Positioned(
-                  top: 8,
-                  right: 8,
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 8,
-                      vertical: 4,
-                    ),
-                    decoration: BoxDecoration(
-                      color: Colors.red,
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: Text(
-                      'غير متاح',
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontSize: _titleFontSize * 0.6,
-                        fontWeight: FontWeight.bold,
+                // شارة "غير متوفر" إذا لزم الأمر
+                if (!widget.product.isAvailable)
+                  Positioned(
+                    top: 0,
+                    left: 0,
+                    right: 0,
+                    child: Container(
+                      color: Colors.black54,
+                      padding: const EdgeInsets.symmetric(vertical: 6),
+                      child: const Text(
+                        'غير متوفر حاليًا',
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontWeight: FontWeight.bold,
+                        ),
+                        textAlign: TextAlign.center,
                       ),
                     ),
                   ),
-                ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  // بناء التحكم بالكمية
-  Widget _buildQuantityControls(double fontSize) {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: [
-        _buildQuantityButton(
-          Icons.remove,
-          () {
-            if (_quantity > 1) {
-              setState(() => _quantity--);
-            }
-          },
-          fontSize,
-        ),
-        Container(
-          width: fontSize * 2,
-          margin: const EdgeInsets.symmetric(horizontal: 8),
-          alignment: Alignment.center,
-          decoration: BoxDecoration(
-            border: Border.all(color: Colors.grey.shade300),
-            borderRadius: BorderRadius.circular(4),
-          ),
-          child: Text(
-            '$_quantity',
-            style: TextStyle(
-              fontSize: fontSize * 0.9,
-              fontWeight: FontWeight.bold,
-              color: Colors.black,
+              ],
             ),
           ),
         ),
-        _buildQuantityButton(
-          Icons.add,
-          () => setState(() => _quantity++),
-          fontSize,
-          isAdd: true,
-        ),
-      ],
-    );
-  }
-
-  // زر التحكم بالكمية
-  Widget _buildQuantityButton(
-    IconData icon,
-    VoidCallback onPressed,
-    double size, {
-    bool isAdd = false,
-  }) {
-    return InkWell(
-      onTap: onPressed,
-      child: Container(
-        width: size * 1.6,
-        height: size * 1.6,
-        decoration: BoxDecoration(
-          color: isAdd ? AppTheme.primaryColor : Colors.grey.shade700,
-          borderRadius: BorderRadius.circular(4),
-        ),
-        alignment: Alignment.center,
-        child: Icon(
-          icon,
-          size: size * 0.8,
-          color: isAdd ? const Color.fromARGB(255, 20, 20, 20) : Colors.black,
-        ),
       ),
     );
   }
 
-  // تعديل دالة _placeOrder لاستخدام الطريقة الموحدة
+  // تحسين التحكم بالكمية
+  Widget _buildQuantityControls(double fontSize) {
+    return Container(
+      height: 36,
+      decoration: BoxDecoration(
+        border: Border.all(color: Colors.grey.shade300),
+        borderRadius: BorderRadius.circular(8),
+      ),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          // زر تقليل الكمية
+          InkWell(
+            onTap: () {
+              if (_quantity > 1) {
+                setState(() => _quantity--);
+              }
+            },
+            child: Container(
+              width: 32,
+              height: double.infinity,
+              decoration: BoxDecoration(
+                color: Colors.grey.shade200,
+                borderRadius: const BorderRadius.only(
+                  topRight: Radius.circular(7),
+                  bottomRight: Radius.circular(7),
+                ),
+              ),
+              alignment: Alignment.center,
+              child: Icon(
+                Icons.remove,
+                size: fontSize * 0.8,
+                color: Colors.black87,
+              ),
+            ),
+          ),
+          
+          // عرض الكمية
+          Expanded(
+            child: Center(
+              child: Text(
+                '$_quantity',
+                style: TextStyle(
+                  fontSize: fontSize * 0.9,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ),
+          ),
+          
+          // زر زيادة الكمية
+          InkWell(
+            onTap: () => setState(() => _quantity++),
+            child: Container(
+              width: 32,
+              height: double.infinity,
+              decoration: BoxDecoration(
+                color: AppTheme.primaryColor,
+                borderRadius: const BorderRadius.only(
+                  topLeft: Radius.circular(7),
+                  bottomLeft: Radius.circular(7),
+                ),
+              ),
+              alignment: Alignment.center,
+              child: Icon(
+                Icons.add,
+                size: fontSize * 0.8,
+                color: Colors.black87,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // تبسيط دالة إضافة الطلب
   void _placeOrder() {
     if (!widget.product.isAvailable) return;
 
@@ -503,13 +494,11 @@ class _EnhancedProductCardState extends State<EnhancedProductCard>
       // استخدام الطريقة الموحدة في OrderController
       final OrderController orderController = Get.find<OrderController>();
 
-      // Use the processOrder method which handles notifications and statistics
       orderController.processOrder(widget.product, _quantity).then((success) {
         if (success && mounted) {
-          // Only update state if widget is still mounted
           setState(() => _quantity = 1);
 
-          // Show continuation dialog only if successful
+          // عرض مربع حوار الاستمرار
           orderController.showContinueToIterateDialog(
             Get.context!,
             OrderItem(
@@ -518,6 +507,7 @@ class _EnhancedProductCardState extends State<EnhancedProductCard>
               price: widget.product.price,
               quantity: _quantity,
               cost: widget.product.cost,
+              notes: '',
             ),
           );
         }
@@ -529,13 +519,13 @@ class _EnhancedProductCardState extends State<EnhancedProductCard>
         'حدث خطأ أثناء إضافة المنتج للطلب',
         snackPosition: SnackPosition.BOTTOM,
         backgroundColor: Colors.red.withOpacity(0.7),
-        colorText: const Color.fromARGB(255, 253, 252, 252),
+        colorText: Colors.white,
         duration: const Duration(seconds: 3),
       );
     }
   }
 
-  // عرض صورة المنتج بحجم كبير
+  // تبسيط عرض الصورة المكبرة
   void _showEnlargedImage(BuildContext context) {
     if (widget.product.imageUrl == null || widget.product.imageUrl!.isEmpty) {
       return;
@@ -549,103 +539,79 @@ class _EnhancedProductCardState extends State<EnhancedProductCard>
         child: Dialog(
           backgroundColor: Colors.transparent,
           elevation: 0,
-          insetPadding: EdgeInsets.zero,
-          child: Stack(
-            alignment: Alignment.center,
+          insetPadding: const EdgeInsets.all(24),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              InteractiveViewer(
-                boundaryMargin: const EdgeInsets.all(20),
-                minScale: 0.5,
-                maxScale: 3.0,
-                child: Hero(
-                  tag: 'enlarged-${widget.product.id}',
-                  child: _buildFullScreenImage(),
-                ),
-              ),
-              Positioned(
-                top: 20,
-                right: 10,
+              // زر الإغلاق في الزاوية
+              Align(
+                alignment: Alignment.topRight,
                 child: IconButton(
-                  icon: const Icon(Icons.close, color: Colors.white, size: 30),
+                  icon: const Icon(Icons.close, color: Colors.white, size: 28),
                   onPressed: () => Navigator.pop(context),
                 ),
               ),
-              Positioned(
-                bottom: 20,
-                left: 0,
-                right: 0,
-                child: Container(
-                  margin: const EdgeInsets.symmetric(horizontal: 20),
-                  padding: const EdgeInsets.all(16),
-                  decoration: BoxDecoration(
-                    color: Colors.black54,
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        widget.product.name,
-                        style: const TextStyle(
-                          color: Colors.white,
-                          fontSize: 22,
-                          fontWeight: FontWeight.bold,
+              
+              // الصورة المكبرة
+              Flexible(
+                child: InteractiveViewer(
+                  minScale: 0.5,
+                  maxScale: 3.0,
+                  child: _buildFullScreenImage(),
+                ),
+              ),
+              
+              // معلومات المنتج
+              Container(
+                margin: const EdgeInsets.only(top: 16),
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  textDirection: TextDirection.rtl,
+                  children: [
+                    // عنوان المنتج والسعر
+                    Row(
+                      children: [
+                        Expanded(
+                          child: Text(
+                            widget.product.name,
+                            style: const TextStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.black87,
+                            ),
+                            textAlign: TextAlign.right,
+                          ),
                         ),
-                      ),
-                      if (widget.product.description.isNotEmpty) ...[
-                        const SizedBox(height: 8),
                         Text(
-                          widget.product.description,
-                          style: const TextStyle(
-                            color: Colors.white70,
-                            fontSize: 16,
+                          '${widget.product.price} د.ب',
+                          style: TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                            color: _priceColor,
                           ),
                         ),
                       ],
+                    ),
+                    
+                    // وصف المنتج (إذا كان متوفراً)
+                    if (widget.product.description.isNotEmpty) ...[
                       const SizedBox(height: 8),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Text(
-                            _categoryName,
-                            style: const TextStyle(
-                              color: Colors.amber,
-                              fontSize: 16,
-                            ),
-                          ),
-                          Text(
-                            '${widget.product.price.toStringAsFixed(3)} د.ب',
-                            style: const TextStyle(
-                              color: Colors.amber,
-                              fontSize: 18,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 8),
-                      ElevatedButton(
-                        onPressed: () {
-                          Get.back(); // إغلاق صفحة الصورة المكبرة
-
-                          // استخدام الطريقة الموحدة
-                          final OrderController orderController =
-                              Get.find<OrderController>();
-                          orderController
-                              .processOrder(widget.product, _quantity)
-                              .then((success) {
-                            if (success) {
-                              setState(() => _quantity = 1);
-                            }
-                          });
-                        },
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: const Color.fromARGB(255, 45, 57, 132),
+                      Text(
+                        widget.product.description,
+                        style: const TextStyle(
+                          fontSize: 14,
+                          color: Colors.black54,
                         ),
-                        child: const Text('إضافة للطلب'),
+                        textAlign: TextAlign.right,
                       ),
                     ],
-                  ),
+                  ],
                 ),
               ),
             ],
@@ -711,78 +677,5 @@ class _EnhancedProductCardState extends State<EnhancedProductCard>
         return errorWidget;
       }
     }
-  }
-
-  // تعديل الجزء الذي يسبب مشكلة الفائض (overflow)
-  Widget _buildProductInfo() {
-    return Expanded(
-      child: Padding(
-        padding: const EdgeInsets.all(8.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          mainAxisSize:
-              MainAxisSize.min, // هام: لمنع المحتوى من التوسع بشكل مفرط
-          children: [
-            // استخدام Flexible بدلاً من Expanded للنصوص لتجنب مشكلة الفائض
-            Flexible(
-              child: Text(
-                widget.product.name,
-                style: const TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.bold,
-                ),
-                maxLines: 2, // تحديد عدد أقصى من السطور
-                overflow: TextOverflow.ellipsis, // إظهار ... عند تجاوز المساحة
-              ),
-            ),
-            const SizedBox(height: 4),
-            // وصف المنتج مع تقييد المساحة
-            if (widget.product.description.isNotEmpty)
-              Flexible(
-                child: Text(
-                  widget.product.description,
-                  style: TextStyle(
-                    fontSize: 12,
-                    color: Colors.grey[700],
-                  ),
-                  maxLines: 2, // تحديد عدد أقصى من السطور
-                  overflow:
-                      TextOverflow.ellipsis, // إظهار ... عند تجاوز المساحة
-                ),
-              ),
-            const SizedBox(height: 8),
-            // معلومات السعر
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text(
-                  '${widget.product.cost.toStringAsFixed(3)} د.ب',
-                  style: const TextStyle(
-                    color: Colors.green,
-                    fontWeight: FontWeight.bold,
-                    fontSize: 14,
-                  ),
-                ),
-                // إضافة أيقونة صغيرة بدلاً من نص كبير لتوفير المساحة
-                if (widget.product.isPopular)
-                  Container(
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                    decoration: BoxDecoration(
-                      color: Colors.orange,
-                      borderRadius: BorderRadius.circular(10),
-                    ),
-                    child: const Icon(
-                      Icons.star,
-                      color: Colors.white,
-                      size: 14,
-                    ),
-                  ),
-              ],
-            ),
-          ],
-        ),
-      ),
-    );
   }
 }

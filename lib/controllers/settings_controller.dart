@@ -13,7 +13,6 @@ import 'package:path_provider/path_provider.dart';
 import 'package:path/path.dart' as path;
 
 class SettingsController extends GetxController {
-  
   final SharedPreferencesService _prefsService =
       Get.find<SharedPreferencesService>();
   final LocalStorageService _storageService = Get.find<LocalStorageService>();
@@ -24,12 +23,12 @@ class SettingsController extends GetxController {
   // Observable AppSettings object
   final Rx<AppSettings> settings = AppSettings.defaultSettings().obs;
 
-  // قائمة بجميع الثيمات المتاحة مع أسمائها المعروضة
+  // تحديث قائمة الثيمات المتاحة - تبسيط إلى 4 ثيمات فقط
   final List<Map<String, String>> availableThemes = [
-    {'key': 'light', 'name': 'الوضع الفاتح'},
-    {'key': 'dark', 'name': 'الوضع الداكن'},
-    {'key': 'coffee', 'name': 'كوفي كلاسيك'},
-    {'key': 'sweet', 'name': 'سويت باستيل'},
+    {'key': 'light', 'name': 'فاتح'},
+    {'key': 'dark', 'name': 'داكن'},
+    {'key': 'grey', 'name': 'رصاصي'},
+    {'key': 'maroon', 'name': 'بني محمر'},
   ];
 
   // Predefined colors for background
@@ -69,7 +68,7 @@ class SettingsController extends GetxController {
       (theme) => theme['key'] == themeMode,
       orElse: () => availableThemes.first,
     );
-    return theme['name'] ?? 'الوضع الفاتح';
+    return theme['name'] ?? 'كلاسيك';
   }
 
   // خاصية طريقة عرض المنيو
@@ -181,16 +180,8 @@ class SettingsController extends GetxController {
     // تطبيق الثيم الجديد فورًا
     Get.changeThemeMode(_getThemeMode(mode));
 
-    // Apply specific theme based on mode
-    if (mode == 'light') {
-      Get.changeTheme(AppTheme.lightTheme);
-    } else if (mode == 'dark') {
-      Get.changeTheme(AppTheme.darkTheme);
-    } else if (mode == 'coffee') {
-      Get.changeTheme(AppTheme.coffeeTheme);
-    } else if (mode == 'sweet') {
-      Get.changeTheme(AppTheme.sweetTheme);
-    }
+    // تطبيق الثيم المحدد استناداً على AppTheme
+    Get.changeTheme(AppTheme.getThemeByName(mode, customTextColor: textColor));
 
     update();
 
@@ -206,25 +197,18 @@ class SettingsController extends GetxController {
     );
   }
 
-  // تحديد وضع الثيم (ضوئي أو داكن) للواجهة
+  // تحديد وضع الثيم (ضوئي أو داكن) للواجهة - تحديث للثيمات الجديدة
   ThemeMode _getThemeMode(String mode) {
     switch (mode) {
       case 'dark':
         return ThemeMode.dark;
       case 'light':
-        return ThemeMode.light;
-      case 'coffee':
-        // تطبيق ثيم القهوة مع الوضع الفاتح
-        Get.changeTheme(AppTheme.coffeeTheme);
-        return ThemeMode.light;
-      case 'sweet':
-        // تطبيق ثيم الحلويات مع الوضع الفاتح
-        Get.changeTheme(AppTheme.sweetTheme);
+      case 'maroon':
+      case 'grey':
         return ThemeMode.light;
       case 'system':
         return ThemeMode.system;
       default:
-        // العودة للوضع الفاتح كافتراضي
         return ThemeMode.light;
     }
   }
@@ -488,28 +472,27 @@ class SettingsController extends GetxController {
 
     // بدء عملية التحميل
     isLoading.value = true;
-    
+
     try {
       // التحقق من أن الصورة صالحة قبل تطبيقها
-      final bool isValidImage = path.startsWith('assets/') || 
+      final bool isValidImage = path.startsWith('assets/') ||
           (File(path).existsSync() && await File(path).length() > 0);
-      
+
       if (!isValidImage) {
         throw Exception('صورة اللوغو غير صالحة أو غير موجودة: $path');
       }
-      
-      
+
       // تحديث إعدادات اللوغو في الذاكرة
       settings.update((val) {
         val?.logoPath = path;
       });
-      
+
       // حفظ الإعدادات في التخزين المستمر
       await saveSettings();
-      
+
       // تحديث الواجهة بشكل محدد باستخدام معرف
       update(['app_logo']);
-      
+
       // عرض رسالة نجاح
       Get.snackbar(
         'تم التغيير',
@@ -522,13 +505,13 @@ class SettingsController extends GetxController {
     } catch (e, stackTrace) {
       // تسجيل الخطأ بالتفصيل
       LoggerUtil.error('خطأ في تغيير شعار التطبيق:', e, stackTrace);
-      
+
       // استعادة المسار القديم إذا كان متاحًا
       if (settings.value.logoPath != 'assets/images/logo.png') {
         settings.update((val) {
           val?.logoPath = 'assets/images/logo.png';
         });
-        
+
         try {
           await saveSettings();
           update(['app_logo']);
@@ -536,7 +519,7 @@ class SettingsController extends GetxController {
           // تجاهل أي أخطاء أخرى هنا لمنع سلسلة من الاستثناءات
         }
       }
-      
+
       // إظهار رسالة خطأ للمستخدم
       Get.snackbar(
         'خطأ',
@@ -559,7 +542,8 @@ class SettingsController extends GetxController {
       isLoading(true);
 
       // استخدام ImageHelper.pickImage بدلاً من image_picker مباشرة
-      final File? pickedFile = await ImageHelper.pickImage(source: ImageSource.gallery);
+      final File? pickedFile =
+          await ImageHelper.pickImage(source: ImageSource.gallery);
 
       // إذا لم يختر المستخدم صورة
       if (pickedFile == null) {
@@ -569,9 +553,10 @@ class SettingsController extends GetxController {
 
       // الاحتفاظ بمسار اللوغو القديم للحذف لاحقاً
       final String? oldPath = logoPath;
-      
+
       // نسخ الصورة إلى مجلد التطبيق
-      final customLogoPath = await ImageHelper.copyImageToAppDirectory(pickedFile.path);
+      final customLogoPath =
+          await ImageHelper.copyImageToAppDirectory(pickedFile.path);
 
       if (customLogoPath != null) {
         // تغيير حجم الصورة وحفظها مع الحفاظ على نسبة العرض للارتفاع
@@ -584,12 +569,14 @@ class SettingsController extends GetxController {
 
         // تعيين مسار اللوغو الجديد
         await setLogoPath(resizedPath ?? customLogoPath);
-        
+
         // حذف الملف القديم إذا كان موجوداً ولم يكن من الأصول
-        if (oldPath != null && oldPath.isNotEmpty && !oldPath.startsWith('assets/')) {
+        if (oldPath != null &&
+            oldPath.isNotEmpty &&
+            !oldPath.startsWith('assets/')) {
           await ImageHelper.safeDeleteImage(oldPath);
         }
-        
+
         isLoading(false);
         return true;
       }
@@ -603,4 +590,75 @@ class SettingsController extends GetxController {
     }
   }
 
+  // Widget لعرض معاينة الثيم في واجهة المستخدم
+  Widget buildThemePreview(String themeKey) {
+    Color primaryColor;
+    Color backgroundColor;
+    Color accentColor;
+
+    switch (themeKey) {
+      case 'classic':
+        primaryColor = AppTheme.classicPrimaryColor;
+        backgroundColor = AppTheme.classicBackgroundColor;
+        accentColor = AppTheme.classicAccentColor;
+        break;
+      case 'modern':
+        primaryColor = AppTheme.modernPrimaryColor;
+        backgroundColor = AppTheme.modernBackgroundColor;
+        accentColor = AppTheme.modernAccentColor;
+        break;
+      case 'ocean':
+        primaryColor = AppTheme.oceanPrimaryColor;
+        backgroundColor = AppTheme.oceanBackgroundColor;
+        accentColor = AppTheme.oceanAccentColor;
+        break;
+      case 'brown':
+        primaryColor = AppTheme.brownPrimaryColor;
+        backgroundColor = AppTheme.brownBackgroundColor;
+        accentColor = AppTheme.brownAccentColor;
+        break;
+      case 'dark':
+        primaryColor = AppTheme.darkPrimaryColor;
+        backgroundColor = AppTheme.darkBackgroundColor;
+        accentColor = AppTheme.darkAccentColor;
+        break;
+      default:
+        primaryColor = AppTheme.classicPrimaryColor;
+        backgroundColor = AppTheme.classicBackgroundColor;
+        accentColor = AppTheme.classicAccentColor;
+    }
+
+    return Container(
+      width: 60,
+      height: 60,
+      decoration: BoxDecoration(
+        color: backgroundColor,
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(
+          color: primaryColor.withOpacity(0.5),
+          width: 2,
+        ),
+      ),
+      child: Center(
+        child: Container(
+          width: 30,
+          height: 30,
+          decoration: BoxDecoration(
+            color: primaryColor,
+            shape: BoxShape.circle,
+          ),
+          child: Center(
+            child: Container(
+              width: 15,
+              height: 15,
+              decoration: BoxDecoration(
+                color: accentColor,
+                shape: BoxShape.circle,
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
 }

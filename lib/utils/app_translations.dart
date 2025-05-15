@@ -1,6 +1,4 @@
-import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:path/path.dart';
 
 class AppTranslations extends Translations {
   @override
@@ -17,7 +15,15 @@ class AppTranslations extends Translations {
           'copyright': '© 2025 JBR Coffee Shop. All rights reserved.',
           'app_name': 'JBR Coffee',
           'app_description_short': 'Premium coffee & delicious meals',
-          
+
+          // Theme related
+          'theme': 'Theme',
+          'theme_changed': 'Theme Changed',
+          'light': 'Light',
+          'dark': 'Dark',
+          'grey': 'Grey',
+          'maroon': 'Maroon',
+
           // Home Screen
           'pay_with_benefitpay': 'Pay with BenefitPay',
           'scan_qr_to_pay': 'Scan the QR code to pay',
@@ -42,7 +48,8 @@ class AppTranslations extends Translations {
           'clear_completed_orders': 'Clear Completed Orders',
           'reset_orders': 'Reset Orders',
           'factory_reset': 'Factory Reset',
-          'factory_reset_description': 'Reset the application to factory settings',
+          'factory_reset_description':
+              'Reset the application to factory settings',
           'current_orders': 'Current Orders',
           'pending_orders': 'Pending Orders',
           'processing_orders': 'Processing Orders',
@@ -70,9 +77,9 @@ class AppTranslations extends Translations {
           'view_past_orders': 'View Past Orders',
           'admin_notes': 'Admin Notes',
           'manage_notes': 'Manage Notes',
-            // Marketing & Promotions
-            'order_now_with_delivery': 'Order now with delivery services',
-            // Order Management
+          // Marketing & Promotions
+          'order_now_with_delivery': 'Order now with delivery services',
+          // Order Management
           'status_pending': 'Pending',
           'status_processing': 'Processing',
           'status_completed': 'Completed',
@@ -86,7 +93,8 @@ class AppTranslations extends Translations {
           'no_completed_orders': 'No Completed Orders',
           'no_cancelled_orders': 'No Cancelled Orders',
           'confirm_status_change': 'Confirm Status Change',
-          'confirm_complete_order': 'Are you sure you want to complete this order?',
+          'confirm_complete_order':
+              'Are you sure you want to complete this order?',
           'confirm_cancel_order': 'Are you sure you want to cancel this order?',
           'status_updated': 'Status Updated',
           'order_status_changed': 'Order status changed to',
@@ -103,10 +111,13 @@ class AppTranslations extends Translations {
           'quantity': 'Quantity',
           'price': 'Price',
           'no_products_in_order': 'No products in this order',
-          'clear_completed_orders_confirmation': 'Are you sure you want to clear all completed orders? This action cannot be undone.',
-          'completed_orders_cleared': '{count} completed orders cleared successfully',
+          'clear_completed_orders_confirmation':
+              'Are you sure you want to clear all completed orders? This action cannot be undone.',
+          'completed_orders_cleared':
+              '{count} completed orders cleared successfully',
           'error_clearing_completed_orders': 'Error clearing completed orders',
-          'reset_orders_confirmation': 'Are you sure you want to reset all orders? This will clear all daily statistics.',
+          'reset_orders_confirmation':
+              'Are you sure you want to reset all orders? This will clear all daily statistics.',
           'orders_reset_success': 'Orders reset successfully',
           'error_resetting_orders': 'Error resetting orders',
           'refresh_orders': 'Refresh Orders',
@@ -114,13 +125,15 @@ class AppTranslations extends Translations {
           'alert': 'Alert',
           'order_items': 'Order Items',
           'profit': 'Profit',
-          'no_pending_orders_message': 'There are no pending orders at the moment',
+          'no_pending_orders_message':
+              'There are no pending orders at the moment',
           'no_sales_data': 'No sales data available',
-          'reset_stats_confirmation': 'Are you sure you want to reset all statistics? This will clear all daily data.',
+          'reset_stats_confirmation':
+              'Are you sure you want to reset all statistics? This will clear all daily data.',
           'export_and_save': 'Export and Save',
           'reset_without_save': 'Reset Without Saving',
           'stats_reset_success': 'Statistics reset successfully',
-          
+
           // Sales Report
           'sales_report': 'Sales Report',
           'date_range': 'Date Range',
@@ -143,7 +156,7 @@ class AppTranslations extends Translations {
           'no_data_available': 'No data available for the selected period',
           'export_success': 'Report exported successfully',
           'export_error': 'Error exporting report',
-          
+
           // Language
           'language': 'Language',
           'language_change_failed': 'Failed to change language',
@@ -166,7 +179,19 @@ class AppTranslations extends Translations {
           'friday': 'Friday',
           'delivery_service': 'Delivery Service',
           'we_deliver_to_following_areas': 'We deliver to the following areas:',
-          
+          'sunday_to_thursday': 'Sunday to Thursday',
+          'friday_saturday': 'Friday and Saturday',
+          'location_address_full': 'East Riffa, Hajiyat, Kingdom of Bahrain',
+          'weekday_hours': '8:00 AM - 12:00 PM',
+          'weekend_hours': '8:00 AM - 1:00 AM',
+          'delivery_service_apps_message':
+              'We offer delivery through Talabat and Jahez',
+          'order_now_from': 'Order now from:',
+          'call': 'Call',
+          'whatsapp': 'WhatsApp',
+          'instagram': 'Instagram',
+          'website': 'Website',
+
           // View Options Screen
           'use_text_preview': 'Title Preview',
           'view_options': 'View Options',
@@ -210,7 +235,7 @@ class AppTranslations extends Translations {
           'current_image_height': 'Current Image Height: {height} pixels',
           'product_title_color': 'Product Title Color:',
           'product_price_color': 'Product Price Color:',
-          'use_text_preview': 'Text Preview',
+          'text_preview': 'Text Preview',
           'order_button': 'Order',
           'select_language': 'Select Language',
           'home_screen_options': 'Home Screen Options',
@@ -224,7 +249,11 @@ class AppTranslations extends Translations {
           'add_light_shadows': 'Add light shadows behind options',
           'background_and_shadows': 'Background and Shadows',
           'option_dimensions': 'Option Dimensions and Spacing',
-          'background_opacity_note': '0% = fully transparent background, 100% = fully opaque background',
+          'preview': 'Preview',
+          'app_description':
+              'JBR Coffee Shop serves the finest coffee, refreshing drinks, and delicious meals. Enjoy our premium quality products in a cozy atmosphere.',
+          'background_opacity_note':
+              '0% = fully transparent background, 100% = fully opaque background',
           'preview_menu_options': 'Preview Menu Options',
           'option_background_color': 'Option Background Color',
           'option_text_color': 'Option Text Color',
@@ -232,18 +261,21 @@ class AppTranslations extends Translations {
           'option_border_color': 'Option Border Color',
           'small_screen_settings': 'Small Screen Settings',
           'enable_small_screen_settings': 'Enable Small Screen Settings',
-          'apply_specific_settings': 'Apply specific settings for small screens',
+          'apply_specific_settings':
+              'Apply specific settings for small screens',
 
           // Rate Screen
           'customer_ratings': 'Customer Ratings',
           'welcome_feedback': 'We welcome your opinions and suggestions',
-          'your_feedback_text': 'Your feedback encourages us and helps us provide the best.',
+          'your_feedback_text':
+              'Your feedback encourages us and helps us provide the best.',
           'your_rating': 'Your Rating',
           'add_suggestion': 'Add your suggestion or comment',
           'write_here': 'Write your opinion here...',
           'send_rating': 'Send Rating',
           'previous_feedback': 'Previous User Feedback',
-          'no_previous_feedback': 'No previous ratings. Be the first to share your opinion!',
+          'no_previous_feedback':
+              'No previous ratings. Be the first to share your opinion!',
           'anonymous': 'Anonymous',
 
           // Settings Screen
@@ -285,8 +317,8 @@ class AppTranslations extends Translations {
           'about_app_title': 'حول التطبيق',
           'copyright': '© 2025 مقهى JBR. جميع الحقوق محفوظة.',
           'app_name': 'مقهى JBR',
-          'app_description_short': 'قهوة فاخرة وأطعمة لذيذة',
-          
+          'app_description_short': 'قهوة فاخرة وحلويات لذيذة',
+
           // الشاشة الرئيسية
           'pay_with_benefitpay': 'الدفع عبر BenefitPay',
           'scan_qr_to_pay': 'امسح رمز QR للدفع',
@@ -341,7 +373,7 @@ class AppTranslations extends Translations {
           'manage_notes': 'إدارة الملاحظات',
 
           // إدارة الطلبات
-    
+
           'order_now_with_delivery': 'اطلب الآن مع خدمات التوصيل',
 
           'status_pending': 'معلق',
@@ -374,10 +406,14 @@ class AppTranslations extends Translations {
           'quantity': 'الكمية',
           'price': 'السعر',
           'no_products_in_order': 'لا توجد منتجات في هذا الطلب',
-          'clear_completed_orders_confirmation': 'هل أنت متأكد من رغبتك في حذف جميع الطلبات المكتملة؟ لا يمكن التراجع عن هذا الإجراء.',
-          'completed_orders_cleared': 'تم حذف {count} من الطلبات المكتملة بنجاح',
-          'error_clearing_completed_orders': 'حدث خطأ أثناء حذف الطلبات المكتملة',
-          'reset_orders_confirmation': 'هل أنت متأكد من رغبتك في إعادة تعيين جميع الطلبات؟ سيؤدي ذلك إلى مسح جميع الإحصائيات اليومية.',
+          'clear_completed_orders_confirmation':
+              'هل أنت متأكد من رغبتك في حذف جميع الطلبات المكتملة؟ لا يمكن التراجع عن هذا الإجراء.',
+          'completed_orders_cleared':
+              'تم حذف {count} من الطلبات المكتملة بنجاح',
+          'error_clearing_completed_orders':
+              'حدث خطأ أثناء حذف الطلبات المكتملة',
+          'reset_orders_confirmation':
+              'هل أنت متأكد من رغبتك في إعادة تعيين جميع الطلبات؟ سيؤدي ذلك إلى مسح جميع الإحصائيات اليومية.',
           'orders_reset_success': 'تم إعادة تعيين الطلبات بنجاح',
           'error_resetting_orders': 'حدث خطأ أثناء إعادة تعيين الطلبات',
           'refresh_orders': 'تحديث الطلبات',
@@ -387,11 +423,12 @@ class AppTranslations extends Translations {
           'profit': 'الربح',
           'no_pending_orders_message': 'لا توجد طلبات معلقة في الوقت الحالي',
           'no_sales_data': 'لا توجد بيانات مبيعات متاحة',
-          'reset_stats_confirmation': 'هل أنت متأكد من رغبتك في إعادة تعيين جميع الإحصائيات؟ سيؤدي ذلك إلى مسح جميع البيانات اليومية.',
+          'reset_stats_confirmation':
+              'هل أنت متأكد من رغبتك في إعادة تعيين جميع الإحصائيات؟ سيؤدي ذلك إلى مسح جميع البيانات اليومية.',
           'export_and_save': 'تصدير وحفظ',
           'reset_without_save': 'إعادة تعيين بدون حفظ',
           'stats_reset_success': 'تم إعادة تعيين الإحصائيات بنجاح',
-          
+
           // تقرير المبيعات
           'sales_report': 'تقرير المبيعات',
           'date_range': 'المدة الزمنية',
@@ -414,8 +451,7 @@ class AppTranslations extends Translations {
           'no_data_available': 'لا توجد بيانات متاحة للفترة المحددة',
           'export_success': 'تم تصدير التقرير بنجاح',
           'export_error': 'حدث خطأ أثناء تصدير التقرير',
-          
-          
+
           // About
           'about': 'حول التطبيق',
           'aboutApp': 'عن التطبيق',
@@ -430,7 +466,6 @@ class AppTranslations extends Translations {
           'social_media': 'وسائل التواصل الاجتماعي',
           'app_version': 'إصدار التطبيق',
 
-          
           // Notifications
           'notification': 'إشعار',
           'no_notifications': 'لا توجد إشعارات',
@@ -443,8 +478,7 @@ class AppTranslations extends Translations {
           'delete_notification': 'حذف الإشعار',
           'enable_notifications': 'تفعيل الإشعارات',
           'disable_notifications': 'إيقاف الإشعارات',
-             
-             
+
           // Error Messages
           'no_internet': 'لا يوجد اتصال بالإنترنت',
           'connection_error': 'خطأ في الاتصال',
@@ -463,7 +497,7 @@ class AppTranslations extends Translations {
           // Additional Admin & UI Keys
           'not_logged_in': 'غير مسجل دخول',
           'system_admin': 'مدير النظام',
-       
+
           // Admin Dashboard Additions
           'coming_soon': 'قريباً',
           'feature_coming_soon': 'هذه الميزة قيد التطوير وستكون متاحة قريباً',
@@ -471,9 +505,8 @@ class AppTranslations extends Translations {
           'processing': 'قيد المعالجة',
           'completed': 'مكتمل',
           'cancelled': 'ملغي',
-          
 
-              // Additional Order History & Order Management Translations
+          // Additional Order History & Order Management Translations
           'all': 'الكل',
           'filter_orders': 'تصفية الطلبات',
           'payment_method': 'طريقة الدفع',
@@ -501,11 +534,10 @@ class AppTranslations extends Translations {
           'walk_in_customer': 'عميل حضوري',
           'notes': 'ملاحظات',
 
-
           // اللغة
           'language': 'اللغة',
           'language_change_failed': 'فشل في تغيير اللغة',
-          
+
           // نصوص اضافية
           'loading': 'جاري التحميل...',
           'save': 'حفظ',
@@ -527,7 +559,6 @@ class AppTranslations extends Translations {
           'noData': 'لا توجد بيانات',
 
           // نصوص إضافية للشاشة الرئيسية
-          'our_location': 'موقعنا',
           'todays_special': 'عرض اليوم',
           'popular_items': 'الأصناف الشائعة',
           'order_now': 'اطلب الآن',
@@ -552,8 +583,7 @@ class AppTranslations extends Translations {
           'sort_by': 'ترتيب حسب',
           'filter': 'تصفية',
           'view_details': 'عرض التفاصيل',
-       
-       
+
           // View Options
           'view_options': 'خيارات العرض',
           'menu_display_method': 'طريقة عرض القائمة',
@@ -615,7 +645,8 @@ class AppTranslations extends Translations {
           'add_light_shadows': 'إضافة ظلال خفيفة خلف الخيارات',
           'background_and_shadows': 'الخلفية والظلال',
           'option_dimensions': 'أبعاد وتباعد الخيارات',
-          'background_opacity_note': '0% = خلفية شفافة تماماً، 100% = خلفية معتمة تماماً',
+          'background_opacity_note':
+              '0% = خلفية شفافة تماماً، 100% = خلفية معتمة تماماً',
           'preview_menu_options': 'معاينة خيارات القائمة',
           'option_background_color': 'لون خلفية الخيارات',
           'option_text_color': 'لون نص الخيارات',
@@ -624,6 +655,9 @@ class AppTranslations extends Translations {
           'small_screen_settings': 'إعدادات الشاشات الصغيرة',
           'enable_small_screen_settings': 'تفعيل إعدادات الشاشات الصغيرة',
           'apply_specific_settings': 'تطبيق إعدادات خاصة للشاشات الصغيرة',
+          'preview': 'معاينة',
+          'app_description':
+           'قائمة طعام ومشروبات وأحصائيات المدير ونظام طلب متكامل لمحل JBR Coffee',
 
           // Home Screen
           'cart': 'سلة التسوق',
@@ -631,21 +665,20 @@ class AppTranslations extends Translations {
           'browse_menu': 'تصفح القائمة',
           'featured_products': 'منتجات مميزة',
           'special_offers': 'عروض خاصة',
-          
+
           // Settings Screen
           'appearance': 'المظهر',
           'language_changed': 'تم تغيير اللغة بنجاح',
+          // App Appearance & Theme
           'theme': 'النمط',
           'theme_changed': 'تم تغيير النمط',
           'light': 'فاتح',
           'dark': 'داكن',
+          'grey': 'رصاصي',
+          'maroon': 'بني محمر',
           'system': 'تلقائي (حسب إعدادات الجهاز)',
-          'fontSize': 'حجم الخط',
-          'small': 'صغير',
-          'medium': 'متوسط',
-          'large': 'كبير',
-          'verySmall': 'صغير جداً',
-          'veryLarge': 'كبير جداً',
+          'app_appearance': 'مظهر التطبيق',
+          // Font size and related keys are defined elsewhere
           'coffee_theme': 'ثيم القهوة',
           'sweet_theme': 'ثيم الحلويات',
           'background_settings': 'إعدادات الخلفية',
@@ -677,6 +710,13 @@ class AppTranslations extends Translations {
           'email': 'البريد الإلكتروني',
           'password': 'كلمة المرور',
           'username': 'اسم المستخدم',
+          'confirm_password': 'تأكيد كلمة المرور',
+          'forgot_password': 'نسيت كلمة المرور؟',
+          'user_image_optional': 'صورة المستخدم (اختياري)',
+          'register': 'إنشاء حساب',
+          'no_account_register': 'ليس لديك حساب؟ سجل الآن',
+          'have_account_login': 'لديك حساب بالفعل؟ سجل دخولك',
+          'back_to_home': 'العودة للشاشة الرئيسية',
           'login_success': 'تم تسجيل الدخول بنجاح',
           'login_failed': 'فشل تسجيل الدخول',
           'admin_options': 'خيارات الإدارة',
@@ -754,7 +794,7 @@ class AppTranslations extends Translations {
           'mark_featured': 'تحديد كمميز',
           'unmark_featured': 'إلغاء تحديد كمميز',
           'no_products_available': 'لا توجد منتجات متاحة',
-          
+
           // Dashboard & Reports
           'revenue': 'الإيرادات',
           'today': 'اليوم',
@@ -778,7 +818,7 @@ class AppTranslations extends Translations {
           'reset_application': 'إعادة ضبط التطبيق',
           'confirm_reset':
               'هل أنت متأكد أنك تريد إعادة ضبط التطبيق؟ سيتم حذف جميع البيانات.',
-          
+
           // User Management
           'user_management': 'إدارة المستخدمين',
           'add_user': 'إضافة مستخدم',
@@ -799,7 +839,7 @@ class AppTranslations extends Translations {
           'manage_products': 'إدارة المنتجات',
           'view_reports': 'عرض التقارير',
           'system_log': 'سجل النظام',
-          
+
           // Menu Screen
           'searchFeatureSoon': 'سيتم إضافة ميزة البحث قريباً',
           'sortByPrice': 'ترتيب حسب السعر',
@@ -812,7 +852,7 @@ class AppTranslations extends Translations {
           'priceRange': 'نطاق السعر',
           'clearFilters': 'مسح التصفية',
           'applyFilters': 'تطبيق التصفية',
-          
+
           // Location Screen
           'location': 'الموقع',
           'our_location': 'موقعنا',
@@ -832,8 +872,21 @@ class AppTranslations extends Translations {
           'saturday_thursday': 'السبت - الخميس',
           'friday': 'الجمعة',
           'delivery_service': 'خدمة التوصيل',
-          'we_deliver_to_following_areas': 'نوفر خدمة التوصيل إلى المناطق التالية:',
-          
+          'we_deliver_to_following_areas':
+              'نوفر خدمة التوصيل إلى المناطق التالية:',
+          'sunday_to_thursday': 'من الأحد إلى الخميس',
+          'friday_saturday': 'الجمعة والسبت',
+          'location_address_full': 'الرفاع الشرقي، الحجيات، مملكة البحرين',
+          'weekday_hours': '8:00 صباحاً - 12:00 مساءً',
+          'weekend_hours': '8:00 صباحاً - 1:00 صباحاً',
+          'delivery_service_apps_message':
+              'نقدم خدمات التوصيل عبر تطبيقات جاهز وطلبات',
+          'order_now_from': 'أطلب الآن من:',
+          'call': 'اتصل',
+          'whatsapp': 'واتساب',
+          'instagram': 'انستغرام',
+          'website': 'الموقع الإلكتروني',
+
           // Payment
           'payment': 'خيارات الدفع',
           'phone': 'رقم الهاتف البحريني',
@@ -855,7 +908,7 @@ class AppTranslations extends Translations {
           'proceed_to_payment': 'المتابعة إلى الدفع',
           'payment_options': 'خيارات الدفع',
           'scan_to_pay': 'امسح للدفع',
-          
+
           // Product details
           'description': 'الوصف',
           'available': 'متوفر',
@@ -876,7 +929,7 @@ class AppTranslations extends Translations {
           'item_details': 'تفاصيل المنتج',
           'similar_products': 'منتجات مشابهة',
           'related': 'ذات صلة',
-          
+
           // Rate Screen
           'rate_us': 'قيّمنا',
           'your_feedback': 'رأيك يهمنا',
@@ -891,7 +944,7 @@ class AppTranslations extends Translations {
           'how_was_experience': 'كيف كانت تجربتك معنا؟',
           'leave_suggestion': 'اترك لنا اقتراحاً',
           'anonymous_feedback': 'تقييم مجهول',
-          
+
           // Orders
           'order_summary': 'ملخص الطلب',
           'order_number': 'رقم الطلب',
@@ -910,7 +963,7 @@ class AppTranslations extends Translations {
           'discount': 'الخصم',
           'track_order': 'تتبع الطلب',
           'cancel_order_success': 'تم إلغاء الطلب بنجاح',
-          
+
           // Confirmation Dialogs
           'confirmation': 'تأكيد',
           'are_you_sure': 'هل أنت متأكد؟',
@@ -921,7 +974,7 @@ class AppTranslations extends Translations {
           'unsaved_changes': 'تغييرات غير محفوظة',
           'discard_changes': 'تجاهل التغييرات',
           'continue_editing': 'متابعة التحرير',
-          
+
           // Statistical Reports
           'daily_statistics': 'إحصائيات يومية',
           'weekly_statistics': 'إحصائيات أسبوعية',
@@ -936,7 +989,7 @@ class AppTranslations extends Translations {
           'evening': 'المساء',
           'night': 'الليل',
           'export_report_as': 'تصدير التقرير كـ',
-          
+
           // Admin Header Menu
           'active_orders': 'الطلبات النشطة',
           'order_management_screen': 'شاشة إدارة الطلبات',

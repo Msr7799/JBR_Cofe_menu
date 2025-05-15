@@ -19,7 +19,6 @@ class CategoryManagement extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(
         title: const Text('إدارة الفئات'),
-        backgroundColor: AppTheme.primaryColor,
         centerTitle: true,
         elevation: 0,
         shape: const RoundedRectangleBorder(
@@ -53,9 +52,9 @@ class CategoryManagement extends StatelessWidget {
         ),
         child: Obx(
           () => categoryController.isLoading.value
-              ? const Center(
-                  child:
-                      CircularProgressIndicator(color: AppTheme.primaryColor))
+              ? Center(
+                  child: CircularProgressIndicator(
+                      color: Theme.of(context).colorScheme.primary))
               : categoryController.categories.isEmpty
                   ? Center(
                       child: Column(
@@ -64,13 +63,16 @@ class CategoryManagement extends StatelessWidget {
                           Container(
                             padding: const EdgeInsets.all(20),
                             decoration: BoxDecoration(
-                              color: AppTheme.primaryColor.withOpacity(0.1),
+                              color: Theme.of(context)
+                                  .colorScheme
+                                  .primary
+                                  .withOpacity(0.1),
                               shape: BoxShape.circle,
                             ),
-                            child: const Icon(
+                            child: Icon(
                               Icons.category_outlined,
                               size: 60,
-                              color: AppTheme.primaryColor,
+                              color: Theme.of(context).colorScheme.primary,
                             ),
                           ),
                           const SizedBox(height: 16),
@@ -86,19 +88,20 @@ class CategoryManagement extends StatelessWidget {
                           ),
                           const SizedBox(height: 24),
                           NeumorphicButton(
-                            style: const NeumorphicStyle(
-                              color: AppTheme.primaryColor,
+                            style: NeumorphicStyle(
+                              color: Theme.of(context).colorScheme.primary,
                               depth: 3,
                             ),
                             onPressed: () =>
                                 _showAddEditCategoryDialog(context),
-                            child: const Padding(
-                              padding: EdgeInsets.symmetric(
+                            child: Padding(
+                              padding: const EdgeInsets.symmetric(
                                   horizontal: 16, vertical: 8),
                               child: Text(
                                 'إضافة فئة جديدة',
                                 style: TextStyle(
-                                    color: Colors.white,
+                                    color:
+                                        Theme.of(context).colorScheme.onPrimary,
                                     fontWeight: FontWeight.bold),
                               ),
                             ),
@@ -358,7 +361,7 @@ class CategoryManagement extends StatelessWidget {
                                         bottom: 0,
                                         right: 0,
                                         child: Container(
-                                          decoration: BoxDecoration(
+                                          decoration: const BoxDecoration(
                                             color: AppTheme.primaryColor,
                                             shape: BoxShape.circle,
                                           ),

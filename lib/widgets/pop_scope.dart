@@ -27,7 +27,8 @@ class SafeScaffold extends StatelessWidget {
       onPopInvokedWithResult: (didPop, result) async {
         if (!didPop) {
           // هذا يتم تنفيذه فقط إذا كان canPop = false
-          Get.offAll(() => const HomeScreen()); // الذهاب للصفحة الرئيسية بدلاً من الخروج
+          Get.offAll(() =>
+              const HomeScreen()); // الذهاب للصفحة الرئيسية بدلاً من الخروج
         }
       },
       child: Scaffold(

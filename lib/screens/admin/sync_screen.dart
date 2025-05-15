@@ -16,25 +16,25 @@ class _SyncScreenState extends State<SyncScreen> {
   final AuthController authController = Get.find<AuthController>();
   List<FileSystemEntity> backupFiles = [];
   bool isLoading = false;
-  
+
   @override
   void initState() {
     super.initState();
     _loadBackups();
   }
-  
+
   Future<void> _loadBackups() async {
     setState(() {
       isLoading = true;
     });
-    
+
     backupFiles = await authController.getAvailableBackups();
-    
+
     setState(() {
       isLoading = false;
     });
   }
-  
+
   String _formatBackupDate(String fileName) {
     try {
       // استخراج التاريخ من اسم الملف (backup_YYYYMMDD_HHMM.json)
@@ -42,24 +42,24 @@ class _SyncScreenState extends State<SyncScreen> {
       if (parts.length >= 2) {
         final dateStr = parts[1];
         final timeStr = parts[2].replaceAll('.json', '');
-        
+
         final year = dateStr.substring(0, 4);
         final month = dateStr.substring(4, 6);
         final day = dateStr.substring(6, 8);
-        
+
         final hour = timeStr.substring(0, 2);
         final minute = timeStr.substring(2, 4);
-        
+
         final date = DateTime.parse('$year-$month-$day $hour:$minute:00');
         return DateFormat('dd/MM/yyyy HH:mm').format(date);
       }
     } catch (e) {
       // إذا حدث خطأ في تنسيق التاريخ، أعد اسم الملف كما هو
     }
-    
+
     return fileName;
   }
-  
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -92,7 +92,8 @@ class _SyncScreenState extends State<SyncScreen> {
                   style: NeumorphicStyle(
                     depth: 3,
                     intensity: 0.7,
-                    boxShape: NeumorphicBoxShape.roundRect(BorderRadius.circular(15)),
+                    boxShape:
+                        NeumorphicBoxShape.roundRect(BorderRadius.circular(15)),
                     color: Colors.white.withOpacity(0.9),
                     lightSource: LightSource.topLeft,
                   ),
@@ -110,7 +111,8 @@ class _SyncScreenState extends State<SyncScreen> {
                         ),
                         const SizedBox(height: 8),
                         Text(
-                          'يمكنك إنشاء نسخة احتياطية من البيانات والإعدادات أو استعادتها'.tr,
+                          'يمكنك إنشاء نسخة احتياطية من البيانات والإعدادات أو استعادتها'
+                              .tr,
                           style: TextStyle(
                             fontSize: 14,
                             color: Colors.grey[600],
@@ -120,9 +122,9 @@ class _SyncScreenState extends State<SyncScreen> {
                     ),
                   ),
                 ),
-                
+
                 const SizedBox(height: 20),
-                
+
                 // أزرار المزامنة
                 Row(
                   children: [
@@ -148,16 +150,17 @@ class _SyncScreenState extends State<SyncScreen> {
                     ),
                   ],
                 ),
-                
+
                 const SizedBox(height: 20),
-                
+
                 // قائمة النسخ الاحتياطية
                 Expanded(
                   child: Neumorphic(
                     style: NeumorphicStyle(
                       depth: -3,
                       intensity: 0.7,
-                      boxShape: NeumorphicBoxShape.roundRect(BorderRadius.circular(15)),
+                      boxShape: NeumorphicBoxShape.roundRect(
+                          BorderRadius.circular(15)),
                       color: Colors.white.withOpacity(0.9),
                       lightSource: LightSource.topLeft,
                     ),
@@ -183,72 +186,105 @@ class _SyncScreenState extends State<SyncScreen> {
                             ],
                           ),
                           const SizedBox(height: 12),
-                          isLoading 
-                            ? const Center(child: CircularProgressIndicator())
-                            : Expanded(
-                                child: backupFiles.isEmpty
-                                  ? Center(
-                                      child: Text(
-                                        'لا توجد نسخ احتياطية متاحة'.tr,
-                                        style: TextStyle(
-                                          fontSize: 16,
-                                          color: Colors.grey[600],
+                          isLoading
+                              ? const Center(child: CircularProgressIndicator())
+                              : Expanded(
+                                  child: backupFiles.isEmpty
+                                      ? Center(
+                                          child: Text(
+                                            'لا توجد نسخ احتياطية متاحة'.tr,
+                                            style: TextStyle(
+                                              fontSize: 16,
+                                              color: Colors.grey[600],
+                                            ),
+                                          ),
+                                        )
+                                      : ListView.builder(
+                                          itemCount: backupFiles.length,
+                                          itemBuilder: (context, index) {
+                                            final fileName = backupFiles[index]
+                                                .path
+                                                .split('/')
+                                                .last;
+                                            final formattedDate =
+                                                _formatBackupDate(fileName);
+
+                                            return Neumorphic(
+                                              margin: const EdgeInsets.only(
+                                                  bottom: 10),
+                                              style: NeumorphicStyle(
+                                                depth: 2,
+                                                intensity: 0.5,
+                                                boxShape: NeumorphicBoxShape
+                                                    .roundRect(
+                                                        BorderRadius.circular(
+                                                            8)),
+                                                color: Colors.white,
+                                              ),
+                                              child: ListTile(
+                                                leading: const Icon(
+                                                    Icons.backup,
+                                                    color:
+                                                        AppTheme.primaryColor),
+                                                title: Text(formattedDate),
+                                                subtitle: Text(
+                                                  fileName,
+                                                  style: TextStyle(
+                                                      fontSize: 12,
+                                                      color: Colors.grey[600]),
+                                                  maxLines: 1,
+                                                  overflow:
+                                                      TextOverflow.ellipsis,
+                                                ),
+                                                trailing: IconButton(
+                                                  icon: const Icon(
+                                                      Icons.restore,
+                                                      color: Colors.blue),
+                                                  onPressed: () async {
+                                                    final confirm =
+                                                        await Get.dialog(
+                                                      AlertDialog(
+                                                        title: Text(
+                                                            'تأكيد الاستعادة'
+                                                                .tr),
+                                                        content: Text(
+                                                            'هل أنت متأكد من استعادة البيانات من هذه النسخة؟ سيتم استبدال البيانات الحالية.'
+                                                                .tr),
+                                                        actions: [
+                                                          TextButton(
+                                                            onPressed: () =>
+                                                                Get.back(
+                                                                    result:
+                                                                        false),
+                                                            child: Text(
+                                                                'إلغاء'.tr),
+                                                          ),
+                                                          TextButton(
+                                                            onPressed: () =>
+                                                                Get.back(
+                                                                    result:
+                                                                        true),
+                                                            child: Text(
+                                                                'استعادة'.tr),
+                                                          ),
+                                                        ],
+                                                      ),
+                                                    );
+
+                                                    if (confirm == true) {
+                                                      await authController
+                                                          .restoreFromBackup(
+                                                              File(backupFiles[
+                                                                      index]
+                                                                  .path));
+                                                    }
+                                                  },
+                                                ),
+                                              ),
+                                            );
+                                          },
                                         ),
-                                      ),
-                                    )
-                                  : ListView.builder(
-                                      itemCount: backupFiles.length,
-                                      itemBuilder: (context, index) {
-                                        final fileName = backupFiles[index].path.split('/').last;
-                                        final formattedDate = _formatBackupDate(fileName);
-                                        
-                                        return Neumorphic(
-                                          margin: const EdgeInsets.only(bottom: 10),
-                                          style: NeumorphicStyle(
-                                            depth: 2,
-                                            intensity: 0.5,
-                                            boxShape: NeumorphicBoxShape.roundRect(BorderRadius.circular(8)),
-                                            color: Colors.white,
-                                          ),
-                                          child: ListTile(
-                                            leading: const Icon(Icons.backup, color: AppTheme.primaryColor),
-                                            title: Text(formattedDate),
-                                            subtitle: Text(
-                                              fileName,
-                                              style: TextStyle(fontSize: 12, color: Colors.grey[600]),
-                                              maxLines: 1,
-                                              overflow: TextOverflow.ellipsis,
-                                            ),
-                                            trailing: IconButton(
-                                              icon: const Icon(Icons.restore, color: Colors.blue),
-                                              onPressed: () async {
-                                                final confirm = await Get.dialog(
-                                                  AlertDialog(
-                                                    title: Text('تأكيد الاستعادة'.tr),
-                                                    content: Text('هل أنت متأكد من استعادة البيانات من هذه النسخة؟ سيتم استبدال البيانات الحالية.'.tr),
-                                                    actions: [
-                                                      TextButton(
-                                                        onPressed: () => Get.back(result: false),
-                                                        child: Text('إلغاء'.tr),
-                                                      ),
-                                                      TextButton(
-                                                        onPressed: () => Get.back(result: true),
-                                                        child: Text('استعادة'.tr),
-                                                      ),
-                                                    ],
-                                                  ),
-                                                );
-                                                
-                                                if (confirm == true) {
-                                                  await authController.restoreFromBackup(File(backupFiles[index].path));
-                                                }
-                                              },
-                                            ),
-                                          ),
-                                        );
-                                      },
-                                    ),
-                              ),
+                                ),
                         ],
                       ),
                     ),
@@ -261,7 +297,7 @@ class _SyncScreenState extends State<SyncScreen> {
       ),
     );
   }
-  
+
   Widget _buildSyncButton({
     required String title,
     required IconData icon,

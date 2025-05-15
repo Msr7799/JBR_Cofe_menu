@@ -1,15 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:gpr_coffee_shop/constants/theme.dart';
+/* import 'package:gpr_coffee_shop/constants/theme.dart'; */
 import 'package:gpr_coffee_shop/models/order.dart';
 import 'package:gpr_coffee_shop/services/local_storage_service.dart';
-import 'package:flutter/material.dart';
 import 'package:uuid/uuid.dart';
 import 'package:gpr_coffee_shop/utils/logger_util.dart';
 import 'package:gpr_coffee_shop/utils/view_options_helper.dart';
 import 'package:gpr_coffee_shop/models/product.dart';
 import 'package:gpr_coffee_shop/controllers/product_controller.dart';
-import 'package:gpr_coffee_shop/controllers/auth_controller.dart';
+/* import 'package:gpr_coffee_shop/controllers/auth_controller.dart'; */
 import 'package:gpr_coffee_shop/services/notification_service.dart';
 
 class OrderController extends GetxController {
@@ -19,7 +18,7 @@ class OrderController extends GetxController {
 
   // أضف هذه المتغيرات الجديدة:
   final pendingItems = <OrderItem>[].obs; // عناصر الطلبات المعلقة (للإشعارات)
-  final bool _autoCompleteOrders = true; // يمكن جعله قابل للتعديل في الإعدادات
+// يمكن جعله قابل للتعديل في الإعدادات
 
   OrderController(this._storage);
 
@@ -341,27 +340,27 @@ class OrderController extends GetxController {
     // عرض نافذة تأكيد
     final result = await Get.dialog<bool>(
       AlertDialog(
-        title: Text('تمت الإضافة إلى السلة'),
+        title: const Text('تمت الإضافة إلى السلة'),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text('تمت إضافة ${item.name} إلى سلة المشتريات.'),
-            SizedBox(height: 10),
-            Text('هل ترغب في الاستمرار في التسوق؟')
+            const SizedBox(height: 10),
+            const Text('هل ترغب في الاستمرار في التسوق؟')
           ],
         ),
         actions: [
           TextButton(
             onPressed: () => Get.back(result: false),
-            child: Text('الانتقال إلى السلة'),
+            child: const Text('الانتقال إلى السلة'),
           ),
           ElevatedButton(
             onPressed: () => Get.back(result: true),
-            child: Text('استمرار التسوق'),
             style: ElevatedButton.styleFrom(
               backgroundColor: Colors.green,
             ),
+            child: const Text('استمرار التسوق'),
           ),
         ],
       ),
@@ -848,9 +847,7 @@ class OrderController extends GetxController {
         return 'مكتمل';
       case OrderStatus.cancelled:
         return 'ملغي';
-      default:
-        return 'غير معروف';
-    }
+      }
   }
 
   // مساعد لتحديث إحصائيات الطلبات

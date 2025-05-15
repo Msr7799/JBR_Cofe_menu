@@ -24,6 +24,13 @@ class MenuOptionsController extends GetxController {
   // حالة وضع التحرير
   final RxBool isEditMode = false.obs;
 
+  // إضافة متغيرات لتحسين العرض في الأجهزة المختلفة
+  final RxBool useCustomIconColors = false.obs;
+  final RxDouble landscapeOptionHeight = 80.0.obs;
+  final RxDouble landscapeOptionWidth = 160.0.obs;
+  final RxDouble landscapeGridSpacing = 12.0.obs;
+  final RxInt landscapeColumnsCount = 3.obs;
+
   // الخيارات الافتراضية
   final List<MenuOption> _defaultOptions = [
     const MenuOption(
@@ -55,7 +62,7 @@ class MenuOptionsController extends GetxController {
       title: 'order_management',
       icon: Icons.chevron_right,
       route: '/order-management',
-      color:  Color.fromARGB(255, 0, 0, 0),
+      color: Color.fromARGB(255, 0, 0, 0),
       sortOrder: 3,
     ),
     const MenuOption(
@@ -63,7 +70,7 @@ class MenuOptionsController extends GetxController {
       title: 'location',
       icon: Icons.location_on,
       route: '/location',
-      color:  Color.fromARGB(255, 0, 0, 0),
+      color: Color.fromARGB(255, 0, 0, 0),
       sortOrder: 4,
     ),
     const MenuOption(
@@ -71,7 +78,7 @@ class MenuOptionsController extends GetxController {
       title: 'display_options',
       icon: Icons.view_list,
       route: '/view-options',
-      color:  Color.fromARGB(255, 0, 0, 0),
+      color: Color.fromARGB(255, 0, 0, 0),
       sortOrder: 5,
     ),
     const MenuOption(
@@ -79,7 +86,7 @@ class MenuOptionsController extends GetxController {
       title: 'settings',
       icon: Icons.settings,
       route: '/settings',
-      color: const Color.fromARGB(255, 0, 0, 0),
+      color: Color.fromARGB(255, 0, 0, 0),
       sortOrder: 6,
     ),
     const MenuOption(
@@ -87,7 +94,7 @@ class MenuOptionsController extends GetxController {
       title: 'about_app_title',
       icon: Icons.info_outline,
       route: '/about',
-      color:  Color.fromARGB(255, 0, 0, 0),
+      color: Color.fromARGB(255, 0, 0, 0),
       sortOrder: 7,
     ),
   ];
@@ -96,14 +103,55 @@ class MenuOptionsController extends GetxController {
   void onInit() {
     super.onInit();
     _loadOptions();
+    _loadLandscapeSettings(); // تحميل إعدادات وضع Landscape
+  }
+
+  // تحميل إعدادات عرض الشاشات الكبيرة واللاندسكيب
+  void _loadLandscapeSettings() {
+    landscapeOptionHeight.value =
+        _prefsService.getDouble('landscape_option_height', defaultVal: 80.0);
+    landscapeOptionWidth.value =
+        _prefsService.getDouble('landscape_option_width', defaultVal: 160.0);
+    landscapeGridSpacing.value =
+        _prefsService.getDouble('landscape_grid_spacing', defaultVal: 12.0);
+    landscapeColumnsCount.value =
+        _prefsService.getInt('landscape_columns_count', defaultVal: 3);
+    useCustomIconColors.value =
+        _prefsService.getBool('use_custom_icon_colors', defaultVal: false);
+  }
+
+  // حفظ إعدادات عرض الشاشات الكبيرة واللاندسكيب
+  void saveLandscapeSettings() {
+    _prefsService.setDouble(
+        'landscape_option_height', landscapeOptionHeight.value);
+    _prefsService.setDouble(
+        'landscape_option_width', landscapeOptionWidth.value);
+    _prefsService.setDouble(
+        'landscape_grid_spacing', landscapeGridSpacing.value);
+    _prefsService.setInt(
+        'landscape_columns_count', landscapeColumnsCount.value);
+    _prefsService.setBool('use_custom_icon_colors', useCustomIconColors.value);
+
+    update(['landscape_options_list']);
+  }
+
+  // دالة للحصول على عدد الأعمدة المناسب بناءً على عرض الشاشة
+  int getAdaptiveColumnCount(double screenWidth) {
+    if (screenWidth > 1200) return 5; // للشاشات الكبيرة جداً
+    if (screenWidth > 900) return 4; // للشاشات الكبيرة
+    if (screenWidth > 600) {
+      return landscapeColumnsCount.value; // للتابلت (قابل للتخصيص)
+    }
+    if (screenWidth > 400) return 2; // للشاشات المتوسطة
+    return 1; // للشاشات الصغيرة
   }
 
   // تحميل خيارات القائمة من التخزين المحلي
   void _loadOptions() {
     try {
-      final String? storedOptions = _prefsService.getString(_storageKey);
+      final String storedOptions = _prefsService.getString(_storageKey);
 
-      if (storedOptions != null && storedOptions.isNotEmpty) {
+      if (storedOptions.isNotEmpty) {
         try {
           final List<dynamic> decodedList = jsonDecode(storedOptions);
           final List<MenuOption> allOptions =
@@ -158,7 +206,7 @@ class MenuOptionsController extends GetxController {
   // تبديل وضع التحرير
   void toggleEditMode() {
     isEditMode.value = !isEditMode.value;
-    update();
+    update(['home_options_list', 'landscape_options']);
   }
 
   // إعادة ترتيب الخيارات الظاهرة
@@ -176,6 +224,7 @@ class MenuOptionsController extends GetxController {
     }
 
     _saveOptions();
+    update(['home_options_list', 'landscape_options']);
   }
 
   // إخفاء خيار (نقله إلى القائمة المخفية)
@@ -192,6 +241,7 @@ class MenuOptionsController extends GetxController {
       }
 
       _saveOptions();
+      update(['home_options_list', 'landscape_options']);
 
       // عرض رسالة تأكيد
       Get.snackbar(
@@ -216,6 +266,7 @@ class MenuOptionsController extends GetxController {
       );
       visibleOptions.add(updatedOption);
       _saveOptions();
+      update(['home_options_list', 'landscape_options']);
 
       // عرض رسالة تأكيد
       Get.snackbar(
@@ -256,6 +307,7 @@ class MenuOptionsController extends GetxController {
   // إعادة ضبط جميع الخيارات للوضع الافتراضي
   void resetAllOptions() {
     _resetToDefaults();
+    update(['home_options_list', 'landscape_options']);
 
     // عرض رسالة تأكيد
     Get.snackbar(
@@ -266,6 +318,29 @@ class MenuOptionsController extends GetxController {
       colorText: Colors.white,
       duration: const Duration(seconds: 2),
     );
+  }
+
+  // إعادة ترتيب الخيارات في وضع Landscape
+  void reorderLandscapeOptions(int oldIndex, int newIndex) {
+    if (newIndex > oldIndex) {
+      newIndex -= 1;
+    }
+
+    final MenuOption option = visibleOptions[oldIndex];
+    List<MenuOption> updatedOptions = List.from(visibleOptions);
+
+    // إزالة الخيار من موقعه القديم وإضافته في الموقع الجديد
+    updatedOptions.removeAt(oldIndex);
+    updatedOptions.insert(newIndex, option);
+
+    // تحديث الترتيب
+    for (int i = 0; i < updatedOptions.length; i++) {
+      updatedOptions[i] = updatedOptions[i].copyWith(sortOrder: i);
+    }
+
+    visibleOptions.value = updatedOptions;
+    _saveOptions();
+    update(['home_options_list', 'landscape_options']);
   }
 
   // أضف هذه الدوال إلى فئة MenuOptionsController
@@ -324,7 +399,7 @@ class MenuOptionsController extends GetxController {
   void updateVisibleOptions(List<MenuOption> updatedOptions) {
     visibleOptions.value = updatedOptions;
     _saveOptions();
-    update();
+    update(['home_options_list', 'landscape_options']);
   }
 
   // إضافة هذه الدالة للتحقق من الصفحة النشطة حاليًا
@@ -363,11 +438,44 @@ class MenuOptionsController extends GetxController {
     )
         .then((_) {
       // عند العودة، تأكد من تحديث القائمة
-      // القيمة الحالية لـ activeTabIndex ستبقى كما هي
-      update(['home_options_list']);
+      update(['home_options_list', 'landscape_options']);
     });
   }
 
   // إضافة متغير لتتبع علامة التبويب النشطة
   final RxInt activeTabIndex = 0.obs;
+
+  // استعادة الإعدادات الافتراضية للقائمة
+  void resetToDefaults() {
+    // استعادة خيارات القائمة الافتراضية
+    visibleOptions.clear();
+    hiddenOptions.clear();
+
+    // إعادة تهيئة الخيارات من القائمة الافتراضية
+    visibleOptions.addAll(_defaultOptions);
+
+    // حفظ التغييرات
+    _saveOptions();
+
+    // استعادة إعدادات اللاندسكيب الافتراضية
+    landscapeOptionHeight.value = 80.0;
+    landscapeOptionWidth.value = 160.0;
+    landscapeGridSpacing.value = 12.0;
+    landscapeColumnsCount.value = 3;
+    useCustomIconColors.value = false;
+
+    // حفظ إعدادات اللاندسكيب
+    saveLandscapeSettings();
+
+    // تحديث الواجهة
+    update(
+        ['home_options_list', 'landscape_options', 'landscape_options_list']);
+
+    // إظهار رسالة تأكيد
+    Get.snackbar(
+      'تم الاستعادة',
+      'تم استعادة إعدادات القائمة الافتراضية',
+      snackPosition: SnackPosition.BOTTOM,
+    );
+  }
 }

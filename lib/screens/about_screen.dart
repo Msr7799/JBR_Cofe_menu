@@ -15,10 +15,10 @@ class AboutScreen extends StatelessWidget {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text(
-          'حول البرنامج',
+        title: Text(
+          'about_app_title'.tr,
           style: TextStyle(
-            color: AppTheme.textLightColor,
+            color: Theme.of(context).colorScheme.onPrimary,
             fontWeight: FontWeight.bold,
           ),
         ),
@@ -53,20 +53,15 @@ class AboutScreen extends StatelessWidget {
                     ),
                   ),
                   const SizedBox(height: 16),
-                  const Text(
-                    'JBR Coffee Shop',
-                    style: TextStyle(
-                      fontSize: 24,
-                      fontWeight: FontWeight.bold,
-                      color: Color.fromARGB(255, 197, 184, 181),
-                    ),
+                  Text(
+                    'app_name'.tr,
+                    style: Theme.of(context).textTheme.displayMedium?.copyWith(
+                          fontWeight: FontWeight.bold,
+                        ),
                   ),
-                  const Text(
-                    'أفضل مذاق للقهوة والمشروبات',
-                    style: TextStyle(
-                      fontSize: 16,
-                      color: Color.fromARGB(255, 216, 211, 210),
-                    ),
+                  Text(
+                    'app_description_short'.tr,
+                    style: Theme.of(context).textTheme.bodyLarge,
                   ),
                 ],
               ),
@@ -85,9 +80,9 @@ class AboutScreen extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Text(
-                      'وصف التطبيق',
-                      style: TextStyle(
+                    Text(
+                      'aboutApp'.tr,
+                      style: const TextStyle(
                         fontSize: 18,
                         fontWeight: FontWeight.bold,
                         color: AppTheme.primaryColor,
@@ -119,26 +114,27 @@ class AboutScreen extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Text(
-                      'معلومات المطور',
-                      style: TextStyle(
+                    Text(
+                      'developer'.tr,
+                      style: const TextStyle(
                         fontSize: 18,
                         fontWeight: FontWeight.bold,
                         color: AppTheme.primaryColor,
                       ),
                     ),
                     const SizedBox(height: 12),
-                    const ListTile(
-                      leading: Icon(Icons.person, color: AppTheme.primaryColor),
-                      title: Text('المطور'),
-                      subtitle: Text('Mohamed S. Alromaihi'),
+                    ListTile(
+                      leading: const Icon(Icons.person,
+                          color: AppTheme.primaryColor),
+                      title: Text('developer'.tr),
+                      subtitle: const Text('Mohamed S. Alromaihi'),
                       contentPadding: EdgeInsets.zero,
                     ),
                     const Divider(),
                     ListTile(
                       leading:
                           const Icon(Icons.email, color: AppTheme.primaryColor),
-                      title: const Text('البريد الإلكتروني'),
+                      title: Text('email'.tr),
                       subtitle: const Text('alromaihi2224@gmail.com'),
                       contentPadding: EdgeInsets.zero,
                       onTap: () => _launchURL('mailto:alromaihi2224@gmail.com'),
@@ -225,7 +221,7 @@ class AboutScreen extends StatelessWidget {
     // استخدام الشعار المختار من المستخدم
     final settingsController = Get.find<SettingsController>();
     final logoPath = settingsController.logoPath ?? 'assets/images/logo.png';
-    
+
     showDialog(
       context: context,
       builder: (context) => AboutDialog(
@@ -252,7 +248,7 @@ class AboutScreen extends StatelessWidget {
     // استخدام الشعار المختار من المستخدم
     final settingsController = Get.find<SettingsController>();
     final logoPath = settingsController.logoPath ?? 'assets/images/logo.png';
-    
+
     showLicensePage(
       context: context,
       applicationName: 'JBR Coffee Shop',

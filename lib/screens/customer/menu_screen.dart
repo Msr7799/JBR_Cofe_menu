@@ -8,7 +8,6 @@ import 'package:gpr_coffee_shop/controllers/settings_controller.dart';
 import 'package:gpr_coffee_shop/models/product.dart';
 import 'package:gpr_coffee_shop/models/category.dart';
 import 'package:gpr_coffee_shop/widgets/enhanced_product_card.dart';
-import 'package:gpr_coffee_shop/screens/home_screen.dart';
 import 'package:gpr_coffee_shop/utils/view_options_helper.dart';
 import 'package:gpr_coffee_shop/widgets/category_card.dart';
 import 'package:flutter_staggered_animations/flutter_staggered_animations.dart';
@@ -85,7 +84,8 @@ class MenuScreen extends StatelessWidget {
             )),
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
-          onPressed: () => Get.offAll(() => const HomeScreen()),
+          onPressed: () =>
+              Get.offAllNamed('/'), // العودة مباشرة للشاشة الرئيسية
         ),
         actions: [
           IconButton(
@@ -207,16 +207,16 @@ class MenuScreen extends StatelessWidget {
   Widget _buildCategoriesSection(bool isVerySmallScreen) {
     // حساب عرض الشاشة المتاح
     final screenWidth = MediaQuery.of(Get.context!).size.width;
-    
+
     // تحديد المتغيرات بناءً على حجم الشاشة
-    final chipWidth = isVerySmallScreen ? 
-        (screenWidth < 320 ? 70.0 : 85.0) : 
-        (screenWidth < 600 ? 100.0 : 120.0);
-        
+    final chipWidth = isVerySmallScreen
+        ? (screenWidth < 320 ? 70.0 : 85.0)
+        : (screenWidth < 600 ? 100.0 : 120.0);
+
     // تعديل المسافات حسب حجم الشاشة
     final horizontalPadding = isVerySmallScreen ? 4.0 : 8.0;
     final chipSpacing = isVerySmallScreen ? 4.0 : 6.0;
-    
+
     // استخدام ScrollController للتحكم في التمرير
     final ScrollController scrollController = ScrollController();
 
@@ -224,13 +224,13 @@ class MenuScreen extends StatelessWidget {
     final RxBool isLeftArrowHovered = false.obs;
     final RxBool isRightArrowHovered = false.obs;
 
-    return Container(
+    return SizedBox(
       width: screenWidth,
       height: 60, // زيادة الارتفاع لاستيعاب النص على سطرين
       child: Stack(
         children: [
           Padding(
-            padding: EdgeInsets.symmetric(horizontal: 20),
+            padding: const EdgeInsets.symmetric(horizontal: 20),
             child: ListView.builder(
               controller: scrollController,
               scrollDirection: Axis.horizontal,
@@ -250,15 +250,17 @@ class MenuScreen extends StatelessWidget {
                           child: ChoiceChip(
                             label: const Text(
                               'الكل',
-                                                                                            style: TextStyle(
+                              style: TextStyle(
                                 fontWeight: FontWeight.bold,
                                 fontSize: 12,
                               ),
                             ),
-                            selected: categoryController.selectedCategoryId.value.isEmpty,
+                            selected: categoryController
+                                .selectedCategoryId.value.isEmpty,
                             onSelected: (selected) {
                               if (selected) {
-                                categoryController.selectedCategoryId.value = '';
+                                categoryController.selectedCategoryId.value =
+                                    '';
                               }
                             },
                             backgroundColor: AppTheme.backgroundColor,
@@ -271,7 +273,8 @@ class MenuScreen extends StatelessWidget {
                               horizontal: 4,
                               vertical: 2,
                             ),
-                            materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                            materialTapTargetSize:
+                                MaterialTapTargetSize.shrinkWrap,
                           ),
                         )),
                   );
@@ -279,14 +282,15 @@ class MenuScreen extends StatelessWidget {
 
                 final category = categoryController.categories[index - 1];
                 final categoryName = category.localizedName;
-                
+
                 // تحديد ما إذا كان النص طويلاً ويحتاج إلى تقليص
-                final bool isLongText = categoryName.length > (isVerySmallScreen ? 7 : 10);
+                final bool isLongText =
+                    categoryName.length > (isVerySmallScreen ? 7 : 10);
                 // تقليص حجم الخط بشكل أكبر للنصوص الطويلة على الشاشات الصغيرة
-                final double textSize = isVerySmallScreen ? 
-                    (isLongText ? 8.0 : 10.0) : 
-                    (isLongText ? 10.0 : 12.0);
-                
+                final double textSize = isVerySmallScreen
+                    ? (isLongText ? 8.0 : 10.0)
+                    : (isLongText ? 10.0 : 12.0);
+
                 return Padding(
                   padding: EdgeInsets.only(right: chipSpacing),
                   child: Obx(() => Container(
@@ -297,7 +301,8 @@ class MenuScreen extends StatelessWidget {
                         child: ChoiceChip(
                           label: Container(
                             width: chipWidth,
-                            height: isLongText ? 30 : 20, // تحديد ارتفاع ثابت للنص
+                            height:
+                                isLongText ? 30 : 20, // تحديد ارتفاع ثابت للنص
                             alignment: Alignment.center,
                             child: Text(
                               categoryName,
@@ -311,10 +316,13 @@ class MenuScreen extends StatelessWidget {
                               maxLines: 2, // دائماً نسمح بسطرين للنص
                             ),
                           ),
-                          selected: categoryController.selectedCategoryId.value == category.id,
+                          selected:
+                              categoryController.selectedCategoryId.value ==
+                                  category.id,
                           onSelected: (selected) {
                             if (selected) {
-                              categoryController.selectedCategoryId.value = category.id;
+                              categoryController.selectedCategoryId.value =
+                                  category.id;
                             } else {
                               categoryController.selectedCategoryId.value = '';
                             }
@@ -330,7 +338,8 @@ class MenuScreen extends StatelessWidget {
                             horizontal: 2,
                             vertical: 1,
                           ),
-                          materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                          materialTapTargetSize:
+                              MaterialTapTargetSize.shrinkWrap,
                           // تقليص labelPadding للتناسب أفضل
                           labelPadding: EdgeInsets.zero,
                         ),
@@ -339,7 +348,7 @@ class MenuScreen extends StatelessWidget {
               },
             ),
           ),
-          
+
           // إضافة أسهم التنقل الجانبية
           Positioned(
             left: 0,
@@ -349,44 +358,46 @@ class MenuScreen extends StatelessWidget {
               onEnter: (_) => isLeftArrowHovered.value = true,
               onExit: (_) => isLeftArrowHovered.value = false,
               child: Obx(() => AnimatedOpacity(
-                opacity: isLeftArrowHovered.value ? 1.0 : 0.0,
-                duration: const Duration(milliseconds: 200),
-                child: Container(
-                  width: 24,
-                  height: 24,
-                  decoration: BoxDecoration(
-                    color: Colors.lime,
-                    shape: BoxShape.circle,
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.black.withOpacity(0.1),
-                        spreadRadius: 1,
-                        blurRadius: 3,
+                    opacity: isLeftArrowHovered.value ? 1.0 : 0.0,
+                    duration: const Duration(milliseconds: 200),
+                    child: Container(
+                      width: 24,
+                      height: 24,
+                      decoration: BoxDecoration(
+                        color: Colors.lime,
+                        shape: BoxShape.circle,
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withOpacity(0.1),
+                            spreadRadius: 1,
+                            blurRadius: 3,
+                          ),
+                        ],
                       ),
-                    ],
-                  ),
-                  child: IconButton(
-                    icon: const Icon(
-                      Icons.chevron_left,
-                      color: Colors.black,
-                      size: 16,
+                      child: IconButton(
+                        icon: const Icon(
+                          Icons.chevron_left,
+                          color: Colors.black,
+                          size: 16,
+                        ),
+                        onPressed: () {
+                          final currentPosition =
+                              scrollController.position.pixels;
+                          final targetPosition =
+                              currentPosition - chipWidth * 2;
+                          scrollController.animateTo(
+                            targetPosition < 0 ? 0 : targetPosition,
+                            duration: const Duration(milliseconds: 300),
+                            curve: Curves.easeInOut,
+                          );
+                        },
+                        splashRadius: 12,
+                        padding: const EdgeInsets.all(0),
+                        constraints: const BoxConstraints(),
+                        visualDensity: VisualDensity.compact,
+                      ),
                     ),
-                    onPressed: () {
-                      final currentPosition = scrollController.position.pixels;
-                      final targetPosition = currentPosition - chipWidth * 2;
-                      scrollController.animateTo(
-                        targetPosition < 0 ? 0 : targetPosition,
-                        duration: const Duration(milliseconds: 300),
-                        curve: Curves.easeInOut,
-                      );
-                    },
-                    splashRadius: 12,
-                    padding: const EdgeInsets.all(0),
-                    constraints: const BoxConstraints(),
-                    visualDensity: VisualDensity.compact,
-                  ),
-                ),
-              )),
+                  )),
             ),
           ),
 
@@ -398,45 +409,50 @@ class MenuScreen extends StatelessWidget {
               onEnter: (_) => isRightArrowHovered.value = true,
               onExit: (_) => isRightArrowHovered.value = false,
               child: Obx(() => AnimatedOpacity(
-                opacity: isRightArrowHovered.value ? 1.0 : 0.0,
-                duration: const Duration(milliseconds: 200),
-                child: Container(
-                  width: 24,
-                  height: 24,
-                  decoration: BoxDecoration(
-                    color: Colors.lime,
-                    shape: BoxShape.circle,
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.black.withOpacity(0.1),
-                        spreadRadius: 1,
-                        blurRadius: 3,
+                    opacity: isRightArrowHovered.value ? 1.0 : 0.0,
+                    duration: const Duration(milliseconds: 200),
+                    child: Container(
+                      width: 24,
+                      height: 24,
+                      decoration: BoxDecoration(
+                        color: Colors.lime,
+                        shape: BoxShape.circle,
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withOpacity(0.1),
+                            spreadRadius: 1,
+                            blurRadius: 3,
+                          ),
+                        ],
                       ),
-                    ],
-                  ),
-                  child: IconButton(
-                    icon: const Icon(
-                      Icons.chevron_right,
-                      color: Colors.black,
-                      size: 16,
+                      child: IconButton(
+                        icon: const Icon(
+                          Icons.chevron_right,
+                          color: Colors.black,
+                          size: 16,
+                        ),
+                        onPressed: () {
+                          final currentPosition =
+                              scrollController.position.pixels;
+                          final maxPosition =
+                              scrollController.position.maxScrollExtent;
+                          final targetPosition =
+                              currentPosition + chipWidth * 2;
+                          scrollController.animateTo(
+                            targetPosition > maxPosition
+                                ? maxPosition
+                                : targetPosition,
+                            duration: const Duration(milliseconds: 300),
+                            curve: Curves.easeInOut,
+                          );
+                        },
+                        splashRadius: 12,
+                        padding: const EdgeInsets.all(0),
+                        constraints: const BoxConstraints(),
+                        visualDensity: VisualDensity.compact,
+                      ),
                     ),
-                    onPressed: () {
-                      final currentPosition = scrollController.position.pixels;
-                      final maxPosition = scrollController.position.maxScrollExtent;
-                      final targetPosition = currentPosition + chipWidth * 2;
-                      scrollController.animateTo(
-                        targetPosition > maxPosition ? maxPosition : targetPosition,
-                        duration: const Duration(milliseconds: 300),
-                        curve: Curves.easeInOut,
-                      );
-                    },
-                    splashRadius: 12,
-                    padding: const EdgeInsets.all(0),
-                    constraints: const BoxConstraints(),
-                    visualDensity: VisualDensity.compact,
-                  ),
-                ),
-              )),
+                  )),
             ),
           ),
         ],

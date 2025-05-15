@@ -435,4 +435,3 @@ class PercentageDataCard extends StatelessWidget {
     );
   }
 }
-

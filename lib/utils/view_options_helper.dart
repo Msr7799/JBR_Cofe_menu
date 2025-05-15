@@ -6,7 +6,7 @@ class ViewOptionsHelper {
 
   // قيم افتراضية
   static const String _defaultViewMode = 'grid';
-  static const String _defaultDisplayMode = 'categorized';
+  static const String _defaultDisplayMode = 'categories';
   static const bool _defaultShowImages = true;
   static const bool _defaultUseAnimations = true;
   static const bool _defaultShowOrderButton = true;

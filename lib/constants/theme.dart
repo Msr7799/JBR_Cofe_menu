@@ -3,7 +3,7 @@ import 'package:google_fonts/google_fonts.dart';
 
 class AppTheme {
   // الألوان الأساسية - محسنة للوضوح والجمالية
-  static const primaryColor = Color(0xFF546E7A); // رصاصي غامق
+  static const primaryColor = Color.fromARGB(255, 156, 182, 194); // رصاصي غامق
   static const secondaryColor = Color(0xFF78909C); // رصاصي متوسط
   static const accentColor = Color(0xFF29B6F6); // أزرق فاتح للتباين
   static const backgroundColor = Color(0xFFFAFAFA); // أبيض مائل للرمادي
@@ -29,601 +29,666 @@ class AppTheme {
   static const textDarkColor =
       Color(0xFF212121); // أسود للنصوص على الخلفيات الفاتحة
 
-  // ثيم القهوة محسن بألوان عصرية
-  static const mintPrimaryColor = Color(0xFF00796B); // أخضر نعناعي داكن
-  static const mintSecondaryColor = Color(0xFF26A69A); // أخضر نعناعي متوسط
-  static const mintAccentColor = Color(0xFF80CBC4); // أخضر نعناعي فاتح
-  static const mintBackgroundColor = Color(0xFFE0F2F1); // خلفية خضراء شفافة
-  static const mintSurfaceColor = Color(0xFFB2DFDB); // سطح أخضر فاتح
+  // الثيم الكلاسيكي - أزرق أنيق
+  static const classicPrimaryColor = Color(0xFF1A237E); // أزرق داكن
+  static const classicSecondaryColor = Color(0xFF303F9F); // أزرق متوسط
+  static const classicAccentColor = Color(0xFF42A5F5); // أزرق فاتح
+  static const classicBackgroundColor = Color(0xFFF5F7FA); // رمادي فاتح جداً
+  static const classicSurfaceColor = Color(0xFFE8EAF6); // بنفسجي فاتح جداً
 
-  // ثيم جديد: الأزرق الداكن (المحيط)
+  // الثيم العصري - بنفسجي وأرجواني
+  static const modernPrimaryColor = Color(0xFF6A1B9A); // بنفسجي غامق
+  static const modernSecondaryColor = Color(0xFF9C27B0); // أرجواني
+  static const modernAccentColor = Color(0xFFEC407A); // وردي
+  static const modernBackgroundColor = Color(0xFFF3E5F5); // بنفسجي فاتح جداً
+  static const modernSurfaceColor = Color(0xFFEDE7F6); // بنفسجي فاتح
+
+  // الثيم البحري - أزرق محيطي
   static const oceanPrimaryColor = Color(0xFF01579B); // أزرق داكن
   static const oceanSecondaryColor = Color(0xFF039BE5); // أزرق متوسط
-  static const oceanAccentColor = Color(0xFF4FC3F7); // أزرق فاتح
-  static const oceanBackgroundColor = Color(0xFFE1F5FE); // خلفية زرقاء شفافة
-  static const oceanSurfaceColor = Color(0xFFB3E5FC); // سطح أزرق فاتح
+  static const oceanAccentColor = Color(0xFFFFD54F); // ذهبي للتباين
+  static const oceanBackgroundColor = Color(0xFFE1F5FE); // أزرق فاتح جداً
+  static const oceanSurfaceColor = Color(0xFFB3E5FC); // أزرق فاتح
 
-  // إضافة الألوان المفقودة
-  // ثيم القهوة
-  static const coffeePrimaryColor = Color(0xFFBCAAA4); // بيج متوسط
-  static const coffeeSecondaryColor = Color(0xFFD7CCC8); // بيج فاتح
-  static const coffeeAccentColor = Color(0xFFA1887F); // بيج غامق
-  static const coffeeBackgroundColor = Color(0xFFF5F5F5); // أبيض مائل للبيج
-  static const coffeeSurfaceColor = Color(0xFFEFEBE9); // بيج فاتح جداً
+  // ثيم بني - بدرجات البني والبيج
+  static const brownPrimaryColor = Color(0xFF795548); // بني متوسط
+  static const brownSecondaryColor = Color(0xFFA1887F); // بني فاتح
+  static const brownAccentColor = Color(0xFFFFB74D); // برتقالي فاتح
+  static const brownBackgroundColor = Color(0xFFF8F5F0); // بيج فاتح
+  static const brownSurfaceColor = Color(0xFFEFEBE9); // بيج متوسط
 
-  // ثيم الحلويات الباستيل
-  static const sweetPrimaryColor = Color(0xFF558B2F); // زيتي غامق
-  static const sweetSecondaryColor = Color(0xFF7CB342); // زيتي متوسط
-  static const sweetAccentColor = Color(0xFFAED581); // زيتي فاتح
-  static const sweetBackgroundColor = Color(0xFFF1F8E9); // أخضر فاتح جداً
-  static const sweetSurfaceColor = Color(0xFFDCEDC8); // أخضر فاتح
-
-  // ألوان الثيم الداكن - أسود ورصاصي
-  static const darkPrimaryColor = Color(0xFF212121); // أسود
-  static const darkSecondaryColor = Color.fromARGB(255, 98, 98, 98); // رمادي داكن
-  static const darkAccentColor = Color(0xFF757575); // رمادي متوسط
+  // ألوان الثيم الداكن - محسنة للقراءة
+  static const darkPrimaryColor = Color(0xFF263238); // رمادي داكن
+  static const darkSecondaryColor = Color(0xFF37474F); // رمادي متوسط
+  static const darkAccentColor = Color(0xFF4FC3F7); // أزرق فاتح للتباين
   static const darkBackgroundColor = Color(0xFF121212); // أسود خالص
   static const darkSurfaceColor = Color(0xFF1E1E1E); // أسود مائل للرمادي
 
-  // تحديث حجم الخط الأساسي مع تباين لوني أفضل
-  static final _baseTextTheme = GoogleFonts.cairoTextTheme().copyWith(
-    displayLarge: const TextStyle(
-        fontSize: 26, color: textPrimaryColor, fontWeight: FontWeight.bold),
-    displayMedium: const TextStyle(
-        fontSize: 22, color: textPrimaryColor, fontWeight: FontWeight.bold),
-    displaySmall: const TextStyle(
-        fontSize: 18, color: textPrimaryColor, fontWeight: FontWeight.bold),
-    headlineLarge: const TextStyle(
-        fontSize: 20, color: textPrimaryColor, fontWeight: FontWeight.bold),
-    headlineMedium: const TextStyle(
-        fontSize: 18, color: textPrimaryColor, fontWeight: FontWeight.bold),
-    headlineSmall: const TextStyle(
-        fontSize: 16, color: textPrimaryColor, fontWeight: FontWeight.w600),
-    titleLarge: const TextStyle(
-        fontSize: 16, color: textPrimaryColor, fontWeight: FontWeight.w600),
-    titleMedium: const TextStyle(
-        fontSize: 15, color: textPrimaryColor, fontWeight: FontWeight.w600),
-    titleSmall: const TextStyle(
-        fontSize: 16, color: textPrimaryColor, fontWeight: FontWeight.w500),
-    bodyLarge: const TextStyle(fontSize: 14, color: textPrimaryColor),
-    bodyMedium: const TextStyle(fontSize: 14, color: textPrimaryColor),
-    bodySmall: const TextStyle(fontSize: 14, color: textSecondaryColor),
-    labelLarge: const TextStyle(
-        fontSize: 16, color: textPrimaryColor, fontWeight: FontWeight.w600),
-    labelMedium: const TextStyle(fontSize: 14, color: textPrimaryColor),
-    labelSmall: const TextStyle(fontSize: 14, color: textSecondaryColor),
-  );
+  // السوبر دارك (تعديل ثيم دارك الحالي)
+  static const superDarkPrimaryColor = Color(0xFF121212); // أسود أكثر عمقاً
+  static const superDarkSecondaryColor = Color(0xFF1E1E1E); // أسود داكن
+  static const superDarkAccentColor = Color(0xFF2979FF); // أزرق ساطع للتباين
+  static const superDarkBackgroundColor = Color(0xFF000000); // أسود خالص
+  static const superDarkSurfaceColor = Color(0xFF121212); // أسود مع لمسة رمادي
 
-  // الثيم الفاتح المحسن
-  static final lightTheme = ThemeData(
-    primaryColor: primaryColor,
-    scaffoldBackgroundColor: backgroundColor,
-    colorScheme: const ColorScheme.light(
-      primary: primaryColor,
-      secondary: secondaryColor,
-      tertiary: accentColor,
-      surface: backgroundColor,
-      error: errorColor,
-      onPrimary: textLightColor,
-      onSecondary: textLightColor,
-      onSurface: textPrimaryColor,
-    ),
-    textTheme: _baseTextTheme,
-    appBarTheme: const AppBarTheme(
-      backgroundColor: primaryColor,
-      foregroundColor: textLightColor,
-      elevation: 2,
-      centerTitle: true,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(
-          bottom: Radius.circular(16),
-        ),
-      ),
-    ),
-    elevatedButtonTheme: ElevatedButtonThemeData(
-      style: ElevatedButton.styleFrom(
-        backgroundColor: primaryColor,
-        foregroundColor: textLightColor,
-        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(12),
-        ),
-        elevation: 3,
-      ),
-    ),
-    textButtonTheme: TextButtonThemeData(
-      style: TextButton.styleFrom(
-        foregroundColor: primaryColor,
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-        textStyle: const TextStyle(fontWeight: FontWeight.w600),
-      ),
-    ),
-    outlinedButtonTheme: OutlinedButtonThemeData(
-      style: OutlinedButton.styleFrom(
-        foregroundColor: primaryColor,
-        side: const BorderSide(color: primaryColor, width: 1.5),
-        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(12),
-        ),
-      ),
-    ),
-    cardTheme: CardTheme(
-      color: Colors.white,
-      elevation: 4,
-      shadowColor: Colors.black.withOpacity(0.15),
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(16),
-        side: BorderSide(color: primaryColor.withOpacity(0.05), width: 0.7),
-      ),
-      margin: const EdgeInsets.all(8),
-    ),
-    inputDecorationTheme: InputDecorationTheme(
-      filled: true,
-      fillColor: Colors.white,
-      hintStyle: TextStyle(color: textSecondaryColor.withOpacity(0.7)),
-      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
-      border: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(12),
-        borderSide: BorderSide(color: primaryColor.withOpacity(0.1)),
-      ),
-      enabledBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(12),
-        borderSide: BorderSide(color: primaryColor.withOpacity(0.15)),
-      ),
-      focusedBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(12),
-        borderSide: const BorderSide(color: primaryColor, width: 1.5),
-      ),
-      errorBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(12),
-        borderSide: const BorderSide(color: errorColor),
-      ),
-      focusedErrorBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(12),
-        borderSide: const BorderSide(color: errorColor, width: 1.5),
-      ),
-      floatingLabelStyle: const TextStyle(color: primaryColor),
-      prefixIconColor: primaryColor,
-      suffixIconColor: primaryColor,
-    ),
-    chipTheme: ChipThemeData(
-      backgroundColor: secondaryColor.withOpacity(0.15),
-      selectedColor: primaryColor.withOpacity(0.2),
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-      labelStyle: const TextStyle(
-        color: textPrimaryColor,
-        fontSize: 14,
-      ),
-      secondaryLabelStyle: const TextStyle(
-        color: primaryColor,
-        fontSize: 14,
-        fontWeight: FontWeight.w600,
-      ),
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(8),
-        side: BorderSide(color: primaryColor.withOpacity(0.2)),
-      ),
-    ),
-    iconTheme: const IconThemeData(
-      color: accentColor,
-      size: 24,
-    ),
-    dialogTheme: DialogTheme(
-      backgroundColor: Colors.white,
-      elevation: 8,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(16),
-      ),
-    ),
-  );
+  // لايت (تعديل ثيم كلاسيك)
+  static const lightPrimaryColor = Color(0xFFFAFAFA); // أبيض ثلجي
+  static const lightSecondaryColor =
+      Color(0xFFF5F5F5); // أبيض مائل للرمادي فاتح
+  static const lightAccentColor = Color(0xFF2962FF); // أزرق ساطع
+  static const lightBackgroundColor = Color(0xFFFFFFFF); // أبيض
+  static const lightSurfaceColor = Color(0xFFF0F0F0); // رمادي فاتح جداً
 
-  // الثيم الداكن المحسن
-  static final darkTheme = ThemeData(
-    brightness: Brightness.dark,
-    primaryColor: darkPrimaryColor, // أسود
-    scaffoldBackgroundColor: darkBackgroundColor, // خلفية داكنة
-    colorScheme: const ColorScheme.dark(
-      primary: darkPrimaryColor, // أسود
-      secondary: darkSecondaryColor, // رمادي داكن
-      tertiary: darkAccentColor, // رمادي متوسط
-      error: errorColor,
-      surface: darkSurfaceColor, // أسود مائل للرمادي
-      onPrimary: textLightColor,
-      onSecondary: textLightColor,
-      onSurface: textLightColor,
-    ),
-    textTheme: _baseTextTheme.apply(
-      bodyColor: textLightColor,
-      displayColor: textLightColor,
-    ),
-    appBarTheme: const AppBarTheme(
-      backgroundColor: Color(0xFF1A1A1A),
-      foregroundColor: textLightColor,
-      elevation: 4,
-      centerTitle: true,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(
-          bottom: Radius.circular(16),
-        ),
-      ),
-    ),
-    elevatedButtonTheme: ElevatedButtonThemeData(
-      style: ElevatedButton.styleFrom(
-        backgroundColor: darkPrimaryColor,
-        foregroundColor: textLightColor,
-        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(12),
-        ),
-        elevation: 3,
-      ),
-    ),
-    cardTheme: CardTheme(
-      color: const Color(0xFF2D2D2D),
-      elevation: 4,
-      shadowColor: Colors.black.withOpacity(0.5),
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(16),
-        side: const BorderSide(color: Color(0xFF3F3F3F), width: 0.7),
-      ),
-      margin: const EdgeInsets.all(8),
-    ),
-    inputDecorationTheme: InputDecorationTheme(
-      filled: true,
-      fillColor: const Color(0xFF2D2D2D),
-      hintStyle: TextStyle(color: Colors.grey[400]),
-      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
-      border: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(12),
-        borderSide: const BorderSide(color: Color(0xFF444444)),
-      ),
-      enabledBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(12),
-        borderSide: const BorderSide(color: Color(0xFF444444)),
-      ),
-      focusedBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(12),
-        borderSide: const BorderSide(color: darkPrimaryColor, width: 1.5),
-      ),
-      errorBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(12),
-        borderSide: const BorderSide(color: errorColor),
-      ),
-      focusedErrorBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(12),
-        borderSide: const BorderSide(color: errorColor, width: 1.5),
-      ),
-      floatingLabelStyle: const TextStyle(color: darkPrimaryColor),
-      prefixIconColor: darkPrimaryColor,
-      suffixIconColor: darkPrimaryColor,
-    ),
-    chipTheme: ChipThemeData(
-      backgroundColor: const Color(0xFF383838),
-      selectedColor: darkPrimaryColor.withOpacity(0.3),
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-      labelStyle: const TextStyle(color: textLightColor, fontSize: 14),
-      secondaryLabelStyle: const TextStyle(
-        color: darkPrimaryColor,
-        fontSize: 14,
-        fontWeight: FontWeight.w600,
-      ),
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(8),
-        side: const BorderSide(color: Color(0xFF444444)),
-      ),
-    ),
-    iconTheme: const IconThemeData(
-      color: darkAccentColor,
-      size: 24,
-    ),
-    dialogTheme: DialogTheme(
-      backgroundColor: const Color(0xFF2D2D2D),
-      elevation: 8,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(16),
-      ),
-    ),
-  );
+  // رصاصي غامق (تعديل ثيم براون)
+  static const greyPrimaryColor = Color(0xFF424242); // رصاصي غامق
+  static const greySecondaryColor = Color(0xFF616161); // رصاصي متوسط
+  static const greyAccentColor = Color(0xFF90A4AE); // رصاصي فاتح
+  static const greyBackgroundColor = Color(0xFF303030); // رصاصي غامق
+  static const greySurfaceColor = Color(0xFF484848); // رصاصي متوسط غامق
 
-  // ثيم النعناع (بديل للقهوة)
-  static final mintTheme = ThemeData(
-    primaryColor: mintPrimaryColor,
-    scaffoldBackgroundColor: mintBackgroundColor,
-    colorScheme: const ColorScheme.light(
-      primary: mintPrimaryColor,
-      secondary: mintSecondaryColor,
-      tertiary: mintAccentColor,
-      surface: mintSurfaceColor,
-      error: errorColor,
-      onPrimary: textLightColor,
-      onSecondary: textLightColor,
-      onSurface: textPrimaryColor,
-    ),
-    textTheme: _baseTextTheme.copyWith(
-      titleLarge: const TextStyle(
-          fontSize: 18, color: mintPrimaryColor, fontWeight: FontWeight.w600),
-      titleMedium: const TextStyle(
-          fontSize: 16, color: mintPrimaryColor, fontWeight: FontWeight.w600),
-      titleSmall: const TextStyle(
-          fontSize: 15, color: mintPrimaryColor, fontWeight: FontWeight.w500),
-      labelLarge: const TextStyle(
-          fontSize: 16, color: mintSecondaryColor, fontWeight: FontWeight.w600),
-      labelMedium: const TextStyle(fontSize: 14, color: mintSecondaryColor),
-      labelSmall: const TextStyle(fontSize: 14, color: mintSecondaryColor),
-    ),
-    appBarTheme: const AppBarTheme(
-      backgroundColor: mintPrimaryColor,
-      foregroundColor: textLightColor,
-      elevation: 2,
-      centerTitle: true,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(
-          bottom: Radius.circular(16),
-        ),
-      ),
-    ),
-    elevatedButtonTheme: ElevatedButtonThemeData(
-      style: ElevatedButton.styleFrom(
-        backgroundColor: mintSecondaryColor,
-        foregroundColor: textLightColor,
-        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(12),
-        ),
-        elevation: 3,
-      ),
-    ),
-    textButtonTheme: TextButtonThemeData(
-      style: TextButton.styleFrom(
-        foregroundColor: mintPrimaryColor,
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-        textStyle: const TextStyle(fontWeight: FontWeight.w600),
-      ),
-    ),
-    cardTheme: CardTheme(
-      color: Colors.white.withOpacity(0.9),
-      elevation: 4,
-      shadowColor: mintPrimaryColor.withOpacity(0.2),
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(16),
-        side: BorderSide(color: mintPrimaryColor.withOpacity(0.2), width: 0.7),
-      ),
-      margin: const EdgeInsets.all(8),
-    ),
-    inputDecorationTheme: InputDecorationTheme(
-      filled: true,
-      fillColor: Colors.white.withOpacity(0.8),
-      hintStyle: TextStyle(color: textSecondaryColor.withOpacity(0.7)),
-      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
-      border: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(12),
-        borderSide: BorderSide(color: mintPrimaryColor.withOpacity(0.2)),
-      ),
-      enabledBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(12),
-        borderSide: BorderSide(color: mintPrimaryColor.withOpacity(0.2)),
-      ),
-      focusedBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(12),
-        borderSide: const BorderSide(color: mintPrimaryColor, width: 1.5),
-      ),
-      errorBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(12),
-        borderSide: const BorderSide(color: errorColor),
-      ),
-      focusedErrorBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(12),
-        borderSide: const BorderSide(color: errorColor, width: 1.5),
-      ),
-      floatingLabelStyle: const TextStyle(color: mintPrimaryColor),
-      prefixIconColor: mintPrimaryColor,
-      suffixIconColor: mintPrimaryColor,
-    ),
-    iconTheme: const IconThemeData(
-      color: mintSecondaryColor,
-      size: 24,
-    ),
-  );
+  // سكاي بلو (تعديل ثيم أوشين)
+  static const skyPrimaryColor = Color(0xFF03A9F4); // أزرق سماوي
+  static const skySecondaryColor = Color(0xFF4FC3F7); // أزرق سماوي فاتح
+  static const skyAccentColor = Color(0xFF0288D1); // أزرق مائل للداكن
+  static const skyBackgroundColor = Color(0xFFE1F5FE); // أزرق فاتح جداً
+  static const skySurfaceColor = Color(0xFFB3E5FC); // أزرق فاتح
 
-  // ثيم الحلويات الباستيل
-  static final sweetTheme = ThemeData(
-    primaryColor: sweetPrimaryColor,
-    scaffoldBackgroundColor: sweetBackgroundColor,
-    colorScheme: const ColorScheme.light(
-      primary: sweetPrimaryColor,
-      secondary: sweetSecondaryColor,
-      tertiary: sweetAccentColor,
-      surface: sweetSurfaceColor,
-      error: errorColor,
-      onPrimary: textLightColor,
-      onSecondary: textLightColor,
-      onSurface: textPrimaryColor,
-    ),
-    // استخدام نفس السمة النصية ذات حجم الخط 14
-    textTheme: _baseTextTheme.copyWith(
-      titleLarge: const TextStyle(
-          fontSize: 20, color: sweetPrimaryColor, fontWeight: FontWeight.w600),
-      titleMedium: const TextStyle(
-          fontSize: 19, color: sweetPrimaryColor, fontWeight: FontWeight.w600),
-      titleSmall: const TextStyle(
-          fontSize: 18, color: sweetPrimaryColor, fontWeight: FontWeight.w500),
-      labelLarge: const TextStyle(
+  // مارون (تعديل ثيم مودرن)
+  static const maroonPrimaryColor = Color(0xFF800000); // مارون كلاسيكي
+  static const maroonSecondaryColor = Color(0xFFA52A2A); // بني محمّر
+  static const maroonAccentColor = Color(0xFFD32F2F); // أحمر داكن
+  static const maroonBackgroundColor = Color(0xFFFBE9E7); // أبيض وردي فاتح
+  static const maroonSurfaceColor = Color(0xFFFFCDD2); // وردي فاتح
+
+  // تحديث حجم الخط الأساسي مع تباين لوني أفضل للقراءة وتوحيد قيمة inherit
+  static TextTheme createBaseTextTheme(Color textColor) {
+    return GoogleFonts.cairoTextTheme().copyWith(
+      displayLarge: TextStyle(
+          inherit: true,
+          fontSize: 26,
+          color: textColor,
+          fontWeight: FontWeight.bold),
+      displayMedium: TextStyle(
+          inherit: true,
+          fontSize: 22,
+          color: textColor,
+          fontWeight: FontWeight.bold),
+      displaySmall: TextStyle(
+          inherit: true,
+          fontSize: 18,
+          color: textColor,
+          fontWeight: FontWeight.bold),
+      headlineLarge: TextStyle(
+          inherit: true,
+          fontSize: 20,
+          color: textColor,
+          fontWeight: FontWeight.bold),
+      headlineMedium: TextStyle(
+          inherit: true,
+          fontSize: 18,
+          color: textColor,
+          fontWeight: FontWeight.bold),
+      headlineSmall: TextStyle(
+          inherit: true,
           fontSize: 16,
-          color: sweetSecondaryColor,
+          color: textColor,
           fontWeight: FontWeight.w600),
-      labelMedium: const TextStyle(fontSize: 14, color: sweetSecondaryColor),
-      labelSmall: const TextStyle(fontSize: 14, color: sweetSecondaryColor),
-    ),
-    appBarTheme: const AppBarTheme(
-      backgroundColor: sweetPrimaryColor,
-      foregroundColor: textLightColor,
-      elevation: 2,
-      centerTitle: true,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(
-          bottom: Radius.circular(16),
-        ),
-      ),
-    ),
-    // أزرار محسنة
-    elevatedButtonTheme: ElevatedButtonThemeData(
-      style: ElevatedButton.styleFrom(
-        backgroundColor: sweetSecondaryColor,
-        foregroundColor: textLightColor,
-        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(12),
-        ),
-        elevation: 3,
-      ),
-    ),
-    // أزرار نصية
-    textButtonTheme: TextButtonThemeData(
-      style: TextButton.styleFrom(
-        foregroundColor: sweetPrimaryColor,
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-        textStyle: const TextStyle(fontWeight: FontWeight.w600),
-      ),
-    ),
-    // بطاقات محسنة
-    cardTheme: CardTheme(
-      color: Colors.white.withOpacity(0.9),
-      elevation: 4,
-      shadowColor: sweetPrimaryColor.withOpacity(0.2),
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(16),
-        side: BorderSide(color: sweetPrimaryColor.withOpacity(0.2), width: 0.7),
-      ),
-      margin: const EdgeInsets.all(8),
-    ),
-    // حقول النص محسنة
-    inputDecorationTheme: InputDecorationTheme(
-      filled: true,
-      fillColor: Colors.white.withOpacity(0.8),
-      hintStyle: TextStyle(color: textSecondaryColor.withOpacity(0.7)),
-      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
-      border: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(12),
-        borderSide: BorderSide(color: sweetPrimaryColor.withOpacity(0.2)),
-      ),
-      enabledBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(12),
-        borderSide: BorderSide(color: sweetPrimaryColor.withOpacity(0.2)),
-      ),
-      focusedBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(12),
-        borderSide: const BorderSide(color: sweetPrimaryColor, width: 1.5),
-      ),
-      errorBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(12),
-        borderSide: const BorderSide(color: errorColor),
-      ),
-      focusedErrorBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(12),
-        borderSide: const BorderSide(color: errorColor, width: 1.5),
-      ),
-      floatingLabelStyle: const TextStyle(color: sweetPrimaryColor),
-      prefixIconColor: sweetPrimaryColor,
-      suffixIconColor: sweetPrimaryColor,
-    ),
-    // أيقونات
-    iconTheme: const IconThemeData(
-      color: sweetSecondaryColor,
-      size: 24,
-    ),
-  );
-
-  // ثيم القهوة الكلاسيكي
-  static final coffeeTheme = ThemeData(
-    primaryColor: coffeePrimaryColor,
-    scaffoldBackgroundColor: coffeeBackgroundColor,
-    colorScheme: const ColorScheme.light(
-      primary: coffeePrimaryColor,
-      secondary: coffeeSecondaryColor,
-      tertiary: coffeeAccentColor,
-      surface: coffeeSurfaceColor,
-      error: errorColor,
-      onPrimary: textLightColor,
-      onSecondary: textLightColor,
-      onSurface: textPrimaryColor,
-    ),
-    textTheme: _baseTextTheme.copyWith(
-      titleLarge: const TextStyle(
-          fontSize: 18, color: coffeePrimaryColor, fontWeight: FontWeight.w600),
-      titleMedium: const TextStyle(
-          fontSize: 16, color: coffeePrimaryColor, fontWeight: FontWeight.w600),
-      titleSmall: const TextStyle(
-          fontSize: 15, color: coffeePrimaryColor, fontWeight: FontWeight.w500),
-      labelLarge: const TextStyle(
+      titleLarge: TextStyle(
+          inherit: true,
           fontSize: 16,
-          color: coffeeSecondaryColor,
+          color: textColor,
           fontWeight: FontWeight.w600),
-      labelMedium: const TextStyle(fontSize: 14, color: coffeeSecondaryColor),
-      labelSmall: const TextStyle(fontSize: 14, color: coffeeSecondaryColor),
-    ),
-    appBarTheme: const AppBarTheme(
-      backgroundColor: coffeePrimaryColor,
-      foregroundColor: textLightColor,
-      elevation: 2,
-      centerTitle: true,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(
-          bottom: Radius.circular(16),
-        ),
-      ),
-    ),
-    // باقي إعدادات الثيم مشابهة لثيمات أخرى
-    elevatedButtonTheme: ElevatedButtonThemeData(
-      style: ElevatedButton.styleFrom(
-        backgroundColor: coffeeSecondaryColor,
-        foregroundColor: textLightColor,
-        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(12),
-        ),
-        elevation: 3,
-      ),
-    ),
-    textButtonTheme: TextButtonThemeData(
-      style: TextButton.styleFrom(
-        foregroundColor: coffeePrimaryColor,
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-        textStyle: const TextStyle(fontWeight: FontWeight.w600),
-      ),
-    ),
-    cardTheme: CardTheme(
-      color: Colors.white.withOpacity(0.9),
-      elevation: 4,
-      shadowColor: coffeePrimaryColor.withOpacity(0.2),
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(16),
-        side:
-            BorderSide(color: coffeePrimaryColor.withOpacity(0.2), width: 0.7),
-      ),
-      margin: const EdgeInsets.all(8),
-    ),
-    iconTheme: const IconThemeData(
-      color: coffeeAccentColor,
-      size: 24,
-    ),
-  );
+      titleMedium: TextStyle(
+          inherit: true,
+          fontSize: 15,
+          color: textColor,
+          fontWeight: FontWeight.w600),
+      titleSmall: TextStyle(
+          inherit: true,
+          fontSize: 16,
+          color: textColor,
+          fontWeight: FontWeight.w500),
+      bodyLarge: TextStyle(inherit: true, fontSize: 14, color: textColor),
+      bodyMedium: TextStyle(inherit: true, fontSize: 14, color: textColor),
+      bodySmall: TextStyle(
+          inherit: true,
+          fontSize: 14,
+          color: Color.fromRGBO(
+              textColor.red, textColor.green, textColor.blue, 0.8)),
+      labelLarge: TextStyle(
+          inherit: true,
+          fontSize: 16,
+          color: textColor,
+          fontWeight: FontWeight.w600),
+      labelMedium: TextStyle(
+          inherit: true,
+          fontSize: 14,
+          color: textColor,
+          fontWeight: FontWeight.w500),
+      labelSmall: TextStyle(
+          inherit: true,
+          fontSize: 12,
+          color: Color.fromRGBO(
+              textColor.red, textColor.green, textColor.blue, 0.8),
+          fontWeight: FontWeight.w500),
+    );
+  }
 
-  // دالة لاختيار الثيم المناسب حسب الاسم
-  static ThemeData getThemeByName(String themeName) {
+  // الثيم الكلاسيكي - أزرق أنيق
+  static ThemeData classicTheme(Color? customTextColor) {
+    final textColor = customTextColor ?? textPrimaryColor;
+    return ThemeData(
+      primaryColor: classicPrimaryColor,
+      scaffoldBackgroundColor: classicBackgroundColor,
+      colorScheme: const ColorScheme.light(
+        primary: classicPrimaryColor,
+        secondary: classicSecondaryColor,
+        tertiary: classicAccentColor,
+        surface: classicSurfaceColor,
+        error: errorColor,
+        onPrimary: textLightColor,
+        onSecondary: textLightColor,
+        onSurface: textPrimaryColor,
+      ),
+      textTheme: createBaseTextTheme(textColor),
+      textButtonTheme: TextButtonThemeData(
+        style: TextButton.styleFrom(
+          foregroundColor: classicPrimaryColor,
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+          textStyle:
+              const TextStyle(fontWeight: FontWeight.w600, inherit: true),
+        ),
+      ),
+      outlinedButtonTheme: OutlinedButtonThemeData(
+        style: OutlinedButton.styleFrom(
+          foregroundColor: classicPrimaryColor,
+          side: const BorderSide(color: classicPrimaryColor, width: 1.5),
+          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
+        ),
+      ),
+      cardTheme: CardTheme(
+        color: Colors.white,
+        elevation: 4,
+        shadowColor: Color.fromRGBO(classicPrimaryColor.red,
+            classicPrimaryColor.green, classicPrimaryColor.blue, 0.15),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(16),
+          side: BorderSide(
+              color: Color.fromRGBO(classicPrimaryColor.red,
+                  classicPrimaryColor.green, classicPrimaryColor.blue, 0.05),
+              width: 0.7),
+        ),
+        margin: const EdgeInsets.all(8),
+      ),
+      inputDecorationTheme: InputDecorationTheme(
+        filled: true,
+        fillColor: Colors.white,
+        hintStyle: TextStyle(
+            color: Color.fromRGBO(textSecondaryColor.red,
+                textSecondaryColor.green, textSecondaryColor.blue, 0.7)),
+        contentPadding:
+            const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: BorderSide(
+              color: Color.fromRGBO(classicPrimaryColor.red,
+                  classicPrimaryColor.green, classicPrimaryColor.blue, 0.1)),
+        ),
+        enabledBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: BorderSide(
+              color: Color.fromRGBO(classicPrimaryColor.red,
+                  classicPrimaryColor.green, classicPrimaryColor.blue, 0.15)),
+        ),
+        focusedBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: const BorderSide(color: classicPrimaryColor, width: 1.5),
+        ),
+        errorBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: const BorderSide(color: errorColor),
+        ),
+        focusedErrorBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: const BorderSide(color: errorColor, width: 1.5),
+        ),
+        floatingLabelStyle: const TextStyle(color: classicPrimaryColor),
+      ),
+      iconTheme: const IconThemeData(
+        color: classicAccentColor,
+        size: 24,
+      ),
+      dialogTheme: DialogTheme(
+        backgroundColor: Colors.white,
+        elevation: 8,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(16),
+        ),
+      ),
+    );
+  }
+
+  // الثيم العصري - بنفسجي وأرجواني
+  static ThemeData modernTheme(Color? customTextColor) {
+    final textColor = customTextColor ?? textPrimaryColor;
+    return ThemeData(
+      primaryColor: modernPrimaryColor,
+      scaffoldBackgroundColor: modernBackgroundColor,
+      colorScheme: const ColorScheme.light(
+        primary: modernPrimaryColor,
+        secondary: modernSecondaryColor,
+        tertiary: modernAccentColor,
+        surface: modernSurfaceColor,
+        error: errorColor,
+        onPrimary: textLightColor,
+        onSecondary: textLightColor,
+        onSurface: textPrimaryColor,
+      ),
+      textTheme: createBaseTextTheme(textColor),
+      appBarTheme: const AppBarTheme(
+        backgroundColor: modernPrimaryColor,
+        foregroundColor: textLightColor,
+        elevation: 2,
+        centerTitle: true,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.vertical(
+            bottom: Radius.circular(16),
+          ),
+        ),
+      ),
+      elevatedButtonTheme: ElevatedButtonThemeData(
+        style: ElevatedButton.styleFrom(
+          backgroundColor: modernSecondaryColor,
+          foregroundColor: textLightColor,
+          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
+          elevation: 3,
+        ),
+      ),
+      textButtonTheme: TextButtonThemeData(
+        style: TextButton.styleFrom(
+          foregroundColor: modernPrimaryColor,
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+          textStyle: const TextStyle(fontWeight: FontWeight.w600),
+        ),
+      ),
+      cardTheme: CardTheme(
+        color: Color.fromRGBO(
+            Colors.white.red, Colors.white.green, Colors.white.blue, 0.9),
+        elevation: 4,
+        shadowColor: Color.fromRGBO(modernPrimaryColor.red,
+            modernPrimaryColor.green, modernPrimaryColor.blue, 0.2),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(16),
+          side: BorderSide(
+              color: Color.fromRGBO(modernPrimaryColor.red,
+                  modernPrimaryColor.green, modernPrimaryColor.blue, 0.2),
+              width: 0.7),
+        ),
+        margin: const EdgeInsets.all(8),
+      ),
+      iconTheme: const IconThemeData(
+        color: modernAccentColor,
+        size: 24,
+      ),
+    );
+  }
+
+  // الثيم الداكن المحسن للقراءة
+  static ThemeData darkTheme(Color? customTextColor) {
+    // استخدام textLightColor دائمًا للثيم الداكن بغض النظر عن customTextColor
+    final textColor = textLightColor;
+    return ThemeData(
+      brightness: Brightness.dark,
+      primaryColor: darkPrimaryColor,
+      scaffoldBackgroundColor: darkBackgroundColor,
+      colorScheme: const ColorScheme.dark(
+        primary: darkPrimaryColor,
+        secondary: darkSecondaryColor,
+        tertiary: darkAccentColor,
+        error: errorColor,
+        surface: darkSurfaceColor,
+        onPrimary: textLightColor,
+        onSecondary: textLightColor,
+        onSurface: textLightColor,
+      ),
+      textTheme: createBaseTextTheme(textColor),
+      appBarTheme: const AppBarTheme(
+        backgroundColor: Color(0xFF1A1A1A),
+        foregroundColor: textLightColor,
+        elevation: 4,
+        centerTitle: true,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.vertical(
+            bottom: Radius.circular(16),
+          ),
+        ),
+      ),
+      elevatedButtonTheme: ElevatedButtonThemeData(
+        style: ElevatedButton.styleFrom(
+          backgroundColor: darkSecondaryColor,
+          foregroundColor: textLightColor,
+          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
+          elevation: 3,
+        ),
+      ),
+      cardTheme: CardTheme(
+        color: const Color(0xFF2D2D2D),
+        elevation: 4,
+        shadowColor: Color.fromRGBO(
+            Colors.black.red, Colors.black.green, Colors.black.blue, 0.5),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(16),
+          side: const BorderSide(color: Color(0xFF3F3F3F), width: 0.7),
+        ),
+        margin: const EdgeInsets.all(8),
+      ),
+      iconTheme: const IconThemeData(
+        // استخدام لون فاتح للأيقونات بدلاً من darkAccentColor
+        color: Colors.white70, 
+        size: 24,
+      ),
+    );
+  }
+
+  // إضافة دوال الثيمات الجديدة
+  static ThemeData lightTheme(Color? customTextColor) {
+    final textColor = customTextColor ?? textPrimaryColor;
+    return ThemeData(
+      primaryColor: lightPrimaryColor,
+      scaffoldBackgroundColor: lightBackgroundColor,
+      colorScheme: const ColorScheme.light(
+        primary: lightPrimaryColor,
+        secondary: lightSecondaryColor,
+        tertiary: lightAccentColor,
+        surface: lightSurfaceColor,
+        error: errorColor,
+        onPrimary: textDarkColor,
+        onSecondary: textDarkColor,
+        onSurface: textDarkColor,
+      ),
+      textTheme: createBaseTextTheme(textColor),
+      appBarTheme: const AppBarTheme(
+        backgroundColor: lightPrimaryColor,
+        foregroundColor: textDarkColor,
+        elevation: 1,
+        centerTitle: true,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.vertical(
+            bottom: Radius.circular(16),
+          ),
+        ),
+      ),
+      elevatedButtonTheme: ElevatedButtonThemeData(
+        style: ElevatedButton.styleFrom(
+          backgroundColor: lightAccentColor,
+          foregroundColor: textLightColor,
+          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
+          elevation: 2,
+        ),
+      ),
+      textButtonTheme: TextButtonThemeData(
+        style: TextButton.styleFrom(
+          foregroundColor: lightAccentColor,
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+          textStyle: const TextStyle(fontWeight: FontWeight.w600),
+        ),
+      ),
+      outlinedButtonTheme: OutlinedButtonThemeData(
+        style: OutlinedButton.styleFrom(
+          foregroundColor: lightAccentColor,
+          side: const BorderSide(color: lightAccentColor, width: 1.5),
+          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
+        ),
+      ),
+      cardTheme: CardTheme(
+        color: Colors.white,
+        elevation: 2,
+        shadowColor: const Color(0x1A000000),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(16),
+          side: const BorderSide(color: Color(0x0A000000), width: 0.5),
+        ),
+        margin: const EdgeInsets.all(8),
+      ),
+      iconTheme: const IconThemeData(
+        color: lightAccentColor,
+        size: 24,
+      ),
+      inputDecorationTheme: InputDecorationTheme(
+        filled: true,
+        fillColor: Colors.white,
+        contentPadding:
+            const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: const BorderSide(color: Color(0xFFE0E0E0)),
+        ),
+        enabledBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: const BorderSide(color: Color(0xFFE0E0E0)),
+        ),
+        focusedBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: const BorderSide(color: lightAccentColor, width: 1.5),
+        ),
+      ),
+    );
+  }
+
+  static ThemeData greyTheme(Color? customTextColor) {
+    // استخدام textLightColor دائمًا للثيم الرمادي بغض النظر عن customTextColor
+    final textColor = textLightColor;
+    return ThemeData(
+      brightness: Brightness.dark,
+      primaryColor: greyPrimaryColor,
+      scaffoldBackgroundColor: greyBackgroundColor,
+      colorScheme: const ColorScheme.dark(
+        primary: greyPrimaryColor,
+        secondary: greySecondaryColor,
+        tertiary: greyAccentColor,
+        surface: greySurfaceColor,
+        error: errorColor,
+        onPrimary: textLightColor,
+        onSecondary: textLightColor,
+        onSurface: textLightColor,
+      ),
+      textTheme: createBaseTextTheme(textColor),
+      appBarTheme: const AppBarTheme(
+        backgroundColor: greyPrimaryColor,
+        foregroundColor: textLightColor,
+        elevation: 2,
+        centerTitle: true,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.vertical(
+            bottom: Radius.circular(16),
+          ),
+        ),
+      ),
+      elevatedButtonTheme: ElevatedButtonThemeData(
+        style: ElevatedButton.styleFrom(
+          backgroundColor: greySecondaryColor,
+          foregroundColor: textLightColor,
+          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
+          elevation: 3,
+        ),
+      ),
+      textButtonTheme: TextButtonThemeData(
+        style: TextButton.styleFrom(
+          // استخدام لون فاتح للنص
+          foregroundColor: Colors.white70,
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+          textStyle: const TextStyle(fontWeight: FontWeight.w600),
+        ),
+      ),
+      outlinedButtonTheme: OutlinedButtonThemeData(
+        style: OutlinedButton.styleFrom(
+          // استخدام لون فاتح للحدود والنص
+          foregroundColor: Colors.white70,
+          side: const BorderSide(color: Colors.white70, width: 1.5),
+          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
+        ),
+      ),
+      cardTheme: CardTheme(
+        color: greySurfaceColor,
+        elevation: 4,
+        shadowColor: const Color(0x40000000),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(16),
+          side: const BorderSide(color: Color(0xFF505050), width: 0.7),
+        ),
+        margin: const EdgeInsets.all(8),
+      ),
+      iconTheme: const IconThemeData(
+        // استخدام لون فاتح للأيقونات
+        color: Colors.white70,
+        size: 24,
+      ),
+      inputDecorationTheme: InputDecorationTheme(
+        filled: true,
+        fillColor: const Color(0xFF404040),
+        contentPadding:
+            const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: const BorderSide(color: Color(0xFF505050)),
+        ),
+        enabledBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: const BorderSide(color: Color(0xFF505050)),
+        ),
+        focusedBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          // استخدام لون فاتح لحدود الحقول
+          borderSide: const BorderSide(color: Colors.white70, width: 1.5),
+        ),
+      ),
+    );
+  }
+
+  static ThemeData maroonTheme(Color? customTextColor) {
+    final textColor = customTextColor ?? textPrimaryColor;
+    return ThemeData(
+      primaryColor: maroonPrimaryColor,
+      scaffoldBackgroundColor: maroonBackgroundColor,
+      colorScheme: const ColorScheme.light(
+        primary: maroonPrimaryColor,
+        secondary: maroonSecondaryColor,
+        tertiary: maroonAccentColor,
+        surface: maroonSurfaceColor,
+        error: errorColor,
+        onPrimary: textLightColor,
+        onSecondary: textLightColor,
+        onSurface: textPrimaryColor,
+      ),
+      textTheme: createBaseTextTheme(textColor),
+      appBarTheme: const AppBarTheme(
+        backgroundColor: maroonPrimaryColor,
+        foregroundColor: textLightColor,
+        elevation: 3,
+        centerTitle: true,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.vertical(
+            bottom: Radius.circular(16),
+          ),
+        ),
+      ),
+      elevatedButtonTheme: ElevatedButtonThemeData(
+        style: ElevatedButton.styleFrom(
+          backgroundColor: maroonSecondaryColor,
+          foregroundColor: textLightColor,
+          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
+          elevation: 3,
+        ),
+      ),
+      textButtonTheme: TextButtonThemeData(
+        style: TextButton.styleFrom(
+          foregroundColor: maroonAccentColor,
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+          textStyle: const TextStyle(fontWeight: FontWeight.w600),
+        ),
+      ),
+      outlinedButtonTheme: OutlinedButtonThemeData(
+        style: OutlinedButton.styleFrom(
+          foregroundColor: maroonSecondaryColor,
+          side: const BorderSide(color: maroonSecondaryColor, width: 1.5),
+          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
+        ),
+      ),
+      cardTheme: CardTheme(
+        color: Colors.white,
+        elevation: 3,
+        shadowColor: const Color(0x1A800000),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(16),
+          side: const BorderSide(color: Color(0x1A800000), width: 0.7),
+        ),
+        margin: const EdgeInsets.all(8),
+      ),
+      iconTheme: const IconThemeData(
+        color: maroonAccentColor,
+        size: 24,
+      ),
+      inputDecorationTheme: InputDecorationTheme(
+        filled: true,
+        fillColor: Colors.white,
+        contentPadding:
+            const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: const BorderSide(color: Color(0x33800000)),
+        ),
+        enabledBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: const BorderSide(color: Color(0x33800000)),
+        ),
+        focusedBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: const BorderSide(color: maroonPrimaryColor, width: 1.5),
+        ),
+      ),
+    );
+  }
+
+  // تصحيح تعريف دالة getThemeByName - تبسيط إلى 4 ثيمات فقط
+  static ThemeData getThemeByName(String themeName, {Color? customTextColor}) {
     switch (themeName) {
-      case 'light':
-        return lightTheme;
       case 'dark':
-        return darkTheme;
-      case 'mint':
-        return mintTheme;
-      case 'sweet':
-        return sweetTheme;
-      case 'coffee':
-        return coffeeTheme;
+        return darkTheme(textLightColor); // دائما استخدم textLightColor للثيمات الداكنة
+      case 'light':
+        return lightTheme(customTextColor ?? textPrimaryColor);
+      case 'grey':
+        return greyTheme(textLightColor); // دائما استخدم textLightColor للثيمات الداكنة
+      case 'maroon':
+        return maroonTheme(customTextColor ?? textPrimaryColor);
       default:
-        return lightTheme;
+        return lightTheme(customTextColor ?? textPrimaryColor);
     }
   }
 }

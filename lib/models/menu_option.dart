@@ -64,7 +64,7 @@ class MenuOption {
     int? sortOrder,
   }) {
     return MenuOption(
-      id: this.id,
+      id: id,
       title: title ?? this.title,
       icon: icon ?? this.icon,
       route: route ?? this.route,

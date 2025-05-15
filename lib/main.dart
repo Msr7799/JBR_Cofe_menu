@@ -28,10 +28,10 @@ import 'package:gpr_coffee_shop/middleware/auth_middleware.dart';
 import 'package:gpr_coffee_shop/utils/app_translations.dart';
 import 'package:gpr_coffee_shop/services/app_translation_service.dart';
 import 'package:gpr_coffee_shop/services/notification_service.dart';
-import 'package:gpr_coffee_shop/screens/admin/benefit_pay_qr_management.dart';
 import 'package:gpr_coffee_shop/screens/view_options_screen.dart';
 import 'package:gpr_coffee_shop/utils/logger_util.dart';
 import 'package:gpr_coffee_shop/utils/rendering_helper.dart';
+import 'package:gpr_coffee_shop/utils/platform_fix_util.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:gpr_coffee_shop/screens/about_screen.dart';
 import 'package:gpr_coffee_shop/screens/admin/order_management_screen.dart';
@@ -81,6 +81,9 @@ void main() async {
   if (!kIsWeb && Platform.isWindows) {
     // استخدام الوظائف المعدلة من RenderingHelper بدلاً من الكود المباشر
     RenderingHelper.applyOptimizations();
+
+    // فحص وإصلاح مشاكل البناء في نظام Windows
+    PlatformFixUtil.checkWindowsBuildIssues();
   }
 
   // IMPORTANT: Comment this line after running once to reset Hive
@@ -151,65 +154,72 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return GetBuilder<SettingsController>(
       builder: (controller) {
-        // تطبيق الثيم مقدماً بدلاً من داخل _getThemeMode
+        // تطبيق الثيم بناءً على الإعدادات الحالية
         final themeMode = _getThemeMode(controller.themeMode);
+
+        // تحقق من أن الثيم هو أحد الثيمات المدعومة فقط
+        String validTheme = controller.themeMode;
+        if (!['light', 'dark', 'grey', 'maroon'].contains(validTheme)) {
+          validTheme = 'light'; // استخدام الوضع الفاتح افتراضيًا
+        }
+
+        // استخدام الثيم المحدد كثيم أساسي للتطبيق
+        final ThemeData lightTheme = AppTheme.getThemeByName(validTheme);
+
+        // دائماً استخدام ثيم داكن محدد
+        final ThemeData darkTheme = AppTheme.darkTheme(AppTheme.textLightColor);
 
         return GetMaterialApp(
           title: 'app_name'.tr,
-          theme: AppTheme.lightTheme,
-          darkTheme: AppTheme.darkTheme,
+          theme: lightTheme, // استخدام الثيم المحدد من المستخدم
+          darkTheme: darkTheme,
           themeMode: themeMode,
           locale: translationService.currentLocale.value,
           translations: Get.find<AppTranslations>(),
           fallbackLocale: const Locale('ar'),
           textDirection: translationService.textDirection.value,
           debugShowCheckedModeBanner: false,
-          initialRoute: '/',
-          defaultTransition: Transition.fade,
-          navigatorKey: Get.key,
+          initialRoute: '/splash',
           getPages: [
-            // الروت الرئيسي مع تحديث البايندنج
             GetPage(
-              name: '/',
-              page: () => const HomeScreen(),
-              binding: BindingsBuilder(() {
-                Get.lazyPut(() => MenuOptionsController(), fenix: true);
-              }),
-            ),
-
-            // باقي الروتات الموجودة
-            GetPage(name: '/splash', page: () => const SplashScreen()),
+                name: '/splash',
+                page: () => const SplashScreen(nextRoute: '/')),
+            GetPage(name: '/', page: () => const HomeScreen()),
             GetPage(name: '/menu', page: () => MenuScreen()),
-            GetPage(name: '/settings', page: () => const SettingsScreen()),
-            GetPage(name: '/location', page: () => const LocationScreen()),
-            GetPage(name: '/view-options', page: () => ViewOptionsScreen()),
             GetPage(name: '/rate', page: () => const RateScreen()),
 
-            // إضافة روت جديد
-            GetPage(name: '/about', page: () => const AboutScreen()),
-
-            // إضافة روت جديد مع المحافظة على الميدلويرز
-            GetPage(
-              name: '/order-management',
-              page: () => const OrderManagementScreen(),
-              middlewares: [AuthMiddleware()],
-            ),
-
-            // الروتات الموجودة بالفعل مع الميدلويرز
-            GetPage(
-              name: '/login',
-              page: () => LoginScreen(),
-            ),
+            // تطبيق middleware على شاشات الإدارة
             GetPage(
               name: '/admin',
               page: () => const AdminDashboard(),
-              middlewares: [AuthMiddleware()],
+              middlewares: [
+                AuthMiddleware()
+              ], // إضافة middleware للتحقق من الصلاحيات
             ),
             GetPage(
-              name: '/benefit-pay-qr',
-              page: () => const BenefitPayQrManagement(),
-              middlewares: [AuthMiddleware()],
+              name: '/admin/orders',
+              page: () => const OrderManagementScreen(),
+              middlewares: [
+                AuthMiddleware()
+              ], // إضافة middleware للتحقق من الصلاحيات
             ),
+            GetPage(
+              name: '/order-management',
+              page: () => const OrderManagementScreen(),
+              middlewares: [
+                AuthMiddleware()
+              ], // إضافة middleware للتحقق من الصلاحيات
+            ),
+            GetPage(name: '/admin/login', page: () => const LoginScreen()),
+
+            // باقي الصفحات
+            GetPage(name: '/location', page: () => const LocationScreen()),
+            GetPage(name: '/view-options', page: () => ViewOptionsScreen()),
+            GetPage(name: '/settings', page: () => const SettingsScreen()),
+            GetPage(name: '/about', page: () => const AboutScreen()),
+            GetPage(
+                name: '/order-management',
+                page: () => const OrderManagementScreen()),
           ],
           popGesture: true,
         );
@@ -218,21 +228,18 @@ class MyApp extends StatelessWidget {
   }
 
   ThemeMode _getThemeMode(String mode) {
-    // تنفيذ تغيير الثيم قبل إرجاع ThemeMode
+    // تنفيذ تغيير الثيم قبل إرجاع ThemeMode - تبسيط إلى 4 ثيمات فقط
     switch (mode) {
       case 'dark':
         return ThemeMode.dark;
       case 'light':
-        return ThemeMode.light;
-      case 'coffee':
-        // تطبيق الثيم خارج الدالة وليس هنا
-        return ThemeMode.light;
-      case 'sweet':
-        // تطبيق الثيم خارج الدالة وليس هنا
+      case 'grey':
+      case 'maroon':
         return ThemeMode.light;
       case 'system':
-      default:
         return ThemeMode.system;
+      default:
+        return ThemeMode.light;
     }
   }
 }

@@ -14,8 +14,7 @@ class FeedbackManagement extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(
         title: const Text('إدارة التعليقات والمقترحات'),
-        backgroundColor: AppTheme.primaryColor,
-        foregroundColor: Colors.white,
+        // استخدام ثيم التطبيق بدلاً من تعيين الألوان يدويًا
         actions: [
           // زر حذف جميع التعليقات
           IconButton(
@@ -56,13 +55,18 @@ class FeedbackManagement extends StatelessWidget {
                               const SizedBox(height: 8),
                               Row(
                                 children: [
-                                  const Icon(Icons.star,
-                                      color: AppTheme.primaryColor, size: 16),
+                                  Icon(Icons.star,
+                                      color:
+                                          Theme.of(context).colorScheme.primary,
+                                      size: 16),
                                   const SizedBox(width: 4),
                                   Text('${feedback.rating}/5'),
                                   const SizedBox(width: 16),
                                   Icon(Icons.access_time,
-                                      color: Colors.grey.shade600, size: 16),
+                                      color: Theme.of(context)
+                                          .colorScheme
+                                          .onSurfaceVariant,
+                                      size: 16),
                                   const SizedBox(width: 4),
                                   Text(
                                     _formatDate(feedback.timestamp),

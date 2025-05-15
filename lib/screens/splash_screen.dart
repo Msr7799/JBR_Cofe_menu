@@ -1,54 +1,45 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:video_player/video_player.dart';
 
 class SplashScreen extends StatefulWidget {
-  const SplashScreen({Key? key}) : super(key: key);
+  final String nextRoute; // مسار الشاشة التالية بعد شاشة البداية
+  final Map<String, dynamic> arguments; // المتغيرات المرافقة للشاشة التالية
+
+  const SplashScreen({
+    Key? key, 
+    this.nextRoute = '/',  // المسار الافتراضي هو الشاشة الرئيسية
+    this.arguments = const {},
+  }) : super(key: key);
 
   @override
   State<SplashScreen> createState() => _SplashScreenState();
 }
 
 class _SplashScreenState extends State<SplashScreen> {
-  late VideoPlayerController _videoController;
-
   @override
   void initState() {
     super.initState();
-    // إعداد الفيديو
-    _videoController =
-        VideoPlayerController.asset('assets/splash_video.mp4') // مسار الفيديو
-          ..initialize().then((_) {
-            // تشغيل الفيديو تلقائيًا
-            _videoController.play();
-            setState(() {});
-          });
-
-    // الانتقال إلى الشاشة الرئيسية بعد انتهاء الفيديو
-    _videoController.addListener(() {
-      if (_videoController.value.position == _videoController.value.duration) {
-        Get.offAllNamed('/'); // الانتقال إلى الشاشة الرئيسية
+    
+    // تأخير ثم الانتقال للشاشة التالية
+    Timer(const Duration(seconds: 4), () {
+      if (widget.nextRoute == '/') {
+        Get.offAllNamed(widget.nextRoute, arguments: widget.arguments);
+      } else {
+        Get.offNamed(widget.nextRoute, arguments: widget.arguments);
       }
     });
   }
 
   @override
-  void dispose() {
-    _videoController.dispose();
-    super.dispose();
-  }
-
-  @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.black, // خلفية سوداء لعرض الفيديو
+      backgroundColor: Colors.black, // خلفية سوداء
       body: Center(
-        child: _videoController.value.isInitialized
-            ? AspectRatio(
-                aspectRatio: _videoController.value.aspectRatio,
-                child: VideoPlayer(_videoController),
-              )
-            : const CircularProgressIndicator(), // يظهر أثناء تحميل الفيديو
+        child: Image.asset(
+          'assets/images/splash_screen.gif',
+          fit: BoxFit.contain,
+        ),
       ),
     );
   }

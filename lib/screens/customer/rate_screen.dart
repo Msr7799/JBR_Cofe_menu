@@ -10,7 +10,7 @@ class RateScreen extends StatefulWidget {
   const RateScreen({super.key});
 
   @override
-  _RateScreenState createState() => _RateScreenState();
+  State<RateScreen> createState() => _RateScreenState();
 }
 
 class _RateScreenState extends State<RateScreen> {
@@ -28,335 +28,291 @@ class _RateScreenState extends State<RateScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return GetBuilder<SettingsController>(
-      builder: (settingsController) {
-        // Apply theme based on controller settings
-        ThemeData activeTheme;
-        Color primaryColor;
-        Color secondaryColor;
-        
-        switch (settingsController.themeMode) {
-          case 'dark':
-            activeTheme = AppTheme.darkTheme;
-            primaryColor = const Color(0xFFAB7F52); // Dark theme primary
-            secondaryColor = const Color(0xFFE2A54C); // Dark theme accent
-            break;
-          case 'coffee':
-            activeTheme = AppTheme.coffeeTheme;
-            primaryColor = AppTheme.coffeePrimaryColor;
-            secondaryColor = AppTheme.coffeeSecondaryColor;
-            break;
-          case 'sweet':
-            activeTheme = AppTheme.sweetTheme;
-            primaryColor = AppTheme.sweetPrimaryColor;
-            secondaryColor = AppTheme.sweetSecondaryColor;
-            break;
-          default: // light
-            activeTheme = AppTheme.lightTheme;
-            primaryColor = AppTheme.primaryColor;
-            secondaryColor = AppTheme.secondaryColor;
-        }
+    // استخدام ثيم النظام مباشرة
+    final ThemeData theme = Theme.of(context);
+    final bool isDarkTheme = theme.brightness == Brightness.dark;
+    final Color primaryColor = theme.colorScheme.primary;
+    final Color secondaryColor = theme.colorScheme.secondary;
 
-        return Theme(
-          data: activeTheme,
-          child: Scaffold(
-            appBar: AppBar(
-              title: Text(
-                'التقييمات والاقتراحات',
-                style: TextStyle(
-                  color: activeTheme.appBarTheme.foregroundColor,
-                  fontWeight: FontWeight.bold,
-                ),
+    return Scaffold(
+      appBar: AppBar(
+        title: Text(
+          'التقييمات والاقتراحات',
+          style: TextStyle(
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+        centerTitle: true,
+      ),
+      body: Stack(
+        children: [
+          // طبقة الخلفية
+          Container(
+            decoration: BoxDecoration(
+              color: theme.scaffoldBackgroundColor,
+              image: isDarkTheme ? null : const DecorationImage(
+                image: AssetImage('assets/images/JBRbg2.png'),
+                fit: BoxFit.cover,
+                opacity: 0.5,
               ),
-              centerTitle: true,
-              backgroundColor: activeTheme.appBarTheme.backgroundColor,
-              elevation: 0,
-              iconTheme: IconThemeData(color: activeTheme.appBarTheme.foregroundColor),
             ),
-            body: Stack(
-              children: [
-                // طبقة الخلفية - استخدام الخلفية المناسبة للثيم
-                Container(
-                  decoration: BoxDecoration(
-                    // Use theme background color
-                    color: activeTheme.scaffoldBackgroundColor,
-                    image: settingsController.themeMode == 'light' || 
-                           settingsController.themeMode == 'system' ? 
-                      const DecorationImage(
-                        image: AssetImage('assets/images/JBRbg2.png'),
-                        fit: BoxFit.cover,
-                        opacity: 0.5,
-                      ) : null,
-                  ),
-                ),
-                
-                // طبقة التمويه - تعديل الألوان حسب الثيم
-                BackdropFilter(
-                  filter: ImageFilter.blur(sigmaX: 3, sigmaY: 3),
-                  child: Container(
-                    color: settingsController.themeMode == 'dark' ? 
-                      Colors.black.withOpacity(0.3) : 
-                      Colors.white.withOpacity(0.5),
-                    width: double.infinity,
-                    height: double.infinity,
-                  ),
-                ),
-                
-                // المحتوى الرئيسي
-                SafeArea(
-                  child: SingleChildScrollView(
-                    controller: scrollController,
-                    child: Padding(
-                      padding: const EdgeInsets.all(16.0),
+          ),
+          
+          // طبقة التمويه
+          BackdropFilter(
+            filter: ImageFilter.blur(sigmaX: 3, sigmaY: 3),
+            child: Container(
+              color: isDarkTheme ? 
+                Colors.black.withAlpha(77) : 
+                Colors.white.withAlpha(128),
+              width: double.infinity,
+              height: double.infinity,
+            ),
+          ),
+          
+          // المحتوى الرئيسي
+          SafeArea(
+            child: SingleChildScrollView(
+              controller: scrollController,
+              child: Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
+                    // رسالة ترحيبية
+                    Neumorphic(
+                      style: NeumorphicStyle(
+                        depth: 3,
+                        intensity: 0.7,
+                        color: theme.cardTheme.color,
+                        boxShape: NeumorphicBoxShape.roundRect(
+                          BorderRadius.circular(12),
+                        ),
+                      ),
+                      padding: const EdgeInsets.all(16),
                       child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.center,
                         children: [
-                          // رسالة ترحيبية
-                          Neumorphic(
-                            style: NeumorphicStyle(
-                              depth: 3,
-                              intensity: 0.7,
-                              color: activeTheme.cardTheme.color,
-                              boxShape: NeumorphicBoxShape.roundRect(
-                                BorderRadius.circular(12),
-                              ),
-                            ),
-                            padding: const EdgeInsets.all(16),
-                            child: Column(
-                              children: [
-                                Text(
-                                  'نرحب بآرائكم واقتراحاتكم',
-                                  style: TextStyle(
-                                    fontSize: 18,
-                                    fontWeight: FontWeight.bold,
-                                    color: primaryColor,
-                                  ),
-                                ),
-                                const SizedBox(height: 8),
-                                Text(
-                                  ' تقييمك واقتراحاتكم تشجعنا وتساعدنا نقدم لكم الافضل  .',
-                                  textAlign: TextAlign.center,
-                                  style: TextStyle(
-                                    fontSize: 14,
-                                    color: activeTheme.textTheme.bodyMedium?.color,
-                                  ),
-                                ),
-                              ],
+                          Text(
+                            'نرحب بآرائكم واقتراحاتكم',
+                            style: theme.textTheme.titleLarge?.copyWith(
+                              fontWeight: FontWeight.bold,
+                              color: primaryColor,
                             ),
                           ),
-
-                          const SizedBox(height: 24),
-
-                          // نظام التقييم بالنجوم
-                          Neumorphic(
-                            style: NeumorphicStyle(
-                              depth: 3,
-                              intensity: 0.7,
-                              color: activeTheme.cardTheme.color,
-                              boxShape: NeumorphicBoxShape.roundRect(
-                                BorderRadius.circular(12),
-                              ),
-                            ),
-                            padding: const EdgeInsets.all(16),
-                            child: Column(
-                              children: [
-                                Text(
-                                  'تقييمك للخدمة',
-                                  style: TextStyle(
-                                    fontSize: 16,
-                                    fontWeight: FontWeight.bold,
-                                    color: primaryColor,
-                                  ),
-                                ),
-                                const SizedBox(height: 12),
-                                _buildRatingStars(secondaryColor),
-                              ],
-                            ),
+                          const SizedBox(height: 8),
+                          Text(
+                            ' تقييمك واقتراحاتك تشجعنا وتساعدنا نقدم لكم الافضل  .',
+                            textAlign: TextAlign.center,
+                            style: theme.textTheme.bodyMedium,
                           ),
-
-                          const SizedBox(height: 24),
-
-                          // حقل إدخال الاقتراح
-                          Neumorphic(
-                            style: NeumorphicStyle(
-                              depth: 3,
-                              intensity: 0.7,
-                              color: activeTheme.cardTheme.color,
-                              boxShape: NeumorphicBoxShape.roundRect(
-                                BorderRadius.circular(12),
-                              ),
-                            ),
-                            padding: const EdgeInsets.all(16),
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  'أضف اقتراحك أو ملاحظتك',
-                                  style: TextStyle(
-                                    fontSize: 16,
-                                    fontWeight: FontWeight.bold,
-                                    color: primaryColor,
-                                  ),
-                                ),
-                                const SizedBox(height: 12),
-                                Neumorphic(
-                                  style: NeumorphicStyle(
-                                    depth: -3,
-                                    intensity: 0.7,
-                                    color: settingsController.themeMode == 'dark' ? 
-                                      Colors.grey.shade800 : Colors.white,
-                                    boxShape: NeumorphicBoxShape.roundRect(
-                                      BorderRadius.circular(8),
-                                    ),
-                                  ),
-                                  padding: const EdgeInsets.symmetric(horizontal: 12),
-                                  child: TextField(
-                                    controller: feedbackTextController,
-                                    decoration: InputDecoration(
-                                      hintText: 'اكتب رأيك هنا...',
-                                      hintStyle: TextStyle(
-                                        color: settingsController.themeMode == 'dark' ? 
-                                          Colors.grey.shade400 : Colors.grey.shade600,
-                                      ),
-                                      border: InputBorder.none,
-                                    ),
-                                    style: TextStyle(
-                                      color: activeTheme.textTheme.bodyMedium?.color,
-                                    ),
-                                    maxLines: 3,
-                                    textAlign: TextAlign.right,
-                                  ),
-                                ),
-                                const SizedBox(height: 16),
-                                Center(
-                                  child: NeumorphicButton(
-                                    style: NeumorphicStyle(
-                                      depth: 4,
-                                      intensity: 0.8,
-                                      color: primaryColor,
-                                      boxShape: NeumorphicBoxShape.roundRect(
-                                        BorderRadius.circular(8),
-                                      ),
-                                    ),
-                                    padding: const EdgeInsets.symmetric(
-                                      horizontal: 24,
-                                      vertical: 12,
-                                    ),
-                                    onPressed: () {
-                                      if (feedbackTextController.text
-                                          .trim()
-                                          .isNotEmpty) {
-                                        feedbackController.addFeedback(
-                                          feedbackTextController.text.trim(),
-                                        );
-                                        feedbackTextController.clear();
-
-                                        // عرض رسالة نجاح
-                                        Get.snackbar(
-                                          'تم بنجاح',
-                                          'شكراً لك! تم إرسال تقييمك بنجاح',
-                                          snackPosition: SnackPosition.BOTTOM,
-                                          backgroundColor: AppTheme.successColor.withOpacity(0.7),
-                                          colorText: Colors.white,
-                                          margin: const EdgeInsets.all(8),
-                                          borderRadius: 8,
-                                        );
-                                      } else {
-                                        // تنبيه إذا كان النص فارغاً
-                                        Get.snackbar(
-                                          'تنبيه',
-                                          'الرجاء كتابة اقتراحك قبل الإرسال',
-                                          snackPosition: SnackPosition.BOTTOM,
-                                          backgroundColor: AppTheme.warningColor.withOpacity(0.7),
-                                          colorText: Colors.white,
-                                          margin: const EdgeInsets.all(8),
-                                          borderRadius: 8,
-                                        );
-                                      }
-                                    },
-                                    child: Text(
-                                      'إرسال التقييم',
-                                      style: TextStyle(
-                                        fontWeight: FontWeight.bold,
-                                        color: Colors.white,
-                                      ),
-                                    ),
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-
-                          const SizedBox(height: 24),
-
-                          // عرض التقييمات السابقة
-                          Neumorphic(
-                            style: NeumorphicStyle(
-                              depth: 3,
-                              intensity: 0.7,
-                              color: activeTheme.cardTheme.color,
-                              boxShape: NeumorphicBoxShape.roundRect(
-                                BorderRadius.circular(12),
-                              ),
-                            ),
-                            padding: const EdgeInsets.all(16),
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  'آراء المستخدمين السابقة',
-                                  style: TextStyle(
-                                    fontSize: 16,
-                                    fontWeight: FontWeight.bold,
-                                    color: primaryColor,
-                                  ),
-                                ),
-                                const SizedBox(height: 16),
-                                GetBuilder<FeedbackController>(
-                                  builder: (controller) {
-                                    return controller.feedbackItems.isEmpty
-                                        ? Center(
-                                            child: Padding(
-                                              padding: const EdgeInsets.all(16.0),
-                                              child: Text(
-                                                'لا توجد تقييمات سابقة. كن أول من يشارك رأيه!',
-                                                style: TextStyle(
-                                                  color: settingsController.themeMode == 'dark' ? 
-                                                    Colors.grey.shade400 : Colors.grey.shade600,
-                                                  fontSize: 14,
-                                                ),
-                                                textAlign: TextAlign.center,
-                                              ),
-                                            ),
-                                          )
-                                        : Column(
-                                            children: List.generate(
-                                              controller.feedbackItems.length,
-                                              (index) => _buildFeedbackItem(
-                                                controller.feedbackItems[index],
-                                                primaryColor,
-                                                secondaryColor,
-                                                activeTheme,
-                                              ),
-                                            ),
-                                          );
-                                  },
-                                ),
-                              ],
-                            ),
-                          ),
-
-                          const SizedBox(height: 16),
                         ],
                       ),
                     ),
-                  ),
+
+                    const SizedBox(height: 24),
+
+                    // نظام التقييم بالنجوم
+                    Neumorphic(
+                      style: NeumorphicStyle(
+                        depth: 3,
+                        intensity: 0.7,
+                        color: theme.cardTheme.color,
+                        boxShape: NeumorphicBoxShape.roundRect(
+                          BorderRadius.circular(12),
+                        ),
+                      ),
+                      padding: const EdgeInsets.all(16),
+                      child: Column(
+                        children: [
+                          Text(
+                            'تقييمك للخدمة',
+                            style: theme.textTheme.titleMedium?.copyWith(
+                              fontWeight: FontWeight.bold,
+                              color: primaryColor,
+                            ),
+                          ),
+                          const SizedBox(height: 12),
+                          _buildRatingStars(secondaryColor),
+                        ],
+                      ),
+                    ),
+
+                    const SizedBox(height: 24),
+
+                    // حقل إدخال الاقتراح
+                    Neumorphic(
+                      style: NeumorphicStyle(
+                        depth: 3,
+                        intensity: 0.7,
+                        color: theme.cardTheme.color,
+                        boxShape: NeumorphicBoxShape.roundRect(
+                          BorderRadius.circular(12),
+                        ),
+                      ),
+                      padding: const EdgeInsets.all(16),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'أضف اقتراحك أو ملاحظتك',
+                            style: theme.textTheme.titleMedium?.copyWith(
+                              fontWeight: FontWeight.bold,
+                              color: primaryColor,
+                            ),
+                          ),
+                          const SizedBox(height: 12),
+                          Neumorphic(
+                            style: NeumorphicStyle(
+                              depth: -3,
+                              intensity: 0.7,
+                              color: isDarkTheme ? 
+                                Colors.grey.shade800 : Colors.white,
+                              boxShape: NeumorphicBoxShape.roundRect(
+                                BorderRadius.circular(8),
+                              ),
+                            ),
+                            padding: const EdgeInsets.symmetric(horizontal: 12),
+                            child: TextField(
+                              controller: feedbackTextController,
+                              decoration: InputDecoration(
+                                hintText: 'اكتب رأيك هنا...',
+                                hintStyle: TextStyle(
+                                  color: isDarkTheme ? 
+                                    Colors.grey.shade400 : Colors.grey.shade600,
+                                ),
+                                border: InputBorder.none,
+                              ),
+                              style: theme.textTheme.bodyMedium,
+                              maxLines: 3,
+                              textAlign: TextAlign.right,
+                            ),
+                          ),
+                          const SizedBox(height: 16),
+                          Center(
+                            child: NeumorphicButton(
+                              style: NeumorphicStyle(
+                                depth: 4,
+                                intensity: 0.8,
+                                color: primaryColor,
+                                boxShape: NeumorphicBoxShape.roundRect(
+                                  BorderRadius.circular(8),
+                                ),
+                              ),
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 24,
+                                vertical: 12,
+                              ),
+                              onPressed: () {
+                                if (feedbackTextController.text
+                                    .trim()
+                                    .isNotEmpty) {
+                                  feedbackController.addFeedback(
+                                    feedbackTextController.text.trim(),
+                                  );
+                                  feedbackTextController.clear();
+
+                                  // عرض رسالة نجاح
+                                  Get.snackbar(
+                                    'تم بنجاح',
+                                    'شكراً لك! تم إرسال تقييمك بنجاح',
+                                    snackPosition: SnackPosition.BOTTOM,
+                                    backgroundColor: AppTheme.successColor.withAlpha(179),
+                                    colorText: Colors.white,
+                                    margin: const EdgeInsets.all(8),
+                                    borderRadius: 8,
+                                  );
+                                } else {
+                                  // تنبيه إذا كان النص فارغاً
+                                  Get.snackbar(
+                                    'تنبيه',
+                                    'الرجاء كتابة اقتراحك قبل الإرسال',
+                                    snackPosition: SnackPosition.BOTTOM,
+                                    backgroundColor: AppTheme.warningColor.withAlpha(179),
+                                    colorText: Colors.white,
+                                    margin: const EdgeInsets.all(8),
+                                    borderRadius: 8,
+                                  );
+                                }
+                              },
+                              child: Text(
+                                'إرسال التقييم',
+                                style: theme.textTheme.labelLarge?.copyWith(
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.white,
+                                ),
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+
+                    const SizedBox(height: 24),
+
+                    // عرض التقييمات السابقة
+                    Neumorphic(
+                      style: NeumorphicStyle(
+                        depth: 3,
+                        intensity: 0.7,
+                        color: theme.cardTheme.color,
+                        boxShape: NeumorphicBoxShape.roundRect(
+                          BorderRadius.circular(12),
+                        ),
+                      ),
+                      padding: const EdgeInsets.all(16),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'آراء المستخدمين السابقة',
+                            style: theme.textTheme.titleMedium?.copyWith(
+                              fontWeight: FontWeight.bold,
+                              color: primaryColor,
+                            ),
+                          ),
+                          const SizedBox(height: 16),
+                          GetBuilder<FeedbackController>(
+                            builder: (controller) {
+                              return controller.feedbackItems.isEmpty
+                                  ? Center(
+                                      child: Padding(
+                                        padding: const EdgeInsets.all(16.0),
+                                        child: Text(
+                                          'لا توجد تقييمات سابقة. كن أول من يشارك رأيه!',
+                                          style: TextStyle(
+                                            color: isDarkTheme ? 
+                                              Colors.grey.shade400 : Colors.grey.shade600,
+                                            fontSize: 14,
+                                          ),
+                                          textAlign: TextAlign.center,
+                                        ),
+                                      ),
+                                    )
+                                  : Column(
+                                      children: List.generate(
+                                        controller.feedbackItems.length,
+                                        (index) => _buildFeedbackItem(
+                                          controller.feedbackItems[index],
+                                          primaryColor,
+                                          secondaryColor,
+                                          theme,
+                                        ),
+                                      ),
+                                    );
+                            },
+                          ),
+                        ],
+                      ),
+                    ),
+
+                    const SizedBox(height: 16),
+                  ],
                 ),
-              ],
+              ),
             ),
           ),
-        );
-      }
+        ],
+      ),
     );
   }
 
@@ -401,7 +357,7 @@ class _RateScreenState extends State<RateScreen> {
           CircleAvatar(
             radius: 18,
             backgroundColor: primaryColor.withAlpha(204),
-            child: Icon(
+            child: const Icon(
               Icons.person,
               color: Colors.white,
               size: 18,
@@ -428,9 +384,7 @@ class _RateScreenState extends State<RateScreen> {
                           Expanded(
                             child: Text(
                               item.message,
-                              style: TextStyle(
-                                fontSize: 14,
-                                color: isDarkTheme ? Colors.white : Colors.black,
+                              style: theme.textTheme.bodyMedium?.copyWith(
                                 fontWeight: FontWeight.bold,
                               ),
                             ),
@@ -469,7 +423,7 @@ class _RateScreenState extends State<RateScreen> {
                   padding: const EdgeInsets.only(top: 4.0, left: 8.0),
                   child: Text(
                     DateFormatter.formatDateTime(item.timestamp),
-                    style: TextStyle(
+                    style: theme.textTheme.bodySmall?.copyWith(
                       fontSize: 10,
                       color: isDarkTheme ? Colors.grey.shade400 : Colors.grey.shade600,
                     ),
@@ -489,16 +443,15 @@ class _RateScreenState extends State<RateScreen> {
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          title: Text('حذف التعليق', style: TextStyle(color: theme.textTheme.titleLarge?.color)),
-          backgroundColor: theme.dialogTheme.backgroundColor,
+          title: Text('حذف التعليق', style: theme.textTheme.titleLarge),
           content: Text(
             'هل أنت متأكد من حذف هذا التعليق؟',
-            style: TextStyle(color: theme.textTheme.bodyMedium?.color),
+            style: theme.textTheme.bodyMedium,
           ),
           actions: [
             TextButton(
               onPressed: () => Navigator.of(context).pop(),
-              child: Text('إلغاء', style: TextStyle(color: theme.textTheme.labelLarge?.color)),
+              child: Text('إلغاء'),
             ),
             TextButton(
               onPressed: () {
@@ -511,7 +464,7 @@ class _RateScreenState extends State<RateScreen> {
                   'تم الحذف',
                   'تم حذف التعليق بنجاح',
                   snackPosition: SnackPosition.BOTTOM,
-                  backgroundColor: AppTheme.successColor.withOpacity(0.7),
+                  backgroundColor: AppTheme.successColor.withAlpha(179),
                   colorText: Colors.white,
                   margin: const EdgeInsets.all(8),
                   borderRadius: 8,

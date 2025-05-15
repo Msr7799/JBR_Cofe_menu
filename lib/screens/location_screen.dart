@@ -21,7 +21,7 @@ class _LocationScreenState extends State<LocationScreen> {
   // إحداثيات مقهى JBR الحقيقية
   static const double latitude = 26.1363942;
   static const double longitude = 50.5714665;
-  
+
   // Controller for theme settings
   final SettingsController settingsController = Get.find<SettingsController>();
 
@@ -43,7 +43,18 @@ class _LocationScreenState extends State<LocationScreen> {
     final Size screenSize = MediaQuery.of(context).size;
     final bool isSmallScreen = screenSize.width < 360;
     final bool isLargeScreen = screenSize.width > 600;
-    
+    final bool isLandscape =
+        MediaQuery.of(context).orientation == Orientation.landscape;
+
+    // تعيين ارتفاع الخريطة بناءً على الشاشة
+    final double mapHeight = isLandscape
+        ? screenSize.height * 0.6
+        : isLargeScreen
+            ? 400
+            : isSmallScreen
+                ? 200
+                : 300;
+
     return PopScope(
       canPop: Navigator.of(context).canPop(),
       onPopInvokedWithResult: (didPop, result) async {
@@ -53,38 +64,12 @@ class _LocationScreenState extends State<LocationScreen> {
       },
       child: GetBuilder<SettingsController>(
         builder: (controller) {
-          // Apply theme based on controller settings
-          ThemeData activeTheme;
-          Color primaryColor;
-          Color textColor;
-          Color backgroundColor;
-          
-          switch (controller.themeMode) {
-            case 'dark':
-              activeTheme = AppTheme.darkTheme;
-              primaryColor = const Color(0xFFAB7F52); // Dark theme primary
-// Dark theme secondary
-              textColor = Colors.white;
-              backgroundColor = const Color(0xFF1E1E1E);
-              break;
-            case 'coffee':
-              activeTheme = AppTheme.coffeeTheme;
-              primaryColor = AppTheme.coffeePrimaryColor;
-              textColor = AppTheme.coffeePrimaryColor;
-              backgroundColor = AppTheme.coffeeBackgroundColor;
-              break;
-            case 'sweet':
-              activeTheme = AppTheme.sweetTheme;
-              primaryColor = AppTheme.sweetPrimaryColor;
-              textColor = AppTheme.sweetPrimaryColor;
-              backgroundColor = AppTheme.sweetBackgroundColor;
-              break;
-            default: // light
-              activeTheme = AppTheme.lightTheme;
-              primaryColor = AppTheme.primaryColor;
-              textColor = AppTheme.textPrimaryColor;
-              backgroundColor = AppTheme.backgroundColor;
-          }
+          // تطبيق الثيم بناءً على إعدادات المتحكم
+          // استخدام الثيم الحالي مباشرة بدلاً من تحديد الألوان يدويًا
+          final ThemeData activeTheme = Theme.of(context);
+          final Color primaryColor = activeTheme.colorScheme.primary;
+          final Color textColor = activeTheme.colorScheme.onSurface;
+          final Color backgroundColor = activeTheme.scaffoldBackgroundColor;
 
           return Theme(
             data: activeTheme,
@@ -102,40 +87,21 @@ class _LocationScreenState extends State<LocationScreen> {
                 backgroundColor: activeTheme.appBarTheme.backgroundColor,
                 elevation: 2,
                 leading: IconButton(
-                  icon: Icon(Icons.arrow_back_ios, 
+                  icon: Icon(Icons.arrow_back_ios,
                       color: activeTheme.appBarTheme.foregroundColor),
                   onPressed: () => Get.back(),
                 ),
               ),
-              body: SingleChildScrollView(
-                child: Padding(
-                  // ضبط الهوامش بناءً على حجم الشاشة
-                  padding: EdgeInsets.all(isSmallScreen ? 12 : (isLargeScreen ? 24 : 16)),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    children: [
-                      // صورة خريطة الموقع - ضبط ارتفاعها بناءً على حجم الشاشة
-                      _buildMap(context, primaryColor, activeTheme, isLargeScreen ? 300.0 : 220.0),
-                      SizedBox(height: isSmallScreen ? 16 : 24),
-
-                      // معلومات الموقع
-                      _buildLocationInfo(primaryColor, textColor, backgroundColor, activeTheme),
-                      SizedBox(height: isSmallScreen ? 16 : 24),
-
-                      // ساعات العمل
-                      _buildOpeningHours(primaryColor, textColor, backgroundColor, activeTheme),
-                      SizedBox(height: isSmallScreen ? 16 : 24),
-
-                      // أزرار التواصل - تعديل الحجم وإضافة التجاوب
-                      _buildContactButtons(primaryColor, activeTheme, isSmallScreen, screenSize.width),
-                      SizedBox(height: isSmallScreen ? 16 : 24),
-
-                      // معلومات التوصيل
-                      _buildDeliveryInfo(primaryColor, textColor, backgroundColor, activeTheme),
-                    ],
-                  ),
-                ),
-              ),
+              body: _buildResponsiveLayout(
+                  context,
+                  primaryColor,
+                  textColor,
+                  backgroundColor,
+                  activeTheme,
+                  isLandscape,
+                  isSmallScreen,
+                  isLargeScreen,
+                  mapHeight),
             ),
           );
         },
@@ -143,8 +109,111 @@ class _LocationScreenState extends State<LocationScreen> {
     );
   }
 
+  /// بناء التخطيط المتجاوب للشاشة
+  Widget _buildResponsiveLayout(
+      BuildContext context,
+      Color primaryColor,
+      Color textColor,
+      Color backgroundColor,
+      ThemeData theme,
+      bool isLandscape,
+      bool isSmallScreen,
+      bool isLargeScreen,
+      double mapHeight) {
+    // تخطيط أفقي للشاشات في وضع landscape
+    if (isLandscape) {
+      return Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // قسم الخريطة (يأخذ نصف الشاشة)
+          Expanded(
+            flex: 1,
+            child: SingleChildScrollView(
+              child: Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: _buildMap(context, primaryColor, theme, mapHeight),
+              ),
+            ),
+          ),
+          // قسم المعلومات (يأخذ نصف الشاشة)
+          Expanded(
+            flex: 1,
+            child: SingleChildScrollView(
+              child: Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  mainAxisSize:
+                      MainAxisSize.min, // To avoid unbounded height issues
+                  children: [
+                    _buildLocationInfo(
+                        primaryColor, textColor, backgroundColor, theme),
+                    const SizedBox(height: 16),
+                    _buildOpeningHours(
+                        primaryColor, textColor, backgroundColor, theme),
+                    const SizedBox(height: 16),
+                    _buildContactButtons(
+                        primaryColor,
+                        theme,
+                        isSmallScreen,
+                        MediaQuery.of(context).size.width / 2 -
+                            32), // نصف عرض الشاشة مع هامش
+                    const SizedBox(height: 16),
+                    _buildDeliveryInfo(
+                        primaryColor, textColor, backgroundColor, theme),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        ],
+      );
+    } else {
+      // التخطيط العمودي العادي للشاشات في الوضع الطبيعي
+      return SingleChildScrollView(
+        child: Padding(
+          padding:
+              EdgeInsets.all(isSmallScreen ? 12 : (isLargeScreen ? 24 : 16)),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            mainAxisSize: MainAxisSize.min, // To avoid unbounded height issues
+            children: [
+              // قسم الخريطة
+              _buildMap(context, primaryColor, theme, mapHeight),
+              const SizedBox(height: 20),
+
+              // معلومات الموقع
+              _buildLocationInfo(
+                  primaryColor, textColor, backgroundColor, theme),
+              const SizedBox(height: 20),
+
+              // ساعات العمل
+              _buildOpeningHours(
+                  primaryColor, textColor, backgroundColor, theme),
+              const SizedBox(height: 20),
+
+              // أزرار التواصل
+              _buildContactButtons(
+                  primaryColor,
+                  theme,
+                  isSmallScreen,
+                  MediaQuery.of(context).size.width -
+                      (isSmallScreen ? 24 : (isLargeScreen ? 48 : 32))),
+              const SizedBox(height: 20),
+
+              // معلومات التوصيل
+              _buildDeliveryInfo(
+                  primaryColor, textColor, backgroundColor, theme),
+            ],
+          ),
+        ),
+      );
+    }
+  }
+
   /// بناء قسم خريطة الموقع
-  Widget _buildMap(BuildContext context, Color primaryColor, ThemeData theme, double mapHeight) {
+  Widget _buildMap(BuildContext context, Color primaryColor, ThemeData theme,
+      double mapHeight) {
     return Neumorphic(
       style: NeumorphicStyle(
         depth: 4,
@@ -160,7 +229,7 @@ class _LocationScreenState extends State<LocationScreen> {
             children: [
               // استخدام PlatformMapWidget الذي يتعامل مع توافق المنصات
               PlatformMapWidget(
-                latitude: latitude, 
+                latitude: latitude,
                 longitude: longitude,
                 isMapReady: _isMapReady.value,
               ),
@@ -169,12 +238,12 @@ class _LocationScreenState extends State<LocationScreen> {
               Obx(() => _isMapReady.value
                   ? const SizedBox.shrink()
                   : Container(
-                      color: theme.brightness == Brightness.dark ? 
-                        Colors.black.withOpacity(0.7) :
-                        Colors.white.withOpacity(0.7),
+                      color: theme.brightness == Brightness.dark
+                          ? Colors.black.withOpacity(0.7)
+                          : Colors.white.withOpacity(0.7),
                       child: Center(
                         child: CircularProgressIndicator(
-                          color: primaryColor,
+                          color: theme.colorScheme.primary,
                         ),
                       ),
                     )),
@@ -193,16 +262,23 @@ class _LocationScreenState extends State<LocationScreen> {
                   ),
                   onPressed: _openMapsApp,
                   child: Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                     child: Row(
+                      mainAxisSize: MainAxisSize.min,
                       children: [
-                        const Icon(Icons.map, color: Colors.white, size: 16),
+                        const Icon(
+                          Icons.map,
+                          color: Colors.white,
+                          size: 18,
+                        ),
                         const SizedBox(width: 6),
                         Text(
                           'open_in_maps'.tr,
                           style: const TextStyle(
                             color: Colors.white,
                             fontSize: 12,
+                            fontWeight: FontWeight.bold,
                           ),
                         ),
                       ],
@@ -218,7 +294,8 @@ class _LocationScreenState extends State<LocationScreen> {
   }
 
   /// بناء قسم معلومات الموقع
-  Widget _buildLocationInfo(Color primaryColor, Color textColor, Color backgroundColor, ThemeData theme) {
+  Widget _buildLocationInfo(Color primaryColor, Color textColor,
+      Color backgroundColor, ThemeData theme) {
     final bool isDarkTheme = theme.brightness == Brightness.dark;
     return Neumorphic(
       style: NeumorphicStyle(
@@ -248,14 +325,16 @@ class _LocationScreenState extends State<LocationScreen> {
             ),
             const SizedBox(height: 12),
             Text(
-              'الرفاع الشرقي، مملكة البحرين',
+              'location_address_full'.tr,
               style: TextStyle(
                 fontSize: 16,
                 color: theme.textTheme.bodyLarge?.color ?? textColor,
               ),
             ),
             const SizedBox(height: 12),
-            Divider(color: isDarkTheme ? Colors.grey.shade700 : Colors.grey.shade300),
+            Divider(
+                color:
+                    isDarkTheme ? Colors.grey.shade700 : Colors.grey.shade300),
             const SizedBox(height: 12),
             Row(
               children: [
@@ -264,7 +343,7 @@ class _LocationScreenState extends State<LocationScreen> {
                 Text(
                   'directions'.tr,
                   style: TextStyle(
-                    fontSize: 16,
+                    fontSize: 18,
                     fontWeight: FontWeight.bold,
                     color: primaryColor,
                   ),
@@ -273,10 +352,11 @@ class _LocationScreenState extends State<LocationScreen> {
             ),
             const SizedBox(height: 8),
             Text(
-              'يمكنك الوصول إلينا عبر الطرق الرئيسية في الرفاع الشرقي ويمكنكم الطريق برنامج جاهز أو طلبات للتوصيل',
+              'East Riffa, Hajiyat\nKingdom of Bahrain'.tr,
               style: TextStyle(
                 fontSize: 14,
-                color: (theme.textTheme.bodyMedium?.color ?? textColor).withOpacity(0.8),
+                color: (theme.textTheme.bodyMedium?.color ?? textColor)
+                    .withOpacity(0.8),
               ),
             ),
           ],
@@ -286,9 +366,11 @@ class _LocationScreenState extends State<LocationScreen> {
   }
 
   /// بناء قسم ساعات العمل
-  Widget _buildOpeningHours(Color primaryColor, Color textColor, Color backgroundColor, ThemeData theme) {
+  Widget _buildOpeningHours(Color primaryColor, Color textColor,
+      Color backgroundColor, ThemeData theme) {
     final bool isDarkTheme = theme.brightness == Brightness.dark;
-    final hoursBgColor = isDarkTheme ? Colors.grey.shade800 : Colors.grey.shade100;
+    final hoursBgColor =
+        isDarkTheme ? Colors.grey.shade800 : Colors.grey.shade100;
 
     return Neumorphic(
       style: NeumorphicStyle(
@@ -317,7 +399,7 @@ class _LocationScreenState extends State<LocationScreen> {
               ],
             ),
             const SizedBox(height: 16),
-            
+
             // الأحد إلى الخميس
             Container(
               padding: const EdgeInsets.all(12),
@@ -328,43 +410,33 @@ class _LocationScreenState extends State<LocationScreen> {
               child: Row(
                 children: [
                   Expanded(
-                    flex: 5,
-                    child: Row(
-                      children: [
-                        Icon(Icons.calendar_today, color: primaryColor, size: 16),
-                        const SizedBox(width: 8),
-                        Text(
-                          'الأحد إلي الخميس',
-                          style: TextStyle(
-                            fontWeight: FontWeight.bold,
-                            color: theme.textTheme.titleMedium?.color ?? textColor,
-                          ),
-                        ),
-                      ],
+                    flex: 1,
+                    child: Text(
+                      'sunday_to_thursday'.tr,
+                      style: TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.bold,
+                        color: theme.textTheme.bodyMedium?.color ?? textColor,
+                      ),
                     ),
                   ),
                   Expanded(
-                    flex: 5,
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.end,
-                      children: [
-                        Icon(Icons.access_time, color: primaryColor, size: 16),
-                        const SizedBox(width: 8),
-                        Text(
-                          'ص - 1:00 ص 6:00',
-                          style: TextStyle(
-                            color: (theme.textTheme.bodyMedium?.color ?? textColor).withOpacity(0.8),
-                          ),
-                        ),
-                      ],
+                    flex: 1,
+                    child: Text(
+                      'weekday_hours'.tr,
+                      style: TextStyle(
+                        fontSize: 14,
+                        color: theme.textTheme.bodyMedium?.color ?? textColor,
+                      ),
+                      textAlign: TextAlign.end,
                     ),
                   ),
                 ],
               ),
             ),
-            
+
             const SizedBox(height: 8),
-            
+
             // الجمعة والسبت
             Container(
               padding: const EdgeInsets.all(12),
@@ -375,35 +447,25 @@ class _LocationScreenState extends State<LocationScreen> {
               child: Row(
                 children: [
                   Expanded(
-                    flex: 5,
-                    child: Row(
-                      children: [
-                        Icon(Icons.calendar_today, color: primaryColor, size: 16),
-                        const SizedBox(width: 8),
-                        Text(
-                          'الجمعة والسبت',
-                          style: TextStyle(
-                            fontWeight: FontWeight.bold,
-                            color: theme.textTheme.titleMedium?.color ?? textColor,
-                          ),
-                        ),
-                      ],
+                    flex: 1,
+                    child: Text(
+                      'friday_saturday'.tr,
+                      style: TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.bold,
+                        color: theme.textTheme.bodyMedium?.color ?? textColor,
+                      ),
                     ),
                   ),
                   Expanded(
-                    flex: 5,
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.end,
-                      children: [
-                        Icon(Icons.access_time, color: primaryColor, size: 16),
-                        const SizedBox(width: 8),
-                        Text(
-                          '8:00 ص - 1:00 ص',
-                          style: TextStyle(
-                            color: (theme.textTheme.bodyMedium?.color ?? textColor).withOpacity(0.8),
-                          ),
-                        ),
-                      ],
+                    flex: 1,
+                    child: Text(
+                      'weekend_hours'.tr,
+                      style: TextStyle(
+                        fontSize: 14,
+                        color: theme.textTheme.bodyMedium?.color ?? textColor,
+                      ),
+                      textAlign: TextAlign.end,
                     ),
                   ),
                 ],
@@ -416,13 +478,21 @@ class _LocationScreenState extends State<LocationScreen> {
   }
 
   /// بناء قسم أزرار التواصل - تم التحديث ليكون متجاوبًا
-  Widget _buildContactButtons(Color primaryColor, ThemeData theme, bool isSmallScreen, double screenWidth) {
+  Widget _buildContactButtons(Color primaryColor, ThemeData theme,
+      bool isSmallScreen, double screenWidth) {
+    // تحديد لون خلفية الأزرار بناء على الثيم
+    final bool isDarkTheme = theme.brightness == Brightness.dark;
+    // تعديل لون الفونت بناء على الثيم كما هو مطلوب
+    final iconTitleColor =
+        isDarkTheme ? Colors.grey.shade100 : Colors.grey.shade800;
     // حساب عدد الأزرار في الصف بناءً على حجم الشاشة
-    final int buttonsPerRow = screenWidth < 360 ? 2 : (screenWidth > 600 ? 4 : 3);
-    
+    final int buttonsPerRow =
+        screenWidth < 360 ? 2 : (screenWidth > 600 ? 4 : 3);
+
     // حساب حجم الأزرار بناءً على العرض
-    final double buttonHeight = isSmallScreen ? 90.0 : (screenWidth > 600 ? 120.0 : 100.0);
-    
+    final double buttonHeight =
+        isSmallScreen ? 90.0 : (screenWidth > 600 ? 120.0 : 100.0);
+
     // تعريف أزرار التواصل
     final List<Map<String, dynamic>> contactButtons = [
       {
@@ -438,20 +508,21 @@ class _LocationScreenState extends State<LocationScreen> {
       {
         'title': 'instagram'.tr,
         'icon': Icons.camera_alt,
-        'onTap': () => _launchURL('https://www.instagram.com/jbrcafe/'),
+        'onTap': () => _launchURL('https://www.instagram.com/jbrcafe.bh/'),
       },
       {
-        'title': 'الموقع الإلكتروني',
+        'title': 'website'.tr,
         'icon': Icons.language,
-        'onTap': () => _launchURL('https://www.jbrcoffee.com'), // سيتم تحديث الرابط لاحقًا
+        'onTap': () =>
+            _launchURL('https://www.jbrcoffee.com'), // Will be updated later
       },
     ];
-    
+
     // تنظيم الأزرار في صفوف بناءً على عدد الأزرار في الصف
     List<Widget> rows = [];
     for (var i = 0; i < contactButtons.length; i += buttonsPerRow) {
       final List<Widget> rowButtons = [];
-      
+
       for (var j = i; j < i + buttonsPerRow && j < contactButtons.length; j++) {
         final button = contactButtons[j];
         rowButtons.add(
@@ -466,13 +537,13 @@ class _LocationScreenState extends State<LocationScreen> {
             ),
           ),
         );
-        
+
         // إضافة مسافة بين الأزرار داخل الصف
         if (j < i + buttonsPerRow - 1 && j < contactButtons.length - 1) {
           rowButtons.add(const SizedBox(width: 12));
         }
       }
-      
+
       // إضافة الصف كاملًا
       rows.add(
         Row(
@@ -480,15 +551,17 @@ class _LocationScreenState extends State<LocationScreen> {
           children: rowButtons,
         ),
       );
-      
+
       // إضافة مسافة بين الصفوف إذا كان هناك صف تالي
       if (i + buttonsPerRow < contactButtons.length) {
         rows.add(const SizedBox(height: 12));
       }
     }
-    
+
     return SizedBox(
-      height: buttonsPerRow < contactButtons.length ? buttonHeight * 2 + 12 : buttonHeight,
+      height: buttonsPerRow < contactButtons.length
+          ? buttonHeight * 2 + 12
+          : buttonHeight,
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: rows,
@@ -507,7 +580,7 @@ class _LocationScreenState extends State<LocationScreen> {
   }) {
     final double iconSize = isSmallScreen ? 22.0 : 28.0;
     final double fontSize = isSmallScreen ? 12.0 : 14.0;
-    
+
     return NeumorphicButton(
       style: NeumorphicStyle(
         depth: 4,
@@ -521,7 +594,7 @@ class _LocationScreenState extends State<LocationScreen> {
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           Icon(
-            icon, 
+            icon,
             color: primaryColor,
             size: iconSize,
           ),
@@ -542,9 +615,10 @@ class _LocationScreenState extends State<LocationScreen> {
   }
 
   /// بناء قسم معلومات التوصيل
-  Widget _buildDeliveryInfo(Color primaryColor, Color textColor, Color backgroundColor, ThemeData theme) {
+  Widget _buildDeliveryInfo(Color primaryColor, Color textColor,
+      Color backgroundColor, ThemeData theme) {
     final bool isDarkTheme = theme.brightness == Brightness.dark;
-    
+
     return Neumorphic(
       style: NeumorphicStyle(
         depth: 4,
@@ -576,11 +650,12 @@ class _LocationScreenState extends State<LocationScreen> {
               'we_deliver_to_following_areas'.tr,
               style: TextStyle(
                 fontSize: 14,
-                color: (theme.textTheme.bodyMedium?.color ?? textColor).withOpacity(0.8),
+                color: (theme.textTheme.bodyMedium?.color ?? textColor)
+                    .withOpacity(0.8),
               ),
             ),
             const SizedBox(height: 12),
-       
+
             // الحد الأدنى للطلب
             Container(
               padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 16),
@@ -597,7 +672,7 @@ class _LocationScreenState extends State<LocationScreen> {
                   Icon(Icons.info_outline, color: primaryColor, size: 20),
                   const SizedBox(width: 8),
                   Text(
-                    'الحد الأدنى للطلب: 1.000 د.ب',
+                    'minimum_order'.tr + ': 1.000 ' + 'currency'.tr,
                     style: TextStyle(
                       fontSize: 14,
                       fontWeight: FontWeight.bold,
@@ -607,42 +682,48 @@ class _LocationScreenState extends State<LocationScreen> {
                 ],
               ),
             ),
-            
+
             const SizedBox(height: 12),
-            
+
             // معلومات خدمات التوصيل - جعلها متجاوبة
             LayoutBuilder(
               builder: (context, constraints) {
                 // إذا كان عرض الشاشة صغيرًا، نعرض العناصر في أعمدة
                 final bool useColumn = constraints.maxWidth < 400;
-                
+
                 if (useColumn) {
                   return Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisSize:
+                        MainAxisSize.min, // To avoid unbounded height issues
                     children: [
                       Row(
                         children: [
                           Icon(
-                            Icons.delivery_dining, 
-                            size: 16, 
-                            color: (theme.textTheme.bodyMedium?.color ?? textColor).withOpacity(0.6),
+                            Icons.delivery_dining,
+                            size: 16,
+                            color:
+                                (theme.textTheme.bodyMedium?.color ?? textColor)
+                                    .withOpacity(0.6),
                           ),
                           const SizedBox(width: 8),
                           Expanded(
                             child: Text(
-                              'نقدم خدمات التوصيل عبر تطبيقات جاهز وطلبات',
+                              'delivery_service_apps_message'.tr,
                               style: TextStyle(
                                 fontSize: 13,
-                                color: (theme.textTheme.bodyMedium?.color ?? textColor).withOpacity(0.8),
+                                color: (theme.textTheme.bodyMedium?.color ??
+                                        textColor)
+                                    .withOpacity(0.8),
                               ),
                             ),
                           ),
                         ],
                       ),
                       const SizedBox(height: 12),
-                      const Text(
-                        'أطلب الآن من:',
-                        style: TextStyle(
+                      Text(
+                        'order_now_from'.tr,
+                        style: const TextStyle(
                           fontSize: 12,
                           color: Color(0xFFFF5A00),
                         ),
@@ -653,14 +734,14 @@ class _LocationScreenState extends State<LocationScreen> {
                         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                         children: [
                           _buildDeliveryButton(
-                            'طلبات', 
-                            const Color(0xFFFF5A00), 
+                            'طلبات',
+                            const Color(0xFFFF5A00),
                             'https://www.talabat.com/bahrain/restaurant/755906/jbr-cafe-alhajiyat?aid=1031',
                           ),
                           const SizedBox(width: 10),
                           _buildDeliveryButton(
-                            'جاهز', 
-                            const Color(0xFFD30017), 
+                            'جاهز',
+                            const Color(0xFFD30017),
                             'https://www.instagram.com/jahezbh/?locale=slot%2Bdemo%2Bpg%2Bmahjong%2B3%E3%80%90777ONE.IN%E3%80%91.dgxn&hl=en',
                           ),
                         ],
@@ -672,9 +753,10 @@ class _LocationScreenState extends State<LocationScreen> {
                   return Row(
                     children: [
                       Icon(
-                        Icons.delivery_dining, 
-                        size: 16, 
-                        color: (theme.textTheme.bodyMedium?.color ?? textColor).withOpacity(0.6),
+                        Icons.delivery_dining,
+                        size: 16,
+                        color: (theme.textTheme.bodyMedium?.color ?? textColor)
+                            .withOpacity(0.6),
                       ),
                       const SizedBox(width: 8),
                       Expanded(
@@ -685,7 +767,9 @@ class _LocationScreenState extends State<LocationScreen> {
                               'نقدم خدمات التوصيل عبر تطبيقات جاهز وطلبات',
                               style: TextStyle(
                                 fontSize: 13,
-                                color: (theme.textTheme.bodyMedium?.color ?? textColor).withOpacity(0.8),
+                                color: (theme.textTheme.bodyMedium?.color ??
+                                        textColor)
+                                    .withOpacity(0.8),
                               ),
                             ),
                             const SizedBox(height: 8),
@@ -700,14 +784,14 @@ class _LocationScreenState extends State<LocationScreen> {
                                 ),
                                 const SizedBox(width: 10),
                                 _buildDeliveryButton(
-                                  'طلبات', 
-                                  const Color(0xFFFF5A00), 
+                                  'طلبات',
+                                  const Color(0xFFFF5A00),
                                   'https://www.talabat.com/bahrain/restaurant/755906/jbr-cafe-alhajiyat?aid=1031',
                                 ),
                                 const SizedBox(width: 10),
                                 _buildDeliveryButton(
-                                  'جاهز', 
-                                  const Color(0xFFD30017), 
+                                  'جاهز',
+                                  const Color(0xFFD30017),
                                   'https://www.instagram.com/jahezbh/?locale=slot%2Bdemo%2Bpg%2Bmahjong%2B3%E3%80%90777ONE.IN%E3%80%91.dgxn&hl=en',
                                 ),
                               ],
@@ -770,8 +854,8 @@ class _LocationScreenState extends State<LocationScreen> {
       await launchUrl(uri);
     } else {
       Get.snackbar(
-        'خطأ'.tr,
-        'لا يمكن فتح $url'.tr,
+        'error'.tr,
+        'cantOpen'.tr + ' $url',
       );
     }
   }

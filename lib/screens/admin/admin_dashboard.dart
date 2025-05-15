@@ -16,7 +16,6 @@ import 'package:gpr_coffee_shop/screens/admin/category_management.dart';
 import 'package:gpr_coffee_shop/screens/admin/product_management.dart';
 import 'package:gpr_coffee_shop/screens/admin/order_history.dart';
 import 'package:gpr_coffee_shop/screens/admin/feedback_management.dart';
-import 'package:gpr_coffee_shop/widgets/admin/data_card.dart';
 import 'package:gpr_coffee_shop/widgets/pop_scope.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:share_plus/share_plus.dart';
@@ -26,7 +25,6 @@ import 'package:gpr_coffee_shop/screens/admin/order_management_screen.dart';
 import 'package:intl/intl.dart';
 import 'package:gpr_coffee_shop/screens/admin/admin_notes.dart';
 import 'package:gpr_coffee_shop/widgets/admin/category_sales_chart.dart';
-import 'package:gpr_coffee_shop/utils/date_formatter.dart';
 import 'package:gpr_coffee_shop/widgets/pending_orders_panel.dart';
 import 'package:gpr_coffee_shop/screens/admin/sync_screen.dart';
 
@@ -195,12 +193,12 @@ class _AdminDashboardState extends State<AdminDashboard> {
             _buildAdminHeader(metrics),
 
             // قسم الإحصائيات والأرقام
-            _buildSectionHeader('الإحصائيات اليومية'),
+            _buildSectionHeader('today_statistics'.tr),
             _buildProfitDetailsCard(metrics),
             const SizedBox(height: 16),
 
             // عرض حالة الطلبات الحالية
-            _buildSectionHeader('حالة الطلبات'),
+            _buildSectionHeader('current_orders'.tr),
             _buildOrderStatusCard(metrics),
             const SizedBox(height: 24),
 
@@ -295,7 +293,8 @@ class _AdminDashboardState extends State<AdminDashboard> {
                   padding: const EdgeInsets.all(20.0),
                   child: Text(
                     'no_sales_data'.tr,
-                    style: const TextStyle(color: Color.fromARGB(255, 193, 192, 192)),
+                    style: const TextStyle(
+                        color: Color.fromARGB(255, 193, 192, 192)),
                   ),
                 ),
               ),
@@ -312,6 +311,7 @@ class _AdminDashboardState extends State<AdminDashboard> {
         padding: const EdgeInsets.all(16.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisSize: MainAxisSize.min, // To avoid unbounded height issues
           children: [
             Text(
               'popular_products'.tr,
@@ -347,7 +347,8 @@ class _AdminDashboardState extends State<AdminDashboard> {
               padding: const EdgeInsets.all(16.0),
               child: Text(
                 'no_recent_orders'.tr,
-                style: TextStyle(color: const Color.fromARGB(255, 183, 182, 182)),
+                style:
+                    const TextStyle(color: Color.fromARGB(255, 183, 182, 182)),
               ),
             ),
           )
@@ -423,7 +424,8 @@ class _AdminDashboardState extends State<AdminDashboard> {
                           padding: const EdgeInsets.all(16.0),
                           child: Text(
                             'no_recent_orders'.tr,
-                            style: TextStyle(color: const Color.fromARGB(255, 178, 177, 177)),
+                            style: const TextStyle(
+                                color: Color.fromARGB(255, 178, 177, 177)),
                           ),
                         ),
                       )
@@ -913,9 +915,9 @@ class _AdminDashboardState extends State<AdminDashboard> {
               trailing: const Icon(Icons.arrow_forward_ios, size: 16),
               onTap: _showClearCacheDialog,
             ),
-            
+
             const Divider(),
-            
+
             // إعادة ضبط المصنع (الموجود مسبقاً)
             ListTile(
               leading: const Icon(Icons.restore, color: Colors.red),
@@ -1283,10 +1285,10 @@ class _AdminDashboardState extends State<AdminDashboard> {
         const SizedBox(height: 2),
         Text(
           value,
-          style: TextStyle(
+          style: const TextStyle(
             fontSize: 14,
             fontWeight: FontWeight.bold,
-            color: const Color.fromARGB(255, 150, 150, 150),
+            color: Color.fromARGB(255, 150, 150, 150),
           ),
         ),
       ],
@@ -1504,7 +1506,7 @@ class _AdminDashboardState extends State<AdminDashboard> {
   Future<double> _calculateCacheSize() async {
     try {
       double totalSize = 0.0;
-      
+
       try {
         // استخدام مجلد التطبيق المؤقت فقط (وليس مجلد المستندات)
         final tempDir = await getTemporaryDirectory();
@@ -1512,7 +1514,7 @@ class _AdminDashboardState extends State<AdminDashboard> {
           final totalBytes = await _calculateSimpleDirectorySize(tempDir);
           totalSize += totalBytes;
         }
-        
+
         // استخدام مجلد الكاش الخاص بالتطبيق
         final appCacheDir = await getApplicationCacheDirectory();
         if (appCacheDir.existsSync()) {
@@ -1522,7 +1524,7 @@ class _AdminDashboardState extends State<AdminDashboard> {
       } catch (e) {
         LoggerUtil.logger.e('خطأ عند حساب حجم الكاش: $e');
       }
-      
+
       // تحويل الحجم من بايت إلى ميجابايت
       return totalSize / (1024 * 1024);
     } catch (e) {
@@ -1530,13 +1532,13 @@ class _AdminDashboardState extends State<AdminDashboard> {
       return 0.0;
     }
   }
-  
+
   // دالة بسيطة لحساب حجم المجلد بدون تكرار عميق
   Future<double> _calculateSimpleDirectorySize(Directory directory) async {
     double totalSize = 0;
     try {
       final List<FileSystemEntity> entities = directory.listSync();
-      
+
       for (var entity in entities) {
         try {
           if (entity is File) {
@@ -1552,12 +1554,12 @@ class _AdminDashboardState extends State<AdminDashboard> {
     }
     return totalSize;
   }
-  
+
   // مسح الكاش - نسخة محسنة تركز فقط على مجلدات التطبيق
   Future<bool> _clearCache() async {
     try {
       int filesCleared = 0;
-      
+
       // 1. مسح مجلد التطبيق المؤقت
       try {
         final tempDir = await getTemporaryDirectory();
@@ -1577,7 +1579,7 @@ class _AdminDashboardState extends State<AdminDashboard> {
       } catch (e) {
         LoggerUtil.logger.e('خطأ عند مسح مجلد التطبيق المؤقت: $e');
       }
-      
+
       // 2. مسح مجلد الكاش الخاص بالتطبيق
       try {
         final appCacheDir = await getApplicationCacheDirectory();
@@ -1597,7 +1599,7 @@ class _AdminDashboardState extends State<AdminDashboard> {
       } catch (e) {
         LoggerUtil.logger.e('خطأ عند مسح مجلد الكاش: $e');
       }
-      
+
       LoggerUtil.logger.i('تم مسح $filesCleared ملف من الكاش');
       return filesCleared > 0;
     } catch (e) {
@@ -1605,7 +1607,7 @@ class _AdminDashboardState extends State<AdminDashboard> {
       return false;
     }
   }
-  
+
   // عرض مربع حوار لمسح الكاش
   void _showClearCacheDialog() async {
     try {
@@ -1614,13 +1616,13 @@ class _AdminDashboardState extends State<AdminDashboard> {
         const Center(child: CircularProgressIndicator()),
         barrierDismissible: false,
       );
-      
+
       // حساب حجم الكاش
       final cacheSize = await _calculateCacheSize();
-      
+
       // إغلاق مؤشر التحميل
       Get.back();
-      
+
       // عرض مربع حوار التأكيد
       Get.dialog(
         AlertDialog(
@@ -1629,7 +1631,8 @@ class _AdminDashboardState extends State<AdminDashboard> {
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text('حجم الكاش الحالي: ${cacheSize.toStringAsFixed(2)} ميجابايت'),
+              Text(
+                  'حجم الكاش الحالي: ${cacheSize.toStringAsFixed(2)} ميجابايت'),
               const SizedBox(height: 16),
               const Text('هل أنت متأكد من رغبتك في مسح جميع ملفات الكاش؟'),
               const SizedBox(height: 8),
@@ -1647,19 +1650,19 @@ class _AdminDashboardState extends State<AdminDashboard> {
             ElevatedButton(
               onPressed: () async {
                 Get.back();
-                
+
                 // عرض مؤشر التحميل
                 Get.dialog(
                   const Center(child: CircularProgressIndicator()),
                   barrierDismissible: false,
                 );
-                
+
                 // مسح الكاش
                 final success = await _clearCache();
-                
+
                 // إغلاق مؤشر التحميل
                 Get.back();
-                
+
                 if (success) {
                   Get.snackbar(
                     'تم بنجاح',
@@ -1695,5 +1698,4 @@ class _AdminDashboardState extends State<AdminDashboard> {
       );
     }
   }
-
 }

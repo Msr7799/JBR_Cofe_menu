@@ -74,9 +74,9 @@ class _CategoryCardState extends State<CategoryCard>
               borderRadius: BorderRadius.circular(16),
               // إضافة بوردر خفيف للبطاقات
               side: BorderSide(
-                color: _isHovering 
-                  ? AppTheme.primaryColor.withOpacity(0.3) 
-                  : Colors.grey.withOpacity(0.2),
+                color: _isHovering
+                    ? AppTheme.primaryColor.withOpacity(0.3)
+                    : Colors.grey.withOpacity(0.2),
                 width: _isHovering ? 1.5 : 1.0,
               ),
             ),
@@ -163,10 +163,11 @@ class _CategoryCardState extends State<CategoryCard>
                 Expanded(
                   flex: 1,
                   child: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                     decoration: BoxDecoration(
-                      color: _isHovering 
-                          ? AppTheme.primaryColor.withOpacity(0.05) 
+                      color: _isHovering
+                          ? AppTheme.primaryColor.withOpacity(0.05)
                           : Colors.transparent,
                     ),
                     child: Column(

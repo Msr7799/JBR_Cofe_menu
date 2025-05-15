@@ -40,5 +40,6 @@
     "titleBar.inactiveBackground": "#33568199",
     "titleBar.inactiveForeground": "#e7e7e799"
   },
-  "peacock.color": "#335681"
+  "peacock.color": "#335681",
+  "cmake.sourceDirectory": "C:/Users/alrom/Desktop/MyApp/apk/JBR_Cofe_menu/windows"
 }
