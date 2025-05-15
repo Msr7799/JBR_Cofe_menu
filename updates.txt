@@ -1,1 +1,0 @@
-// Los valores de spacing han sido actualizados para reducir el espacio entre las tarjetas 
